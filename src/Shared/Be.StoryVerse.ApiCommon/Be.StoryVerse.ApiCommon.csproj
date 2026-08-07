@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>Be.StoryVerse.ApiCommon</RootNamespace>
+    <AssemblyName>Be.StoryVerse.ApiCommon</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.9.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Be.StoryVerse.Core\Be.StoryVerse.Core.csproj" />
+    <ProjectReference Include="..\Be.StoryVerse.Shared\Be.StoryVerse.Shared.csproj" />
+  </ItemGroup>
+
+</Project>

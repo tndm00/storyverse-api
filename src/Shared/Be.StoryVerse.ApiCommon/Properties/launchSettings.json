@@ -1,0 +1,12 @@
+{
+  "profiles": {
+    "Be.StoryVerse.ApiCommon": {
+      "commandName": "Project",
+      "launchBrowser": true,
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "applicationUrl": "https://localhost:58625;http://localhost:58628"
+    }
+  }
+}

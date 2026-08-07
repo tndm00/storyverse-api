@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>Be.StoryVerse.EventBus</RootNamespace>
+    <AssemblyName>Be.StoryVerse.EventBus</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Be.StoryVerse.Core\Be.StoryVerse.Core.csproj" />
+  </ItemGroup>
+
+</Project>
