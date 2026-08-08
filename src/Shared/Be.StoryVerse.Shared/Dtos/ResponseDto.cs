@@ -10,13 +10,13 @@ public sealed class ResponseDto<T>
 {
     public bool Success { get; init; }
 
-    public T? Data { get; init; }
+    public T Data { get; init; }
 
-    public ResponseErrorDto? Error { get; init; }
+    public ResponseErrorDto Error { get; init; }
 
     public ResponseMetaDto Meta { get; init; } = new();
 
-    public static ResponseDto<T> Ok(T data, ResponseMetaDto? meta = null)
+    public static ResponseDto<T> Ok(T data, ResponseMetaDto meta = null)
     {
         return new ResponseDto<T>
         {
@@ -27,7 +27,7 @@ public sealed class ResponseDto<T>
         };
     }
 
-    public static ResponseDto<T> Fail(ResponseErrorDto error, ResponseMetaDto? meta = null)
+    public static ResponseDto<T> Fail(ResponseErrorDto error, ResponseMetaDto meta = null)
     {
         return new ResponseDto<T>
         {
@@ -57,13 +57,13 @@ public sealed class ResponseErrorDto
 /// </summary>
 public sealed class ResponseMetaDto
 {
-    public string? RequestId { get; init; }
+    public string RequestId { get; init; }
 
-    public string? CorrelationId { get; init; }
+    public string CorrelationId { get; init; }
 
-    public string? TraceId { get; init; }
+    public string TraceId { get; init; }
 
-    public string? SpanId { get; init; }
+    public string SpanId { get; init; }
 
     public string Version { get; init; } = "1.0";
 

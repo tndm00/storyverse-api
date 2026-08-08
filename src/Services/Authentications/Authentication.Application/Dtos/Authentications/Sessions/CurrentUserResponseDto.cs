@@ -12,7 +12,7 @@ public sealed class CurrentUserResponseDto
 
     public string DisplayName { get; init; } = string.Empty;
 
-    public string? AvatarUrl { get; init; }
+    public string AvatarUrl { get; init; }
 
     public DateTimeOffset? LastLoginAt { get; init; }
 }

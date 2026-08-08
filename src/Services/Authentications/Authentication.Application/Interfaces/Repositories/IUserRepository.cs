@@ -6,9 +6,9 @@ namespace Authentication.Application.Interfaces.Repositories;
 /// </summary>
 public interface IUserRepository
 {
-    Task<User?> GetByIdAsync(long id, CancellationToken cancellationToken = default);
+    Task<User> GetByIdAsync(long id, CancellationToken cancellationToken = default);
 
-    Task<User?> GetByEmailAsync(string email, CancellationToken cancellationToken = default);
+    Task<User> GetByEmailAsync(string email, CancellationToken cancellationToken = default);
 
     Task<bool> ExistsByEmailAsync(string email, CancellationToken cancellationToken = default);
 

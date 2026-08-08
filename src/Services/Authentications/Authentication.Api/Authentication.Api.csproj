@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
+    <Nullable>disable</Nullable>
     <RootNamespace>Authentication.Api</RootNamespace>
     <AssemblyName>Authentication.Api</AssemblyName>
     <UserSecretsId>authentication-api-secrets</UserSecretsId>

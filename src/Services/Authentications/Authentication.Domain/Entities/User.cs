@@ -12,11 +12,11 @@ public sealed class User : BaseEntity
     /// <summary>
     /// Hashed password. Null when the account is OAuth-only.
     /// </summary>
-    public string? PasswordHash { get; set; }
+    public string PasswordHash { get; set; }
 
     public string DisplayName { get; set; } = string.Empty;
 
-    public string? AvatarUrl { get; set; }
+    public string AvatarUrl { get; set; }
 
     public UserStatus Status { get; set; } = UserStatus.Active;
 

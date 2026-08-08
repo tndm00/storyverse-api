@@ -9,12 +9,12 @@ public sealed class UserRepository : IUserRepository
         _dbContext = dbContext;
     }
 
-    public Task<User?> GetByIdAsync(long id, CancellationToken cancellationToken = default)
+    public Task<User> GetByIdAsync(long id, CancellationToken cancellationToken = default)
     {
         return _dbContext.Users.FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
     }
 
-    public Task<User?> GetByEmailAsync(string email, CancellationToken cancellationToken = default)
+    public Task<User> GetByEmailAsync(string email, CancellationToken cancellationToken = default)
     {
         return _dbContext.Users.FirstOrDefaultAsync(x => x.Email == email, cancellationToken);
     }

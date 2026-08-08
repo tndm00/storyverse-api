@@ -13,7 +13,7 @@ public static class StringValidationExtensions
     /// <summary>
     /// Basic email shape check. Full deliverability is not validated here.
     /// </summary>
-    public static bool IsValidEmail(this string? value)
+    public static bool IsValidEmail(this string value)
     {
         return !string.IsNullOrWhiteSpace(value) && EmailPattern.IsMatch(value);
     }
@@ -22,7 +22,7 @@ public static class StringValidationExtensions
     /// Enforces a minimum password strength: at least 8 characters, one letter
     /// and one digit. Kept intentionally simple for Phase 1.
     /// </summary>
-    public static bool IsStrongPassword(this string? value)
+    public static bool IsStrongPassword(this string value)
     {
         if (string.IsNullOrWhiteSpace(value) || value.Length < 8)
         {

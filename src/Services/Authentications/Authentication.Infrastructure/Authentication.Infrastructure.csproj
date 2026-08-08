@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
+    <Nullable>disable</Nullable>
     <RootNamespace>Authentication.Infrastructure</RootNamespace>
     <AssemblyName>Authentication.Infrastructure</AssemblyName>
   </PropertyGroup>
