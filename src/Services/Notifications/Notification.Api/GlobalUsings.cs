@@ -1,0 +1,14 @@
+global using System;
+global using System.Text;
+global using Notification.Api.Constants;
+global using Notification.Api.Extensions;
+global using Notification.Application.Extensions;
+global using Notification.Application.Options;
+global using Notification.Infrastructure.Extensions;
+global using Be.StoryVerse.ApiCommon.Extensions;
+global using Be.StoryVerse.ApiCommon.Middlewares;
+global using Microsoft.AspNetCore.Authentication.JwtBearer;
+global using Microsoft.AspNetCore.Authorization;
+global using Microsoft.Extensions.Configuration;
+global using Microsoft.Extensions.DependencyInjection;
+global using Microsoft.IdentityModel.Tokens;

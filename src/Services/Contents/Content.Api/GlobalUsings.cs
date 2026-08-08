@@ -1,0 +1,14 @@
+global using System;
+global using System.Text;
+global using Content.Api.Constants;
+global using Content.Api.Extensions;
+global using Content.Application.Extensions;
+global using Content.Application.Options;
+global using Content.Infrastructure.Extensions;
+global using Be.StoryVerse.ApiCommon.Extensions;
+global using Be.StoryVerse.ApiCommon.Middlewares;
+global using Microsoft.AspNetCore.Authentication.JwtBearer;
+global using Microsoft.AspNetCore.Authorization;
+global using Microsoft.Extensions.Configuration;
+global using Microsoft.Extensions.DependencyInjection;
+global using Microsoft.IdentityModel.Tokens;

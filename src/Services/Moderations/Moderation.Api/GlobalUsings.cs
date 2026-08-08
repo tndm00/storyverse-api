@@ -1,0 +1,14 @@
+global using System;
+global using System.Text;
+global using Moderation.Api.Constants;
+global using Moderation.Api.Extensions;
+global using Moderation.Application.Extensions;
+global using Moderation.Application.Options;
+global using Moderation.Infrastructure.Extensions;
+global using Be.StoryVerse.ApiCommon.Extensions;
+global using Be.StoryVerse.ApiCommon.Middlewares;
+global using Microsoft.AspNetCore.Authentication.JwtBearer;
+global using Microsoft.AspNetCore.Authorization;
+global using Microsoft.Extensions.Configuration;
+global using Microsoft.Extensions.DependencyInjection;
+global using Microsoft.IdentityModel.Tokens;

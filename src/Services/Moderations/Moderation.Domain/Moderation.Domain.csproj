@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>disable</Nullable>
+    <RootNamespace>Moderation.Domain</RootNamespace>
+    <AssemblyName>Moderation.Domain</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Shared\Be.StoryVerse.Core\Be.StoryVerse.Core.csproj" />
+    <ProjectReference Include="..\..\..\Shared\Be.StoryVerse.EventBus\Be.StoryVerse.EventBus.csproj" />
+    <ProjectReference Include="..\..\..\Shared\Be.StoryVerse.Shared\Be.StoryVerse.Shared.csproj" />
+  </ItemGroup>
+
+</Project>
