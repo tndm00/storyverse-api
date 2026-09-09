@@ -25,5 +25,5 @@ jobs:
       - name: Build
         run: dotnet build Be.StoryVerse.sln --no-restore --configuration Release
 
-      # No test projects yet. Add a `dotnet test` step here once *.Tests
-      # projects exist, per code-standard.md testing conventions.
+      - name: Test
+        run: dotnet test Be.StoryVerse.sln --no-build --configuration Release --logger "console;verbosity=normal"
