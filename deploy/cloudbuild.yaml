@@ -1,0 +1,63 @@
+# Build one service image and deploy it to Cloud Run.
+#
+#   gcloud builds submit --config deploy/cloudbuild.yaml \
+#     --substitutions=_SERVICE=content,_REGION=asia-southeast1,_TAG=$(git rev-parse --short HEAD)
+#
+# Prereqs: an Artifact Registry Docker repo named $_REPO in $_REGION, and the
+# Cloud Build service account granted roles/run.admin + roles/iam.serviceAccountUser.
+
+substitutions:
+  _SERVICE: content # authentication | content | community | library | moderation | notification
+  _REGION: asia-southeast1
+  _REPO: storyverse
+  _TAG: manual
+  _SERVICE_NAME_PREFIX: storyverse-
+
+options:
+  logging: CLOUD_LOGGING_ONLY
+
+images:
+  - "${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPO}/${_SERVICE}:${_TAG}"
+  - "${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPO}/${_SERVICE}:latest"
+
+steps:
+  - id: build
+    name: gcr.io/cloud-builders/docker
+    args:
+      - build
+      - -f
+      - deploy/${_SERVICE}/Dockerfile
+      - -t
+      - ${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPO}/${_SERVICE}:${_TAG}
+      - -t
+      - ${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPO}/${_SERVICE}:latest
+      - .
+
+  - id: push
+    name: gcr.io/cloud-builders/docker
+    args:
+      - push
+      - --all-tags
+      - ${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPO}/${_SERVICE}
+
+  - id: deploy
+    name: gcr.io/google.com/cloudsdktool/cloud-sdk
+    entrypoint: gcloud
+    args:
+      - run
+      - deploy
+      - ${_SERVICE_NAME_PREFIX}${_SERVICE}
+      - --image=${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPO}/${_SERVICE}:${_TAG}
+      - --region=${_REGION}
+      - --platform=managed
+      - --port=8080
+      - --allow-unauthenticated
+      - --cpu=1
+      - --memory=512Mi
+      - --min-instances=0
+      - --max-instances=4
+      - --concurrency=80
+      - --timeout=30s
+      # env + secrets are set per service outside this file — see deploy/README.md.
+      # Re-applied here only if you keep them in a service.yaml; otherwise the
+      # existing Cloud Run config is preserved across deploys.

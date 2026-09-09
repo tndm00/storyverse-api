@@ -8,7 +8,15 @@ public static class ServiceRegistration
 {
     public static IServiceCollection AddApiServices(this IServiceCollection services, IConfiguration configuration)
     {
-        services.AddControllers();
+        services
+            .AddControllers()
+            .AddJsonOptions(options =>
+            {
+                // Accept/emit enum names (e.g. "NewChapter") rather than ordinals,
+                // so request/response contracts stay business-readable and never
+                // leak enum numbering (api-guidelines.md section 10-11).
+                options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+            });
 
         services.AddStoryVerseSwagger(ApiConstants.SwaggerTitle);
 
@@ -18,6 +26,10 @@ public static class ServiceRegistration
             .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             .AddJwtBearer(options =>
             {
+                // Keep JWT claim types verbatim ("sub", ...) so the Application
+                // layer can read them by their registered names.
+                options.MapInboundClaims = false;
+
                 options.TokenValidationParameters = new TokenValidationParameters
                 {
                     ValidateIssuer = true,
@@ -32,6 +44,8 @@ public static class ServiceRegistration
             });
 
         services.AddAuthorization();
+
+        services.AddStoryVerseCors(configuration);
 
         return services;
     }

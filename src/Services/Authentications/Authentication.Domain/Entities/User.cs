@@ -21,4 +21,25 @@ public sealed class User : BaseEntity
     public UserStatus Status { get; set; } = UserStatus.Active;
 
     public DateTime? LastLoginAt { get; set; }
+
+    /// <summary>
+    /// External identity provider this account is linked to (e.g. <c>Google</c>),
+    /// or null for a password-only account. An account may have both a password
+    /// and a linked provider.
+    /// </summary>
+    public string ExternalProvider { get; set; }
+
+    /// <summary>
+    /// Stable subject identifier issued by <see cref="ExternalProvider"/> (the
+    /// Google <c>sub</c> claim). Null when no provider is linked. Matched on
+    /// before email so a provider re-using an email cannot take over an account.
+    /// </summary>
+    public string ExternalId { get; set; }
+
+    /// <summary>
+    /// Roles granted to this account. Every account is at least a
+    /// <see cref="Enums.Role.Reader"/>; an author onboarding adds
+    /// <see cref="Enums.Role.Author"/>.
+    /// </summary>
+    public ICollection<UserRole> Roles { get; } = new List<UserRole>();
 }

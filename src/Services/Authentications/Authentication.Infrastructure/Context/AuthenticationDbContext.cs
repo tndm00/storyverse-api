@@ -12,6 +12,10 @@ public sealed class AuthenticationDbContext : DbContext
 
     public DbSet<User> Users => Set<User>();
 
+    public DbSet<AuthorProfile> AuthorProfiles => Set<AuthorProfile>();
+
+    public DbSet<UserRole> UserRoles => Set<UserRole>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);

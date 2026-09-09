@@ -14,6 +14,9 @@ public sealed class AuthenticationMappingConfig : IRegister
 
         config.NewConfig<User, CurrentUserResponseDto>()
             .Map(dest => dest.UserId, src => src.Id)
-            .Map(dest => dest.LastLoginAt, src => src.LastLoginAt);
+            .Map(dest => dest.LastLoginAt, src => src.LastLoginAt)
+            // Role names are resolved separately (User.Roles holds join rows, not
+            // strings); the query handler sets this after mapping.
+            .Ignore(dest => dest.Roles);
     }
 }

@@ -3,13 +3,16 @@ namespace Moderation.Infrastructure.Context;
 /// <summary>
 /// EF Core context for the Moderation service. Only Infrastructure may
 /// reference this type, per code-standard.md section 23 (DbContext Rules).
-/// Add DbSet properties here as Moderation.Domain entities are introduced.
 /// </summary>
 public sealed class ModerationDbContext : DbContext
 {
     public ModerationDbContext(DbContextOptions<ModerationDbContext> options) : base(options)
     {
     }
+
+    public DbSet<Report> Reports => Set<Report>();
+
+    public DbSet<ModerationAction> ModerationActions => Set<ModerationAction>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

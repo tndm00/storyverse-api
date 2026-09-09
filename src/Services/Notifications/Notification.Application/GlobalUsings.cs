@@ -1,8 +1,18 @@
 global using System;
+global using System.Collections.Generic;
+global using System.Linq;
 global using System.Reflection;
 global using System.Threading;
 global using System.Threading.Tasks;
 global using Notification.Application.Constants;
+global using Notification.Application.Dtos;
+global using Notification.Application.Interfaces.Persistence;
+global using Notification.Application.Interfaces.Repositories;
+global using Notification.Application.Interfaces.Services;
+global using Notification.Application.Mappings;
+global using Notification.Domain.Enums;
+global using NotificationEntity = Notification.Domain.Entities.Notification;
+global using Be.StoryVerse.Core.Behaviors;
 global using Be.StoryVerse.Core.Exceptions;
 global using Be.StoryVerse.Core.Extensions.Validations;
 global using Be.StoryVerse.Core.Interfaces.Commands;

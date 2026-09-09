@@ -4,18 +4,18 @@ public sealed class LoginCommandHandler : ICommandHandler<LoginCommand, LoginRes
 {
     private readonly IUserRepository _userRepository;
     private readonly IPasswordHasher _passwordHasher;
-    private readonly ITokenService _tokenService;
+    private readonly IUserSessionIssuer _sessionIssuer;
     private readonly ILogger<LoginCommandHandler> _logger;
 
     public LoginCommandHandler(
         IUserRepository userRepository,
         IPasswordHasher passwordHasher,
-        ITokenService tokenService,
+        IUserSessionIssuer sessionIssuer,
         ILogger<LoginCommandHandler> logger)
     {
         _userRepository = userRepository;
         _passwordHasher = passwordHasher;
-        _tokenService = tokenService;
+        _sessionIssuer = sessionIssuer;
         _logger = logger;
     }
 
@@ -40,21 +40,10 @@ public sealed class LoginCommandHandler : ICommandHandler<LoginCommand, LoginRes
             throw new BadRequestException(ApplicationErrorConstants.AccountNotActive);
         }
 
-        var accessToken = _tokenService.GenerateAccessToken(user);
-        var refreshToken = _tokenService.GenerateRefreshToken();
-
-        user.LastLoginAt = DateTime.UtcNow;
-        _userRepository.Update(user);
-        await _userRepository.SaveChangesAsync(cancellationToken);
+        var session = await _sessionIssuer.IssueAsync(user, cancellationToken);
 
         _logger.LogInformation(ApplicationLogConstants.LoginSucceeded, user.Id);
 
-        return new LoginResponseDto
-        {
-            AccessToken = accessToken.Value,
-            AccessTokenExpiresAt = accessToken.ExpiresAt,
-            RefreshToken = refreshToken.Value,
-            RefreshTokenExpiresAt = refreshToken.ExpiresAt
-        };
+        return session;
     }
 }

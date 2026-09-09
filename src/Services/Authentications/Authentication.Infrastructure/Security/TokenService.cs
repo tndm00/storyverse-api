@@ -3,8 +3,9 @@ namespace Authentication.Infrastructure.Security;
 /// <summary>
 /// Issues short-lived JWT access tokens and opaque refresh tokens, per
 /// auth-guidelines.md sections 8-10. Claims are kept minimal: subject, jti,
-/// issuer, audience, and expiration only -- no roles/permissions/PII, matching
-/// the "keep token claims minimal and stable" rule.
+/// issuer, audience, expiration, the optional <c>author_id</c>, and the caller's
+/// role names -- no permissions or PII, matching the "keep token claims minimal
+/// and stable" rule. Services expand roles to permissions locally.
 /// </summary>
 public sealed class TokenService : ITokenService
 {
@@ -15,7 +16,10 @@ public sealed class TokenService : ITokenService
         _options = options.Value;
     }
 
-    public GeneratedToken GenerateAccessToken(User user)
+    public GeneratedToken GenerateAccessToken(
+        User user,
+        long? authorProfileId = null,
+        IReadOnlyCollection<Role> roles = null)
     {
         var now = DateTimeOffset.UtcNow;
         var expiresAt = now.AddMinutes(_options.AccessTokenMinutes);
@@ -26,6 +30,21 @@ public sealed class TokenService : ITokenService
             new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
             new(JwtRegisteredClaimNames.Iat, now.ToUnixTimeSeconds().ToString(), ClaimValueTypes.Integer64)
         };
+
+        // Role names only (enum name == the shared StoryVerseRoles contract).
+        // Consumers map roles -> permissions via RolePermissionMap.
+        foreach (var role in roles ?? Array.Empty<Role>())
+        {
+            claims.Add(new Claim(AuthConstants.RolesClaimType, role.ToString()));
+        }
+
+        // Publishing identity. Content services read this claim to establish
+        // content ownership; the claim name is shared via AuthConstants so the
+        // issuer and every consumer agree on it. Absent for reader-only accounts.
+        if (authorProfileId is > 0)
+        {
+            claims.Add(new Claim(AuthConstants.AuthorProfileIdClaimType, authorProfileId.Value.ToString()));
+        }
 
         var signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_options.SecretKey));
         var credentials = new SigningCredentials(signingKey, SecurityAlgorithms.HmacSha256);

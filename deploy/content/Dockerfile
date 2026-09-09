@@ -1,6 +1,17 @@
+# syntax=docker/dockerfile:1
+# Content.Api  ->  Google Cloud Run
+#
+# Build context is the repository root (story-be-prj/):
+#   docker build -f deploy/content/Dockerfile -t content .
+# See deploy/README.md for the full runbook.
+
+# ---- build --------------------------------------------------------------
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 
+# Restore against project files only, so the restore layer stays cached until a
+# .csproj actually changes.
 COPY Be.StoryVerse.sln .
 COPY src/Services/Contents/Content.Api/Content.Api.csproj src/Services/Contents/Content.Api/
 COPY src/Services/Contents/Content.Application/Content.Application.csproj src/Services/Contents/Content.Application/
@@ -11,21 +22,26 @@ COPY src/Shared/Be.StoryVerse.Cache/Be.StoryVerse.Cache.csproj src/Shared/Be.Sto
 COPY src/Shared/Be.StoryVerse.Core/Be.StoryVerse.Core.csproj src/Shared/Be.StoryVerse.Core/
 COPY src/Shared/Be.StoryVerse.EventBus/Be.StoryVerse.EventBus.csproj src/Shared/Be.StoryVerse.EventBus/
 COPY src/Shared/Be.StoryVerse.Shared/Be.StoryVerse.Shared.csproj src/Shared/Be.StoryVerse.Shared/
-
 RUN dotnet restore src/Services/Contents/Content.Api/Content.Api.csproj
 
 COPY src/ src/
-
 RUN dotnet publish src/Services/Contents/Content.Api/Content.Api.csproj \
-    -c Release -o /app --no-restore
+    -c "$BUILD_CONFIGURATION" -o /app --no-restore -p:UseAppHost=false
 
+# ---- runtime ----------------------------------------------------------
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
 WORKDIR /app
 COPY --from=build /app .
 
-# GCP Cloud Run / Cloud Storage / Secret Manager expect the container to
-# listen on $PORT; see code-standard.md section 39 (GCP Usage Rules).
-ENV ASPNETCORE_URLS=http://+:8080
+# Non-root user baked into the .NET base images.
+USER $APP_UID
+
+ENV ASPNETCORE_ENVIRONMENT=Production \
+    ASPNETCORE_FORWARDEDHEADERS_ENABLED=true \
+    DOTNET_gcServer=1
+
 EXPOSE 8080
 
-ENTRYPOINT ["dotnet", "Content.Api.dll"]
+# Cloud Run injects $PORT (8080 by default). `exec` keeps the app as PID 1 so it
+# receives SIGTERM for graceful shutdown.
+ENTRYPOINT ["/bin/sh", "-c", "exec dotnet Content.Api.dll --urls http://0.0.0.0:${PORT:-8080}"]

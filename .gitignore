@@ -34,3 +34,8 @@ Thumbs.db
 
 # Internal AI agent rule/context docs — not published to the repo
 rules/
+
+# Runtime / junk
+*.stackdump
+*.rar
+deploy/.logs/

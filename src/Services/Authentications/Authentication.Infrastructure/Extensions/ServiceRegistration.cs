@@ -15,13 +15,17 @@ public static class ServiceRegistration
             options.UseNpgsql(connectionString));
 
         services.Configure<JwtOptions>(configuration.GetSection(JwtOptions.SectionName));
+        services.Configure<GoogleAuthOptions>(configuration.GetSection(GoogleAuthOptions.SectionName));
 
         services.AddHttpContextAccessor();
 
         services.AddScoped<IUserRepository, UserRepository>();
+        services.AddScoped<IAuthorProfileRepository, AuthorProfileRepository>();
         services.AddScoped<IPasswordHasher, PasswordHasher>();
         services.AddScoped<ITokenService, TokenService>();
         services.AddScoped<ICurrentUserService, CurrentUserService>();
+        services.AddScoped<IGoogleTokenValidator, GoogleTokenValidator>();
+        services.AddScoped<IUserSessionIssuer, UserSessionIssuer>();
 
         return services;
     }

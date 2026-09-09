@@ -1,6 +1,10 @@
 global using System;
+global using System.Collections.Generic;
+global using System.Linq;
 global using System.Text.RegularExpressions;
 global using System.Threading;
 global using System.Threading.Tasks;
+global using Be.StoryVerse.Core.Exceptions;
 global using Be.StoryVerse.Core.Models;
+global using FluentValidation;
 global using MediatR;

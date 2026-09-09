@@ -14,6 +14,17 @@ public static class ServiceRegistration
         services.AddDbContext<ContentDbContext>(options =>
             options.UseNpgsql(connectionString));
 
+        services.AddHttpContextAccessor();
+
+        services.AddScoped<IContentUnitOfWork, ContentUnitOfWork>();
+
+        services.AddScoped<IStoryRepository, StoryRepository>();
+        services.AddScoped<IChapterRepository, ChapterRepository>();
+        services.AddScoped<IVolumeRepository, VolumeRepository>();
+        services.AddScoped<IGenreRepository, GenreRepository>();
+        services.AddScoped<ITagRepository, TagRepository>();
+        services.AddScoped<ICurrentAuthorContext, CurrentAuthorContext>();
+
         return services;
     }
 }

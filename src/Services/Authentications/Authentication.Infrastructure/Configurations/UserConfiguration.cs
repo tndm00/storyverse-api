@@ -36,6 +36,17 @@ public sealed class UserConfiguration : IEntityTypeConfiguration<User>
             .HasMaxLength(20)
             .IsRequired();
 
+        builder.Property(x => x.ExternalProvider)
+            .HasMaxLength(20);
+
+        builder.Property(x => x.ExternalId)
+            .HasMaxLength(128);
+
+        // Postgres keeps multiple NULLs distinct, so this uniquely pins a linked
+        // provider identity to one account without needing a partial-index filter.
+        builder.HasIndex(x => x.ExternalId)
+            .IsUnique();
+
         builder.Property(x => x.CreatedAt)
             .IsRequired();
     }

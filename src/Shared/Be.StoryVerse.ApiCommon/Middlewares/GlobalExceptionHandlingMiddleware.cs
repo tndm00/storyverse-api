@@ -8,6 +8,10 @@ namespace Be.StoryVerse.ApiCommon.Middlewares;
 /// </summary>
 public sealed class GlobalExceptionHandlingMiddleware
 {
+    // Match the casing MVC uses for successful responses (camelCase) so the
+    // error and success envelopes are byte-for-byte consistent for clients.
+    private static readonly JsonSerializerOptions SerializerOptions = new(JsonSerializerDefaults.Web);
+
     private readonly RequestDelegate _next;
     private readonly ILogger<GlobalExceptionHandlingMiddleware> _logger;
 
@@ -55,7 +59,7 @@ public sealed class GlobalExceptionHandlingMiddleware
         context.Response.ContentType = ApiCommonConstants.JsonContentType;
         context.Response.StatusCode = (int)statusCode;
 
-        await context.Response.WriteAsync(JsonSerializer.Serialize(response));
+        await context.Response.WriteAsync(JsonSerializer.Serialize(response, SerializerOptions));
     }
 
     private static (HttpStatusCode StatusCode, string ErrorCode) Map(Exception exception) => exception switch

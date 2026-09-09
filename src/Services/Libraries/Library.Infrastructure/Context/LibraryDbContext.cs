@@ -3,13 +3,16 @@ namespace Library.Infrastructure.Context;
 /// <summary>
 /// EF Core context for the Library service. Only Infrastructure may
 /// reference this type, per code-standard.md section 23 (DbContext Rules).
-/// Add DbSet properties here as Library.Domain entities are introduced.
 /// </summary>
 public sealed class LibraryDbContext : DbContext
 {
     public LibraryDbContext(DbContextOptions<LibraryDbContext> options) : base(options)
     {
     }
+
+    public DbSet<LibraryEntry> LibraryEntries => Set<LibraryEntry>();
+
+    public DbSet<ReadingProgress> ReadingProgress => Set<ReadingProgress>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

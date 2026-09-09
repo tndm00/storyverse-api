@@ -33,6 +33,9 @@ public sealed class RegisterCommandHandler : ICommandHandler<RegisterCommand, Re
             DisplayName = request.DisplayName
         };
 
+        // Every account starts as a Reader; an author onboarding adds Author.
+        user.Roles.Add(new UserRole { Role = Role.Reader });
+
         await _userRepository.AddAsync(user, cancellationToken);
         await _userRepository.SaveChangesAsync(cancellationToken);
 

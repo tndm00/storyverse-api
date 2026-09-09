@@ -18,6 +18,11 @@ public sealed class GetCurrentUserQueryHandler : IQueryHandler<GetCurrentUserQue
         var user = await _userRepository.GetByIdAsync(userId, cancellationToken)
             ?? throw new NotFoundException(ApplicationErrorConstants.UserNotFound);
 
-        return user.Adapt<CurrentUserResponseDto>();
+        var roles = await _userRepository.GetRolesAsync(userId, cancellationToken);
+
+        return user.Adapt<CurrentUserResponseDto>() with
+        {
+            Roles = roles.Select(role => role.ToString()).ToArray()
+        };
     }
 }
