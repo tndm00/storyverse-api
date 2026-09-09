@@ -14,6 +14,14 @@ public static class ServiceRegistration
         services.AddDbContext<ModerationDbContext>(options =>
             options.UseNpgsql(connectionString));
 
+        services.AddHttpContextAccessor();
+
+        services.AddScoped<IModerationUnitOfWork, ModerationUnitOfWork>();
+
+        services.AddScoped<IReportRepository, ReportRepository>();
+        services.AddScoped<IModerationActionRepository, ModerationActionRepository>();
+        services.AddScoped<ICurrentUserContext, CurrentUserContext>();
+
         return services;
     }
 }

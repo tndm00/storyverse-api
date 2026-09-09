@@ -14,4 +14,14 @@ public static class ApplicationLogConstants
     public const string LoginSucceeded = "User {UserId} logged in successfully.";
     public const string LoginFailedInvalidCredentials = "Login failed: invalid credentials for email {Email}.";
     public const string LoginFailedAccountNotActive = "Login failed: account {UserId} is not active.";
+
+    public const string GoogleLoginAttempt = "Google login attempt.";
+    public const string GoogleLoginSucceeded = "User {UserId} logged in with Google.";
+    public const string GoogleLoginFailedUnverifiedEmail = "Google login failed: token carried an unverified email.";
+    public const string GoogleAccountLinked = "Linked Google identity to existing user {UserId}.";
+    public const string GoogleUserProvisioned = "Provisioned a new user from Google sign-in for email {Email}.";
+
+    public const string AuthorProfileCreateAttempt = "Author profile creation attempt for user {UserId}.";
+    public const string AuthorProfileCreated = "Author profile {AuthorProfileId} created for user {UserId}.";
+    public const string AuthorProfileCreateFailedExists = "Author profile creation failed: user {UserId} already has one.";
 }

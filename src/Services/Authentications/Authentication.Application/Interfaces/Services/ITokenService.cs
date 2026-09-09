@@ -7,7 +7,18 @@ namespace Authentication.Application.Interfaces.Services;
 /// </summary>
 public interface ITokenService
 {
-    GeneratedToken GenerateAccessToken(User user);
+    /// <summary>
+    /// Issues an access token for <paramref name="user"/>. When the user has a
+    /// publishing identity, <paramref name="authorProfileId"/> is stamped into
+    /// the <c>author_id</c> claim so content services can establish content
+    /// ownership without a cross-service call; pass <c>null</c> for a
+    /// reader-only account. <paramref name="roles"/> is emitted one claim per
+    /// role; services expand roles to permissions locally.
+    /// </summary>
+    GeneratedToken GenerateAccessToken(
+        User user,
+        long? authorProfileId = null,
+        IReadOnlyCollection<Role> roles = null);
 
     GeneratedToken GenerateRefreshToken();
 }

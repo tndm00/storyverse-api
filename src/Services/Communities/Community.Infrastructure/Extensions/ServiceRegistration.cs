@@ -14,6 +14,15 @@ public static class ServiceRegistration
         services.AddDbContext<CommunityDbContext>(options =>
             options.UseNpgsql(connectionString));
 
+        services.AddHttpContextAccessor();
+
+        services.AddScoped<ICommunityUnitOfWork, CommunityUnitOfWork>();
+
+        services.AddScoped<ICommentRepository, CommentRepository>();
+        services.AddScoped<IRatingRepository, RatingRepository>();
+        services.AddScoped<IVoteRepository, VoteRepository>();
+        services.AddScoped<ICurrentUserContext, CurrentUserContext>();
+
         return services;
     }
 }

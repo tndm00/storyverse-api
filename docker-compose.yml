@@ -1,0 +1,23 @@
+# Local dev dependencies for StoryVerse.
+# Usage:  docker compose up -d
+# The Authentication and Content databases are created automatically by
+# `dotnet ef database update` — this only needs to provide a running server.
+services:
+  postgres:
+    image: postgres:16
+    container_name: storyverse-pg
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - storyverse-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  storyverse-pgdata:

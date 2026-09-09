@@ -3,13 +3,18 @@ namespace Community.Infrastructure.Context;
 /// <summary>
 /// EF Core context for the Community service. Only Infrastructure may
 /// reference this type, per code-standard.md section 23 (DbContext Rules).
-/// Add DbSet properties here as Community.Domain entities are introduced.
 /// </summary>
 public sealed class CommunityDbContext : DbContext
 {
     public CommunityDbContext(DbContextOptions<CommunityDbContext> options) : base(options)
     {
     }
+
+    public DbSet<Comment> Comments => Set<Comment>();
+
+    public DbSet<Rating> Ratings => Set<Rating>();
+
+    public DbSet<Vote> Votes => Set<Vote>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

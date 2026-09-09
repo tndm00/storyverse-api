@@ -1,3 +1,5 @@
+using Content.Api.Seed;
+
 namespace Content.Api.Extensions;
 
 /// <summary>
@@ -8,7 +10,15 @@ public static class ServiceRegistration
 {
     public static IServiceCollection AddApiServices(this IServiceCollection services, IConfiguration configuration)
     {
-        services.AddControllers();
+        services
+            .AddControllers()
+            .AddJsonOptions(options =>
+            {
+                // Accept/emit enum names (e.g. "Draft", "Translated") rather than
+                // ordinals, so request/response contracts stay business-readable
+                // and never leak enum numbering (api-guidelines.md section 10-11).
+                options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+            });
 
         services.AddStoryVerseSwagger(ApiConstants.SwaggerTitle);
 
@@ -18,6 +28,10 @@ public static class ServiceRegistration
             .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             .AddJwtBearer(options =>
             {
+                // Keep JWT claim types verbatim ("sub", "author_id", ...) so the
+                // Application layer can read them by their registered names.
+                options.MapInboundClaims = false;
+
                 options.TokenValidationParameters = new TokenValidationParameters
                 {
                     ValidateIssuer = true,
@@ -31,7 +45,16 @@ public static class ServiceRegistration
                 };
             });
 
-        services.AddAuthorization();
+        // Permission-based authorization: one "perm:<permission>" policy per
+        // StoryVersePermissions entry, backed by the shared role->permission map.
+        services.AddStoryVersePermissions();
+
+        services.AddStoryVerseCors(configuration);
+
+        // Dev-only seeders. GenreSeeder must run first — DemoContentSeeder looks
+        // its genres up by slug. Hosted services start in registration order.
+        services.AddHostedService<GenreSeeder>();
+        services.AddHostedService<DemoContentSeeder>();
 
         return services;
     }

@@ -18,6 +18,11 @@ public static class ServiceRegistration
             .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             .AddJwtBearer(options =>
             {
+                // Keep JWT claim types verbatim ("sub", "jti", "author_id", ...); the
+                // Application layer reads them by their registered names, not the legacy
+                // SOAP-schema URIs the default inbound mapper would rewrite them to.
+                options.MapInboundClaims = false;
+
                 options.TokenValidationParameters = new TokenValidationParameters
                 {
                     ValidateIssuer = true,
@@ -32,6 +37,12 @@ public static class ServiceRegistration
             });
 
         services.AddAuthorization();
+
+        // Dev bootstrap: promote configured emails to PlatformAdmin once they
+        // register (Seed:PlatformAdminEmails). No-op when the list is empty.
+        services.AddHostedService<PlatformAdminSeeder>();
+
+        services.AddStoryVerseCors(configuration);
 
         return services;
     }

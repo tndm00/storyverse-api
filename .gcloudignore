@@ -1,0 +1,19 @@
+# What `gcloud builds submit` uploads. Mirrors .dockerignore.
+.git/
+.github/
+.gitignore
+.vs/
+.vscode/
+.idea/
+**/bin/
+**/obj/
+**/node_modules/
+rules/
+rules.rar
+*.rar
+*.md
+docker-compose.yml
+**/appsettings.Development.json
+**/*.user
+**/launchSettings.json
+**/*.stackdump

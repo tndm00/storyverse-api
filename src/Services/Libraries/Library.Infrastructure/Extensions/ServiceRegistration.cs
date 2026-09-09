@@ -14,6 +14,14 @@ public static class ServiceRegistration
         services.AddDbContext<LibraryDbContext>(options =>
             options.UseNpgsql(connectionString));
 
+        services.AddHttpContextAccessor();
+
+        services.AddScoped<ILibraryUnitOfWork, LibraryUnitOfWork>();
+
+        services.AddScoped<ILibraryEntryRepository, LibraryEntryRepository>();
+        services.AddScoped<IReadingProgressRepository, ReadingProgressRepository>();
+        services.AddScoped<ICurrentUserContext, CurrentUserContext>();
+
         return services;
     }
 }

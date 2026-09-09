@@ -1,0 +1,27 @@
+# Build context is the repo root. Keep it to source + project files.
+**/bin/
+**/obj/
+**/.vs/
+**/node_modules/
+.git/
+.github/
+.vscode/
+.idea/
+.editorconfig
+
+# Not needed inside the image
+deploy/
+rules/
+rules.rar
+*.rar
+*.md
+docker-compose.yml
+LICENSE
+
+# Never ship local/dev config or user files
+**/appsettings.Development.json
+**/appsettings.*.Development.json
+**/*.user
+**/launchSettings.json
+**/.env
+**/*.stackdump

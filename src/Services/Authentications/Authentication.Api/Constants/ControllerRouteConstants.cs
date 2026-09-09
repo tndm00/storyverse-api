@@ -11,5 +11,11 @@ public static class ControllerRouteConstants
 
     public const string RegisterSegment = "register";
     public const string LoginSegment = "login";
+    public const string GoogleLoginSegment = "google";
     public const string MeSegment = "me";
+
+    /// <summary>Caller's own publishing identity: <c>POST</c> to create, <c>GET</c> to read.</summary>
+    public const string AuthorProfileSegment = "author-profile";
+
+    public const string PublicAuthorSegment = "authors/{authorProfileId:long}";
 }

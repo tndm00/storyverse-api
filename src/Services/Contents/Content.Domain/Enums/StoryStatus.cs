@@ -1,0 +1,15 @@
+namespace Content.Domain.Enums;
+
+/// <summary>
+/// Publication lifecycle of a <see cref="Content.Domain.Entities.Story"/>, per
+/// product-workflow-context.md section 7. A story reaches <see cref="Ongoing"/>
+/// only once it has at least one published chapter.
+/// </summary>
+public enum StoryStatus
+{
+    Draft,
+    Ongoing,
+    Completed,
+    Hiatus,
+    Dropped
+}

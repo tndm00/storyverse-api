@@ -14,6 +14,10 @@ public static class ServiceRegistration
         services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(assembly));
         services.AddValidatorsFromAssembly(assembly);
 
+        // Runs request validators before their handler; without this the
+        // registered validators would never execute.
+        services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
+
         // Registers IRegister implementations such as AuthenticationMappingConfig
         // against the global Mapster config; handlers call .Adapt<T>() directly.
         TypeAdapterConfig.GlobalSettings.Scan(assembly);

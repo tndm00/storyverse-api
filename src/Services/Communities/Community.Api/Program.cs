@@ -19,6 +19,8 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+app.UseStoryVerseCors();
+
 app.UseAuthentication();
 app.UseAuthorization();
 

@@ -14,6 +14,12 @@ public static class ServiceRegistration
         services.AddDbContext<NotificationDbContext>(options =>
             options.UseNpgsql(connectionString));
 
+        services.AddHttpContextAccessor();
+
+        services.AddScoped<INotificationUnitOfWork, NotificationUnitOfWork>();
+        services.AddScoped<INotificationRepository, NotificationRepository>();
+        services.AddScoped<ICurrentUserContext, CurrentUserContext>();
+
         return services;
     }
 }

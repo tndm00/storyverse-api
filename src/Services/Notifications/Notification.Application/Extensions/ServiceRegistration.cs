@@ -1,9 +1,9 @@
 namespace Notification.Application.Extensions;
 
 /// <summary>
-/// Registers Application-layer services: MediatR handlers, FluentValidation
-/// validators, and Mapster mappings, per codebase-architecture-flow.md section 8
-/// (DI registration pattern).
+/// Registers Application-layer services: MediatR handlers + validation pipeline,
+/// FluentValidation validators, and Mapster mappings, per
+/// codebase-architecture-flow.md section 8 (DI registration pattern).
 /// </summary>
 public static class ServiceRegistration
 {
@@ -13,6 +13,10 @@ public static class ServiceRegistration
 
         services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(assembly));
         services.AddValidatorsFromAssembly(assembly);
+
+        // Runs request validators before their handler; without this the
+        // registered validators would never execute.
+        services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
 
         TypeAdapterConfig.GlobalSettings.Scan(assembly);
 

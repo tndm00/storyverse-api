@@ -3,13 +3,14 @@ namespace Notification.Infrastructure.Context;
 /// <summary>
 /// EF Core context for the Notification service. Only Infrastructure may
 /// reference this type, per code-standard.md section 23 (DbContext Rules).
-/// Add DbSet properties here as Notification.Domain entities are introduced.
 /// </summary>
 public sealed class NotificationDbContext : DbContext
 {
     public NotificationDbContext(DbContextOptions<NotificationDbContext> options) : base(options)
     {
     }
+
+    public DbSet<NotificationEntity> Notifications => Set<NotificationEntity>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

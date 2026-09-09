@@ -12,6 +12,15 @@ public static class ApplicationErrorConstants
     public const string UserNotFound = "User was not found.";
     public const string UnauthenticatedRequest = "Authentication is required to access this resource.";
 
+    public const string AuthorProfileAlreadyExists = "This account already has an author profile.";
+    public const string AuthorProfileNotFound = "No author profile exists for this account.";
+
+    /// <summary>Generic message for every Google sign-in failure — never says which check failed.</summary>
+    public const string GoogleAuthFailed = "Unable to sign in with Google.";
+
+    /// <summary>FluentValidation message template for pen name length; format with the max length.</summary>
+    public const string PenNameLengthRequirementFormat = "Pen name is required and must be at most {0} characters.";
+
     /// <summary>
     /// FluentValidation message for an invalid email shape, per
     /// code-standard.md section 34 (Validation Rules).

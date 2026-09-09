@@ -16,6 +16,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Community.Infrastructure\Community.Infrastructure.csproj" />
     <ProjectReference Include="..\..\..\Shared\Be.StoryVerse.ApiCommon\Be.StoryVerse.ApiCommon.csproj" />
+    <ProjectReference Include="..\..\..\Shared\Be.StoryVerse.Shared\Be.StoryVerse.Shared.csproj" />
   </ItemGroup>
 
 </Project>

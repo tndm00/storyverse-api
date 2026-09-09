@@ -19,6 +19,13 @@ public sealed class UserRepository : IUserRepository
         return _dbContext.Users.FirstOrDefaultAsync(x => x.Email == email, cancellationToken);
     }
 
+    public Task<User> GetByExternalIdAsync(string provider, string externalId, CancellationToken cancellationToken = default)
+    {
+        return _dbContext.Users.FirstOrDefaultAsync(
+            x => x.ExternalProvider == provider && x.ExternalId == externalId,
+            cancellationToken);
+    }
+
     public Task<bool> ExistsByEmailAsync(string email, CancellationToken cancellationToken = default)
     {
         return _dbContext.Users.AnyAsync(x => x.Email == email, cancellationToken);
@@ -32,6 +39,29 @@ public sealed class UserRepository : IUserRepository
     public void Update(User user)
     {
         _dbContext.Users.Update(user);
+    }
+
+    public async Task<IReadOnlyList<Role>> GetRolesAsync(long userId, CancellationToken cancellationToken = default)
+    {
+        var roles = await _dbContext.UserRoles
+            .Where(x => x.UserId == userId)
+            .Select(x => x.Role)
+            .ToListAsync(cancellationToken);
+
+        return roles.Count > 0 ? roles : new List<Role> { Role.Reader };
+    }
+
+    public async Task GrantRoleAsync(long userId, Role role, CancellationToken cancellationToken = default)
+    {
+        var alreadyGranted = await _dbContext.UserRoles
+            .AnyAsync(x => x.UserId == userId && x.Role == role, cancellationToken);
+
+        if (alreadyGranted)
+        {
+            return;
+        }
+
+        await _dbContext.UserRoles.AddAsync(new UserRole { UserId = userId, Role = role }, cancellationToken);
     }
 
     public Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
