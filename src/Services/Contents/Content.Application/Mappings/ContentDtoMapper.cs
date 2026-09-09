@@ -100,7 +100,8 @@ public static class ContentDtoMapper
             Status = chapter.Status.ToString(),
             ViewCount = chapter.ViewCount,
             CommentCount = chapter.CommentCount,
-            PublishedAt = chapter.PublishedAt
+            PublishedAt = chapter.PublishedAt,
+            RejectionReason = chapter.RejectionReason
         };
     }
 
@@ -120,6 +121,24 @@ public static class ContentDtoMapper
             CommentCount = chapter.CommentCount,
             ScheduledAt = chapter.ScheduledAt,
             PublishedAt = chapter.PublishedAt,
+            CreatedAt = chapter.CreatedAt,
+            RejectionReason = chapter.RejectionReason
+        };
+    }
+
+    public static PendingReviewChapterResponseDto ToPendingReviewDto(Chapter chapter, Story story)
+    {
+        return new PendingReviewChapterResponseDto
+        {
+            ChapterId = chapter.PublicId,
+            StoryId = story.PublicId,
+            StorySlug = story.Slug,
+            StoryTitle = story.Title,
+            ChapterTitle = chapter.Title,
+            WordCount = chapter.WordCount,
+            AuthorProfileId = story.AuthorProfileId,
+            GuestAuthorName = story.GuestAuthorName,
+            Status = chapter.Status.ToString(),
             CreatedAt = chapter.CreatedAt
         };
     }

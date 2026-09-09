@@ -36,8 +36,6 @@ public sealed class GuestPublishStoryCommandHandler
 
         await _unitOfWork.ExecuteInTransactionAsync(async ct =>
         {
-            var now = DateTime.UtcNow;
-
             story = new Story
             {
                 AuthorProfileId = GuestAuthorProfileId,
@@ -69,16 +67,13 @@ public sealed class GuestPublishStoryCommandHandler
                 OrderIndex = orderIndex,
                 Content = request.ChapterContent,
                 WordCount = WordCounter.Count(request.ChapterContent),
-                Status = ChapterStatus.Published,
-                AccessType = ChapterAccessType.Free,
-                PublishedAt = now
+                // Submitted for moderation, not published directly — a moderator must
+                // approve before the story goes live. See ApproveChapterCommandHandler.
+                Status = ChapterStatus.PendingReview,
+                AccessType = ChapterAccessType.Free
             };
 
             await _chapterRepository.AddAsync(chapter, ct);
-
-            story.Status = StoryStatus.Ongoing;
-            story.PublishedAt = now;
-            story.UpdatedAt = now;
 
             await _chapterRepository.SaveChangesAsync(ct);
         }, cancellationToken);

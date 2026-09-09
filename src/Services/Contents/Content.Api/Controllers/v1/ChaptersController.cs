@@ -44,12 +44,81 @@ public sealed class ChaptersController : ControllerBase
         return Ok(ResponseDto<ChapterDetailResponseDto>.Ok(result));
     }
 
+    /// <summary>Author submits (or resubmits after rejection) a chapter for moderation.</summary>
     [Authorize]
-    [HttpPost(ControllerRouteConstants.ChapterPublishSegment)]
+    [HttpPost(ControllerRouteConstants.ChapterSubmitForReviewSegment)]
     [ProducesResponseType(typeof(ResponseDto<ChapterDetailResponseDto>), StatusCodes.Status200OK)]
-    public async Task<IActionResult> Publish(Guid chapterId, CancellationToken cancellationToken)
+    public async Task<IActionResult> SubmitForReview(Guid chapterId, CancellationToken cancellationToken)
     {
-        var result = await _mediator.Send(new PublishChapterCommand { ChapterId = chapterId }, cancellationToken);
+        var result = await _mediator.Send(
+            new SubmitChapterForReviewCommand { ChapterId = chapterId },
+            cancellationToken);
+
+        return Ok(ResponseDto<ChapterDetailResponseDto>.Ok(result));
+    }
+
+    /// <summary>Moderation queue: chapters awaiting a decision, across every story.</summary>
+    [HasPermission(StoryVersePermissions.Content.Moderate)]
+    [HttpGet(ControllerRouteConstants.ChapterPendingReviewSegment)]
+    [ProducesResponseType(typeof(ResponseDto<PagedResponseDto<PendingReviewChapterResponseDto>>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetPendingReview(
+        [FromQuery(Name = "status")] string status,
+        [FromQuery(Name = "page-number")] int pageNumber = 1,
+        [FromQuery(Name = "page-size")] int pageSize = 20,
+        CancellationToken cancellationToken = default)
+    {
+        var result = await _mediator.Send(
+            new GetPendingReviewChaptersQuery { Status = status, PageNumber = pageNumber, PageSize = pageSize },
+            cancellationToken);
+
+        return Ok(ResponseDto<PagedResponseDto<PendingReviewChapterResponseDto>>.Ok(result));
+    }
+
+    /// <summary>Full chapter detail for a moderator, regardless of status or ownership.</summary>
+    [HasPermission(StoryVersePermissions.Content.Moderate)]
+    [HttpGet(ControllerRouteConstants.ChapterForReviewSegment)]
+    [ProducesResponseType(typeof(ResponseDto<ChapterDetailResponseDto>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetForReview(Guid chapterId, CancellationToken cancellationToken)
+    {
+        var result = await _mediator.Send(new GetChapterForReviewQuery { ChapterId = chapterId }, cancellationToken);
+
+        return Ok(ResponseDto<ChapterDetailResponseDto>.Ok(result));
+    }
+
+    /// <summary>Moderator picks a pending chapter off the queue: PendingReview -&gt; InReview.</summary>
+    [HasPermission(StoryVersePermissions.Content.Moderate)]
+    [HttpPost(ControllerRouteConstants.ChapterReviewSegment)]
+    [ProducesResponseType(typeof(ResponseDto<ChapterDetailResponseDto>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> Review(Guid chapterId, CancellationToken cancellationToken)
+    {
+        var result = await _mediator.Send(new ReviewChapterCommand { ChapterId = chapterId }, cancellationToken);
+
+        return Ok(ResponseDto<ChapterDetailResponseDto>.Ok(result));
+    }
+
+    /// <summary>Moderator approves: InReview -&gt; Published (first approval also flips the story Ongoing).</summary>
+    [HasPermission(StoryVersePermissions.Content.Moderate)]
+    [HttpPost(ControllerRouteConstants.ChapterApproveSegment)]
+    [ProducesResponseType(typeof(ResponseDto<ChapterDetailResponseDto>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> Approve(Guid chapterId, CancellationToken cancellationToken)
+    {
+        var result = await _mediator.Send(new ApproveChapterCommand { ChapterId = chapterId }, cancellationToken);
+
+        return Ok(ResponseDto<ChapterDetailResponseDto>.Ok(result));
+    }
+
+    /// <summary>Moderator rejects: InReview -&gt; Rejected. The author may edit and resubmit.</summary>
+    [HasPermission(StoryVersePermissions.Content.Moderate)]
+    [HttpPost(ControllerRouteConstants.ChapterRejectSegment)]
+    [ProducesResponseType(typeof(ResponseDto<ChapterDetailResponseDto>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> Reject(
+        Guid chapterId,
+        [FromBody] RejectChapterRequestDto request,
+        CancellationToken cancellationToken)
+    {
+        var command = new RejectChapterCommand { ChapterId = chapterId, Reason = request.Reason };
+
+        var result = await _mediator.Send(command, cancellationToken);
 
         return Ok(ResponseDto<ChapterDetailResponseDto>.Ok(result));
     }

@@ -31,6 +31,9 @@ public sealed class ChapterConfiguration : IEntityTypeConfiguration<Chapter>
             .HasMaxLength(InfrastructureConstants.EnumColumnLength)
             .IsRequired();
 
+        builder.Property(x => x.RejectionReason)
+            .HasMaxLength(2000);
+
         builder.Property(x => x.AccessType)
             .HasConversion<string>()
             .HasMaxLength(InfrastructureConstants.EnumColumnLength)

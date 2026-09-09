@@ -65,7 +65,6 @@ public sealed class CreateChapterCommandHandler : ICommandHandler<CreateChapterC
             AccessType = ChapterAccessType.Free
         };
 
-        var storyWentOngoing = false;
         if (request.PublishImmediately)
         {
             if (!await _storyRepository.HasExactlyOnePrimaryGenreAsync(story.Id, cancellationToken))
@@ -73,17 +72,10 @@ public sealed class CreateChapterCommandHandler : ICommandHandler<CreateChapterC
                 throw new BusinessRuleException(ApplicationErrorConstants.PrimaryGenreRequired);
             }
 
-            chapter.Status = ChapterStatus.Published;
-            chapter.PublishedAt = now;
-
-            if (story.Status == StoryStatus.Draft)
-            {
-                story.Status = StoryStatus.Ongoing;
-                story.PublishedAt ??= now;
-                story.UpdatedAt = now;
-                _storyRepository.Update(story);
-                storyWentOngoing = true;
-            }
+            // Submitted for moderation, not published directly — a moderator must
+            // approve before the chapter (and, on first approval, the story) goes
+            // live. See ApproveChapterCommandHandler for the Draft -> Ongoing flip.
+            chapter.Status = ChapterStatus.PendingReview;
         }
 
         await _chapterRepository.AddAsync(chapter, cancellationToken);
@@ -98,15 +90,7 @@ public sealed class CreateChapterCommandHandler : ICommandHandler<CreateChapterC
 
         if (request.PublishImmediately)
         {
-            _logger.LogInformation(ApplicationLogConstants.ChapterPublished, chapter.Id, story.Id);
-
-            if (storyWentOngoing)
-            {
-                _logger.LogInformation(ApplicationLogConstants.StoryAutoOngoing, story.Id);
-            }
-
-            // Integration point: publish a "chapter published" event so the Notification
-            // service can alert followers. No event bus implementation exists yet (Phase 1A).
+            _logger.LogInformation(ApplicationLogConstants.ChapterSubmittedForReview, chapter.Id, story.Id);
         }
 
         return ContentDtoMapper.ToDetail(chapter, story.PublicId, request.VolumeId);

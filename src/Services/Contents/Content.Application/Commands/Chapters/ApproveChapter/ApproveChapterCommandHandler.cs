@@ -1,54 +1,40 @@
-namespace Content.Application.Commands.Chapters.PublishChapter;
+namespace Content.Application.Commands.Chapters.ApproveChapter;
 
-public sealed class PublishChapterCommandHandler : ICommandHandler<PublishChapterCommand, ChapterDetailResponseDto>
+public sealed class ApproveChapterCommandHandler : ICommandHandler<ApproveChapterCommand, ChapterDetailResponseDto>
 {
     private readonly IStoryRepository _storyRepository;
     private readonly IChapterRepository _chapterRepository;
     private readonly IVolumeRepository _volumeRepository;
-    private readonly ICurrentAuthorContext _authorContext;
-    private readonly ILogger<PublishChapterCommandHandler> _logger;
+    private readonly ILogger<ApproveChapterCommandHandler> _logger;
 
-    public PublishChapterCommandHandler(
+    public ApproveChapterCommandHandler(
         IStoryRepository storyRepository,
         IChapterRepository chapterRepository,
         IVolumeRepository volumeRepository,
-        ICurrentAuthorContext authorContext,
-        ILogger<PublishChapterCommandHandler> logger)
+        ILogger<ApproveChapterCommandHandler> logger)
     {
         _storyRepository = storyRepository;
         _chapterRepository = chapterRepository;
         _volumeRepository = volumeRepository;
-        _authorContext = authorContext;
         _logger = logger;
     }
 
-    public async Task<ChapterDetailResponseDto> Handle(PublishChapterCommand request, CancellationToken cancellationToken)
+    public async Task<ChapterDetailResponseDto> Handle(ApproveChapterCommand request, CancellationToken cancellationToken)
     {
-        var authorProfileId = _authorContext.GetAuthorProfileId();
-
         var chapter = await _chapterRepository.GetByPublicIdAsync(request.ChapterId, cancellationToken)
             ?? throw new NotFoundException(ApplicationErrorConstants.ChapterNotFound);
 
-        var story = StoryOwnership.EnsureOwned(
-            await _storyRepository.GetByIdAsync(chapter.StoryId, cancellationToken),
-            authorProfileId,
-            _logger);
-
-        if (!ChapterStatusPolicy.CanPublish(chapter.Status))
+        if (!ChapterStatusPolicy.CanApprove(chapter.Status))
         {
             throw new BusinessRuleException(ApplicationErrorConstants.InvalidChapterStatusTransition);
         }
 
-        if (!await _storyRepository.HasExactlyOnePrimaryGenreAsync(story.Id, cancellationToken))
-        {
-            throw new BusinessRuleException(ApplicationErrorConstants.PrimaryGenreRequired);
-        }
-
+        var story = await _storyRepository.GetByIdAsync(chapter.StoryId, cancellationToken);
         var now = DateTime.UtcNow;
 
         chapter.Status = ChapterStatus.Published;
         chapter.PublishedAt ??= now;
-        chapter.ScheduledAt = null;
+        chapter.RejectionReason = null;
         chapter.UpdatedAt = now;
         _chapterRepository.Update(chapter);
 
@@ -63,7 +49,7 @@ public sealed class PublishChapterCommandHandler : ICommandHandler<PublishChapte
 
         await _chapterRepository.SaveChangesAsync(cancellationToken);
 
-        _logger.LogInformation(ApplicationLogConstants.ChapterPublished, chapter.Id, story.Id);
+        _logger.LogInformation(ApplicationLogConstants.ChapterApproved, chapter.Id, story.Id);
 
         // Integration point: publish a "chapter published" event so the Notification
         // service can alert followers. No event bus implementation exists yet (Phase 1A).
