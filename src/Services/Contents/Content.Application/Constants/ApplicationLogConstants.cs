@@ -20,6 +20,10 @@ public static class ApplicationLogConstants
     public const string ChapterUpdated = "Chapter {ChapterId} updated.";
     public const string ChapterEditedAfterPublish = "Chapter {ChapterId} was edited in place after publication; consider versioning for substantial rewrites.";
     public const string ChapterPublished = "Chapter {ChapterId} published for story {StoryId}.";
+    public const string ChapterSubmittedForReview = "Chapter {ChapterId} submitted for review (story {StoryId}).";
+    public const string ChapterReviewStarted = "Chapter {ChapterId} review started by moderator {ModeratorUserId}.";
+    public const string ChapterApproved = "Chapter {ChapterId} approved and published for story {StoryId}.";
+    public const string ChapterRejected = "Chapter {ChapterId} rejected by moderator {ModeratorUserId}.";
     public const string ChapterScheduled = "Chapter {ChapterId} scheduled for {ScheduledAt}.";
     public const string ChapterScheduleCancelled = "Chapter {ChapterId} schedule cancelled.";
     public const string ChapterRemoved = "Chapter {ChapterId} removed.";

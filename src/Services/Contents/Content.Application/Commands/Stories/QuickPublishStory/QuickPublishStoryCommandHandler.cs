@@ -47,8 +47,6 @@ public sealed class QuickPublishStoryCommandHandler
                 throw new ConflictException(ApplicationErrorConstants.DuplicateQuickPublish);
             }
 
-            var now = DateTime.UtcNow;
-
             story = new Story
             {
                 AuthorProfileId = authorProfileId,
@@ -84,22 +82,17 @@ public sealed class QuickPublishStoryCommandHandler
                 OrderIndex = orderIndex,
                 Content = request.ChapterContent,
                 WordCount = WordCounter.Count(request.ChapterContent),
-                Status = ChapterStatus.Published,
-                AccessType = ChapterAccessType.Free,
-                PublishedAt = now
+                // Submitted for moderation, not published directly — a moderator must
+                // approve before the story goes live. See ApproveChapterCommandHandler.
+                // `CompleteImmediately` has no effect until then; the author can set
+                // Completed manually via POST /v1/stories/{id}/status after approval.
+                Status = ChapterStatus.PendingReview,
+                AccessType = ChapterAccessType.Free
             };
 
             await _chapterRepository.AddAsync(chapter, ct);
 
-            // Story goes Ongoing on first publish; a one-shot goes straight to Completed
-            // (StoryStatusPolicy allows Ongoing -> Completed). The story is tracked, so
-            // these mutations are picked up by SaveChanges without a re-Update (which would
-            // needlessly touch the just-inserted genre/tag rows).
-            story.Status = request.CompleteImmediately ? StoryStatus.Completed : StoryStatus.Ongoing;
-            story.PublishedAt = now;
-            story.UpdatedAt = now;
-
-            // Save #2: commit the first chapter and the story transition together.
+            // Save #2: commit the pending-review chapter alongside the story/genre rows.
             await _chapterRepository.SaveChangesAsync(ct);
         }, cancellationToken);
 

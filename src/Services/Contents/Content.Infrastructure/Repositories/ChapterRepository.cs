@@ -37,6 +37,34 @@ public sealed class ChapterRepository : IChapterRepository
             cancellationToken);
     }
 
+    public async Task<(IReadOnlyList<(Chapter Chapter, Story Story)> Items, int TotalCount)> GetPendingReviewAsync(
+        ChapterStatus? status,
+        int pageNumber,
+        int pageSize,
+        CancellationToken cancellationToken = default)
+    {
+        var statuses = status is { } s
+            ? new[] { s }
+            : new[] { ChapterStatus.PendingReview, ChapterStatus.InReview };
+
+        var query =
+            from chapter in _dbContext.Chapters.AsNoTracking()
+            join story in _dbContext.Stories.AsNoTracking() on chapter.StoryId equals story.Id
+            where statuses.Contains(chapter.Status)
+            orderby chapter.CreatedAt
+            select new { chapter, story };
+
+        var totalCount = await query.CountAsync(cancellationToken);
+
+        var page = await query
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync(cancellationToken);
+
+        var items = page.Select(x => (x.chapter, x.story)).ToArray();
+        return (items, totalCount);
+    }
+
     public Task<decimal?> GetMaxOrderIndexAsync(long storyId, CancellationToken cancellationToken = default)
     {
         return _dbContext.Chapters

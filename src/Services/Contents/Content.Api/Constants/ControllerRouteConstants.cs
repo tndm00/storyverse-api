@@ -27,10 +27,17 @@ public static class ControllerRouteConstants
     public const string VolumeByIdSegment = "{volumeId:guid}";
 
     public const string ChapterByIdSegment = "{chapterId:guid}";
-    public const string ChapterPublishSegment = "{chapterId:guid}/publish";
+    public const string ChapterSubmitForReviewSegment = "{chapterId:guid}/submit-for-review";
     public const string ChapterScheduleSegment = "{chapterId:guid}/schedule";
     public const string ChapterCancelScheduleSegment = "{chapterId:guid}/cancel-schedule";
     public const string ChapterRemoveSegment = "{chapterId:guid}/remove";
+
+    // Moderation (content.moderate)
+    public const string ChapterPendingReviewSegment = "pending-review";
+    public const string ChapterForReviewSegment = "{chapterId:guid}/for-review";
+    public const string ChapterReviewSegment = "{chapterId:guid}/review";
+    public const string ChapterApproveSegment = "{chapterId:guid}/approve";
+    public const string ChapterRejectSegment = "{chapterId:guid}/reject";
 
     public const string GenreBySlugSegment = "{slug}";
     public const string GenreHideSegment = "{slug}/hide";

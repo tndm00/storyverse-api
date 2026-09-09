@@ -28,6 +28,9 @@ public sealed class Chapter : BaseEntity
 
     public ChapterStatus Status { get; set; } = ChapterStatus.Draft;
 
+    /// <summary>Moderator's note when <see cref="Status"/> is <see cref="ChapterStatus.Rejected"/>; cleared on resubmit.</summary>
+    public string RejectionReason { get; set; }
+
     /// <summary>Phase 2 field. Always <see cref="ChapterAccessType.Free"/> in Phase 1.</summary>
     public ChapterAccessType AccessType { get; set; } = ChapterAccessType.Free;
 

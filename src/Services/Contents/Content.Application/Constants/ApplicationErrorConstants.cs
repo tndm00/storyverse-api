@@ -26,6 +26,7 @@ public static class ApplicationErrorConstants
 
     public const string InvalidStoryStatusTransition = "That story status change is not allowed.";
     public const string InvalidChapterStatusTransition = "That chapter status change is not allowed.";
+    public const string RejectionReasonRequired = "A reason is required to reject a chapter.";
     public const string ScheduledTimeMustBeFuture = "The scheduled publish time must be in the future.";
     public const string VolumeStoryMismatch = "The volume does not belong to this story.";
 

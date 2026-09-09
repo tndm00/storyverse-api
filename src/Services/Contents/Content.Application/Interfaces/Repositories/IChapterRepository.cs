@@ -14,6 +14,16 @@ public interface IChapterRepository
 
     Task<bool> StoryHasPublishedChapterAsync(long storyId, CancellationToken cancellationToken = default);
 
+    /// <summary>
+    /// Cross-story moderation queue: chapters awaiting a decision (PendingReview
+    /// and/or InReview), oldest first, joined to their parent story.
+    /// </summary>
+    Task<(IReadOnlyList<(Chapter Chapter, Story Story)> Items, int TotalCount)> GetPendingReviewAsync(
+        ChapterStatus? status,
+        int pageNumber,
+        int pageSize,
+        CancellationToken cancellationToken = default);
+
     /// <summary>Highest order index among a story's non-removed chapters, or null when it has none.</summary>
     Task<decimal?> GetMaxOrderIndexAsync(long storyId, CancellationToken cancellationToken = default);
 
