@@ -5,6 +5,7 @@
 [Rr]elease/
 [Ll]og/
 [Ll]ogs/
+TestResults/
 
 # Visual Studio / Rider
 .vs/
