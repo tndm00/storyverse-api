@@ -89,6 +89,26 @@ public sealed class PendingReviewChapterResponseDto
     public DateTime CreatedAt { get; init; }
 }
 
+/// <summary>
+/// Chapter counts for the moderation review dashboard
+/// (GET /v1/chapters/review-counts). Approved/Rejected are counted from the
+/// review audit trail, so they survive later status changes.
+/// </summary>
+public sealed class ChapterReviewCountsResponseDto
+{
+    /// <summary>Chapters currently <c>PendingReview</c> (submitted, not yet picked up).</summary>
+    public int Pending { get; init; }
+
+    /// <summary>Chapters currently <c>InReview</c> (a moderator is deciding).</summary>
+    public int InReview { get; init; }
+
+    /// <summary>Distinct chapters that have ever been approved by a moderator.</summary>
+    public int Approved { get; init; }
+
+    /// <summary>Distinct chapters that have ever been rejected by a moderator.</summary>
+    public int Rejected { get; init; }
+}
+
 /// <summary>Full chapter content for the reader view.</summary>
 public sealed class ChapterDetailResponseDto
 {

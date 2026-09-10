@@ -42,6 +42,18 @@ public sealed class CurrentAuthorContext : ICurrentAuthorContext
         return authorProfileId;
     }
 
+    public bool HasPermission(string permission)
+    {
+        var user = _httpContextAccessor.HttpContext?.User;
+        if (user is null)
+        {
+            return false;
+        }
+
+        var roles = user.FindAll(AuthConstants.RolesClaimType).Select(c => c.Value);
+        return Be.StoryVerse.Shared.Authorization.RolePermissionMap.PermissionsFor(roles).Contains(permission);
+    }
+
     private bool TryGetAuthorProfileId(out long authorProfileId)
     {
         authorProfileId = 0;

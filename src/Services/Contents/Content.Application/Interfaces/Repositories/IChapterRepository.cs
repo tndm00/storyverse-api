@@ -20,8 +20,27 @@ public interface IChapterRepository
     /// </summary>
     Task<(IReadOnlyList<(Chapter Chapter, Story Story)> Items, int TotalCount)> GetPendingReviewAsync(
         ChapterStatus? status,
+        string keyword,
         int pageNumber,
         int pageSize,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Chapters that have a moderator decision of <paramref name="actionType"/> in
+    /// their review audit trail (Approved or Rejected history), newest first.
+    /// </summary>
+    Task<(IReadOnlyList<(Chapter Chapter, Story Story)> Items, int TotalCount)> GetReviewedAsync(
+        ChapterReviewActionType actionType,
+        string keyword,
+        int pageNumber,
+        int pageSize,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Review dashboard counters: chapters currently PendingReview / InReview, plus
+    /// distinct chapters ever Approved / Rejected (from the audit trail).
+    /// </summary>
+    Task<(int Pending, int InReview, int Approved, int Rejected)> GetReviewCountsAsync(
         CancellationToken cancellationToken = default);
 
     /// <summary>Highest order index among a story's non-removed chapters, or null when it has none.</summary>

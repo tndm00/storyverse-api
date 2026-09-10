@@ -27,6 +27,17 @@ public interface IStoryRepository
         StorySearchCriteria criteria,
         CancellationToken cancellationToken = default);
 
+    /// <summary>
+    /// Admin/author listing: every status (Draft included), optional
+    /// status/genre/keyword filter. Returns the page plus the total count.
+    /// </summary>
+    Task<(IReadOnlyList<Story> Items, int TotalCount)> SearchAllAsync(
+        StorySearchCriteria criteria,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>Story count per <see cref="StoryStatus"/> across the whole catalog (admin dashboard).</summary>
+    Task<IReadOnlyDictionary<StoryStatus, int>> CountByStatusAsync(CancellationToken cancellationToken = default);
+
     Task AddAsync(Story story, CancellationToken cancellationToken = default);
 
     void Update(Story story);

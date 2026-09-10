@@ -10,6 +10,9 @@ public sealed record StorySearchCriteria
 
     public string TagSlug { get; init; }
 
+    /// <summary>Free-text match against the story title (admin/author listings only).</summary>
+    public string Keyword { get; init; }
+
     /// <summary>Filter to one author's published stories (public author profile page).</summary>
     public long? AuthorProfileId { get; init; }
 
@@ -29,5 +32,6 @@ public enum StorySortField
     PublishedAt,
     Title,
     ViewCount,
-    RatingAvg
+    RatingAvg,
+    CreatedAt
 }

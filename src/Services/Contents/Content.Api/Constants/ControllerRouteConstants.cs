@@ -16,6 +16,12 @@ public static class ControllerRouteConstants
 
     public const string StoryQuickPublishSegment = "quick-publish";
     public const string StoryGuestPublishSegment = "guest-publish";
+
+    // Admin/author listings (literal segments; matched ahead of "{storyId:guid}")
+    public const string StoryAdminSegment = "admin";
+    public const string StoryAdminCountsSegment = "admin/counts";
+    public const string StoryMineSegment = "mine";
+
     public const string StoryByIdSegment = "{storyId:guid}";
     public const string StoryBySlugSegment = "by-slug/{slug}";
     public const string StoryGenresSegment = "{storyId:guid}/genres";
@@ -34,6 +40,8 @@ public static class ControllerRouteConstants
 
     // Moderation (content.moderate)
     public const string ChapterPendingReviewSegment = "pending-review";
+    public const string ChapterReviewedSegment = "reviewed";
+    public const string ChapterReviewCountsSegment = "review-counts";
     public const string ChapterForReviewSegment = "{chapterId:guid}/for-review";
     public const string ChapterReviewSegment = "{chapterId:guid}/review";
     public const string ChapterApproveSegment = "{chapterId:guid}/approve";

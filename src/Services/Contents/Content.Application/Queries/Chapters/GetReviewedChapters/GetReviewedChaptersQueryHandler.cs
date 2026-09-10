@@ -1,17 +1,17 @@
-namespace Content.Application.Queries.Chapters.GetPendingReviewChapters;
+namespace Content.Application.Queries.Chapters.GetReviewedChapters;
 
-public sealed class GetPendingReviewChaptersQueryHandler
-    : IQueryHandler<GetPendingReviewChaptersQuery, PagedResponseDto<PendingReviewChapterResponseDto>>
+public sealed class GetReviewedChaptersQueryHandler
+    : IQueryHandler<GetReviewedChaptersQuery, PagedResponseDto<PendingReviewChapterResponseDto>>
 {
     private readonly IChapterRepository _chapterRepository;
 
-    public GetPendingReviewChaptersQueryHandler(IChapterRepository chapterRepository)
+    public GetReviewedChaptersQueryHandler(IChapterRepository chapterRepository)
     {
         _chapterRepository = chapterRepository;
     }
 
     public async Task<PagedResponseDto<PendingReviewChapterResponseDto>> Handle(
-        GetPendingReviewChaptersQuery request,
+        GetReviewedChaptersQuery request,
         CancellationToken cancellationToken)
     {
         var pageNumber = Math.Max(1, request.PageNumber);
@@ -20,7 +20,6 @@ public sealed class GetPendingReviewChaptersQueryHandler
             ApplicationConstants.MinPageSize,
             ApplicationConstants.MaxPageSize);
 
-        // The queue holds chapters only; a non-chapter type filter matches nothing.
         if (!string.IsNullOrWhiteSpace(request.Type)
             && !string.Equals(request.Type, "Chapter", StringComparison.OrdinalIgnoreCase))
         {
@@ -28,14 +27,12 @@ public sealed class GetPendingReviewChaptersQueryHandler
                 Array.Empty<PendingReviewChapterResponseDto>(), pageNumber, pageSize, 0);
         }
 
-        ChapterStatus? status =
-            Enum.TryParse<ChapterStatus>(request.Status, ignoreCase: true, out var parsed)
-            && parsed is ChapterStatus.PendingReview or ChapterStatus.InReview
-                ? parsed
-                : null;
+        var actionType = string.Equals(request.Status, "Rejected", StringComparison.OrdinalIgnoreCase)
+            ? ChapterReviewActionType.Rejected
+            : ChapterReviewActionType.Approved;
 
-        var (items, totalCount) = await _chapterRepository.GetPendingReviewAsync(
-            status, request.Keyword, pageNumber, pageSize, cancellationToken);
+        var (items, totalCount) = await _chapterRepository.GetReviewedAsync(
+            actionType, request.Keyword, pageNumber, pageSize, cancellationToken);
 
         var dtos = items
             .Select(x => ContentDtoMapper.ToPendingReviewDto(x.Chapter, x.Story))

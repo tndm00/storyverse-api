@@ -56,10 +56,42 @@ public sealed class StoryRepository : IStoryRepository
         StorySearchCriteria criteria,
         CancellationToken cancellationToken = default)
     {
-        var query = _dbContext.Stories
-            .AsNoTracking()
-            .Where(x => x.Status != StoryStatus.Draft);
+        var query = ApplyFilters(
+            _dbContext.Stories.AsNoTracking().Where(x => x.Status != StoryStatus.Draft),
+            criteria);
 
+        return await PageAsync(query, criteria, cancellationToken);
+    }
+
+    public async Task<(IReadOnlyList<Story> Items, int TotalCount)> SearchAllAsync(
+        StorySearchCriteria criteria,
+        CancellationToken cancellationToken = default)
+    {
+        var query = ApplyFilters(_dbContext.Stories.AsNoTracking(), criteria);
+
+        return await PageAsync(query, criteria, cancellationToken);
+    }
+
+    public async Task<IReadOnlyDictionary<StoryStatus, int>> CountByStatusAsync(
+        CancellationToken cancellationToken = default)
+    {
+        var grouped = await _dbContext.Stories
+            .AsNoTracking()
+            .GroupBy(x => x.Status)
+            .Select(g => new { Status = g.Key, Count = g.Count() })
+            .ToListAsync(cancellationToken);
+
+        var result = Enum.GetValues<StoryStatus>().ToDictionary(s => s, _ => 0);
+        foreach (var row in grouped)
+        {
+            result[row.Status] = row.Count;
+        }
+
+        return result;
+    }
+
+    private static IQueryable<Story> ApplyFilters(IQueryable<Story> query, StorySearchCriteria criteria)
+    {
         if (criteria.Status is { } status)
         {
             query = query.Where(x => x.Status == status);
@@ -80,11 +112,23 @@ public sealed class StoryRepository : IStoryRepository
             query = query.Where(x => x.Tags.Any(st => st.Tag.Slug == criteria.TagSlug));
         }
 
+        if (!string.IsNullOrWhiteSpace(criteria.Keyword))
+        {
+            var pattern = $"%{criteria.Keyword.Trim()}%";
+            query = query.Where(x => EF.Functions.ILike(x.Title, pattern));
+        }
+
+        return query;
+    }
+
+    private static async Task<(IReadOnlyList<Story> Items, int TotalCount)> PageAsync(
+        IQueryable<Story> query,
+        StorySearchCriteria criteria,
+        CancellationToken cancellationToken)
+    {
         var totalCount = await query.CountAsync(cancellationToken);
 
-        query = ApplySort(query, criteria);
-
-        var items = await query
+        var items = await ApplySort(query, criteria)
             .Include(x => x.Genres).ThenInclude(sg => sg.Genre)
             .Skip((criteria.PageNumber - 1) * criteria.PageSize)
             .Take(criteria.PageSize)
@@ -129,6 +173,9 @@ public sealed class StoryRepository : IStoryRepository
             StorySortField.RatingAvg => criteria.Descending
                 ? query.OrderByDescending(x => x.RatingAvg).ThenByDescending(x => x.Id)
                 : query.OrderBy(x => x.RatingAvg).ThenBy(x => x.Id),
+            StorySortField.CreatedAt => criteria.Descending
+                ? query.OrderByDescending(x => x.CreatedAt).ThenByDescending(x => x.Id)
+                : query.OrderBy(x => x.CreatedAt).ThenBy(x => x.Id),
             _ => criteria.Descending
                 ? query.OrderByDescending(x => x.PublishedAt).ThenByDescending(x => x.Id)
                 : query.OrderBy(x => x.PublishedAt).ThenBy(x => x.Id)

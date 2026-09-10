@@ -39,6 +39,7 @@ public sealed class ChapterRepository : IChapterRepository
 
     public async Task<(IReadOnlyList<(Chapter Chapter, Story Story)> Items, int TotalCount)> GetPendingReviewAsync(
         ChapterStatus? status,
+        string keyword,
         int pageNumber,
         int pageSize,
         CancellationToken cancellationToken = default)
@@ -51,18 +52,86 @@ public sealed class ChapterRepository : IChapterRepository
             from chapter in _dbContext.Chapters.AsNoTracking()
             join story in _dbContext.Stories.AsNoTracking() on chapter.StoryId equals story.Id
             where statuses.Contains(chapter.Status)
-            orderby chapter.CreatedAt
             select new { chapter, story };
+
+        if (!string.IsNullOrWhiteSpace(keyword))
+        {
+            var pattern = $"%{keyword.Trim()}%";
+            query = query.Where(x =>
+                EF.Functions.ILike(x.chapter.Title, pattern) || EF.Functions.ILike(x.story.Title, pattern));
+        }
 
         var totalCount = await query.CountAsync(cancellationToken);
 
         var page = await query
+            .OrderBy(x => x.chapter.CreatedAt)
             .Skip((pageNumber - 1) * pageSize)
             .Take(pageSize)
             .ToListAsync(cancellationToken);
 
         var items = page.Select(x => (x.chapter, x.story)).ToArray();
         return (items, totalCount);
+    }
+
+    public async Task<(IReadOnlyList<(Chapter Chapter, Story Story)> Items, int TotalCount)> GetReviewedAsync(
+        ChapterReviewActionType actionType,
+        string keyword,
+        int pageNumber,
+        int pageSize,
+        CancellationToken cancellationToken = default)
+    {
+        var reviewedChapterIds = _dbContext.ChapterReviewActions
+            .AsNoTracking()
+            .Where(a => a.Action == actionType)
+            .Select(a => a.ChapterId)
+            .Distinct();
+
+        var query =
+            from chapter in _dbContext.Chapters.AsNoTracking()
+            join story in _dbContext.Stories.AsNoTracking() on chapter.StoryId equals story.Id
+            where reviewedChapterIds.Contains(chapter.Id)
+            select new { chapter, story };
+
+        if (!string.IsNullOrWhiteSpace(keyword))
+        {
+            var pattern = $"%{keyword.Trim()}%";
+            query = query.Where(x =>
+                EF.Functions.ILike(x.chapter.Title, pattern) || EF.Functions.ILike(x.story.Title, pattern));
+        }
+
+        var totalCount = await query.CountAsync(cancellationToken);
+
+        var page = await query
+            .OrderByDescending(x => x.chapter.UpdatedAt)
+            .ThenByDescending(x => x.chapter.Id)
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync(cancellationToken);
+
+        var items = page.Select(x => (x.chapter, x.story)).ToArray();
+        return (items, totalCount);
+    }
+
+    public async Task<(int Pending, int InReview, int Approved, int Rejected)> GetReviewCountsAsync(
+        CancellationToken cancellationToken = default)
+    {
+        var pending = await _dbContext.Chapters.AsNoTracking()
+            .CountAsync(x => x.Status == ChapterStatus.PendingReview, cancellationToken);
+        var inReview = await _dbContext.Chapters.AsNoTracking()
+            .CountAsync(x => x.Status == ChapterStatus.InReview, cancellationToken);
+
+        var approved = await _dbContext.ChapterReviewActions.AsNoTracking()
+            .Where(a => a.Action == ChapterReviewActionType.Approved)
+            .Select(a => a.ChapterId)
+            .Distinct()
+            .CountAsync(cancellationToken);
+        var rejected = await _dbContext.ChapterReviewActions.AsNoTracking()
+            .Where(a => a.Action == ChapterReviewActionType.Rejected)
+            .Select(a => a.ChapterId)
+            .Distinct()
+            .CountAsync(cancellationToken);
+
+        return (pending, inReview, approved, rejected);
     }
 
     public Task<decimal?> GetMaxOrderIndexAsync(long storyId, CancellationToken cancellationToken = default)

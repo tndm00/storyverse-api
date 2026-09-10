@@ -63,15 +63,61 @@ public sealed class ChaptersController : ControllerBase
     [ProducesResponseType(typeof(ResponseDto<PagedResponseDto<PendingReviewChapterResponseDto>>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetPendingReview(
         [FromQuery(Name = "status")] string status,
+        [FromQuery(Name = "q")] string q,
+        [FromQuery(Name = "type")] string type,
         [FromQuery(Name = "page-number")] int pageNumber = 1,
         [FromQuery(Name = "page-size")] int pageSize = 20,
         CancellationToken cancellationToken = default)
     {
         var result = await _mediator.Send(
-            new GetPendingReviewChaptersQuery { Status = status, PageNumber = pageNumber, PageSize = pageSize },
+            new GetPendingReviewChaptersQuery
+            {
+                Status = status,
+                Keyword = q,
+                Type = type,
+                PageNumber = pageNumber,
+                PageSize = pageSize
+            },
             cancellationToken);
 
         return Ok(ResponseDto<PagedResponseDto<PendingReviewChapterResponseDto>>.Ok(result));
+    }
+
+    /// <summary>Chapters already decided on: <c>status=Approved</c> or <c>status=Rejected</c>.</summary>
+    [HasPermission(StoryVersePermissions.Content.Moderate)]
+    [HttpGet(ControllerRouteConstants.ChapterReviewedSegment)]
+    [ProducesResponseType(typeof(ResponseDto<PagedResponseDto<PendingReviewChapterResponseDto>>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetReviewed(
+        [FromQuery(Name = "status")] string status,
+        [FromQuery(Name = "q")] string q,
+        [FromQuery(Name = "type")] string type,
+        [FromQuery(Name = "page-number")] int pageNumber = 1,
+        [FromQuery(Name = "page-size")] int pageSize = 20,
+        CancellationToken cancellationToken = default)
+    {
+        var result = await _mediator.Send(
+            new GetReviewedChaptersQuery
+            {
+                Status = status,
+                Keyword = q,
+                Type = type,
+                PageNumber = pageNumber,
+                PageSize = pageSize
+            },
+            cancellationToken);
+
+        return Ok(ResponseDto<PagedResponseDto<PendingReviewChapterResponseDto>>.Ok(result));
+    }
+
+    /// <summary>Review dashboard counters: Pending, InReview, Approved, Rejected.</summary>
+    [HasPermission(StoryVersePermissions.Content.Moderate)]
+    [HttpGet(ControllerRouteConstants.ChapterReviewCountsSegment)]
+    [ProducesResponseType(typeof(ResponseDto<ChapterReviewCountsResponseDto>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetReviewCounts(CancellationToken cancellationToken)
+    {
+        var result = await _mediator.Send(new GetChapterReviewCountsQuery(), cancellationToken);
+
+        return Ok(ResponseDto<ChapterReviewCountsResponseDto>.Ok(result));
     }
 
     /// <summary>Full chapter detail for a moderator, regardless of status or ownership.</summary>

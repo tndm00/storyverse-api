@@ -79,6 +79,17 @@ public sealed class QuickPublishStoryResultDto
     public ChapterDetailResponseDto FirstChapter { get; init; }
 }
 
+/// <summary>Story counts per lifecycle status for the admin dashboard (GET /v1/stories/admin/counts).</summary>
+public sealed class StoryStatusCountsResponseDto
+{
+    /// <summary>Total number of stories across every status.</summary>
+    public int Total { get; init; }
+
+    /// <summary>Count keyed by <see cref="StoryStatus"/> name; every status is present, zero when none.</summary>
+    public IReadOnlyDictionary<string, int> ByStatus { get; init; } =
+        new Dictionary<string, int>();
+}
+
 public sealed class StoryGenreDto
 {
     public string Name { get; init; }

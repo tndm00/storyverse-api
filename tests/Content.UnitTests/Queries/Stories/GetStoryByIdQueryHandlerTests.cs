@@ -37,6 +37,22 @@ public class GetStoryByIdQueryHandlerTests
     }
 
     [Fact]
+    public async Task Handle_Should_ReturnDraftWithoutViewCount_When_CallerHasContentModeratePermission()
+    {
+        var story = new Story { Id = 3, PublicId = Guid.NewGuid(), AuthorProfileId = 10, Status = StoryStatus.Draft };
+        _storyRepository.GetByPublicIdAsync(story.PublicId, Arg.Any<CancellationToken>()).Returns(story);
+        _storyRepository.GetWithClassificationByPublicIdAsync(story.PublicId, Arg.Any<CancellationToken>()).Returns(story);
+        _authorContext.IsAuthor.Returns(false);
+        _authorContext.HasPermission(Be.StoryVerse.Shared.Authorization.StoryVersePermissions.Content.Moderate)
+            .Returns(true);
+
+        var result = await _handler.Handle(new GetStoryByIdQuery { StoryId = story.PublicId }, CancellationToken.None);
+
+        result.Status.Should().Be("Draft");
+        await _storyRepository.DidNotReceive().IncrementViewCountAsync(Arg.Any<long>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
     public async Task Handle_Should_IncrementViewCount_When_NonOwnerReadsPublishedStory()
     {
         var story = new Story

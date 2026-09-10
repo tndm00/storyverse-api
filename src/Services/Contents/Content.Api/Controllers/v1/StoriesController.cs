@@ -48,6 +48,75 @@ public sealed class StoriesController : ControllerBase
         return Ok(ResponseDto<PagedResponseDto<StorySummaryResponseDto>>.Ok(result));
     }
 
+    /// <summary>Admin catalog listing: stories in every status (Draft included).</summary>
+    [HasPermission(StoryVersePermissions.Content.Moderate)]
+    [HttpGet(ControllerRouteConstants.StoryAdminSegment)]
+    [ProducesResponseType(typeof(ResponseDto<PagedResponseDto<StorySummaryResponseDto>>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetAdminStories(
+        [FromQuery(Name = "status")] string status,
+        [FromQuery(Name = "genre-slug")] string genreSlug,
+        [FromQuery(Name = "q")] string q,
+        [FromQuery(Name = "author-profile-id")] long? authorProfileId,
+        [FromQuery(Name = "sort-by")] string sortBy,
+        [FromQuery(Name = "sort-direction")] string sortDirection,
+        [FromQuery(Name = "page-number")] int pageNumber = 1,
+        [FromQuery(Name = "page-size")] int pageSize = 20,
+        CancellationToken cancellationToken = default)
+    {
+        var query = new GetAdminStoriesQuery
+        {
+            Status = status,
+            GenreSlug = genreSlug,
+            Keyword = q,
+            AuthorProfileId = authorProfileId,
+            SortBy = sortBy,
+            SortDirection = sortDirection,
+            PageNumber = pageNumber,
+            PageSize = pageSize
+        };
+
+        var result = await _mediator.Send(query, cancellationToken);
+
+        return Ok(ResponseDto<PagedResponseDto<StorySummaryResponseDto>>.Ok(result));
+    }
+
+    /// <summary>Admin dashboard: story counts per lifecycle status.</summary>
+    [HasPermission(StoryVersePermissions.Content.Moderate)]
+    [HttpGet(ControllerRouteConstants.StoryAdminCountsSegment)]
+    [ProducesResponseType(typeof(ResponseDto<StoryStatusCountsResponseDto>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetAdminStoryCounts(CancellationToken cancellationToken)
+    {
+        var result = await _mediator.Send(new GetStoryStatusCountsQuery(), cancellationToken);
+
+        return Ok(ResponseDto<StoryStatusCountsResponseDto>.Ok(result));
+    }
+
+    /// <summary>The signed-in author's own stories, Draft included.</summary>
+    [Authorize]
+    [HttpGet(ControllerRouteConstants.StoryMineSegment)]
+    [ProducesResponseType(typeof(ResponseDto<PagedResponseDto<StorySummaryResponseDto>>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetMyStories(
+        [FromQuery(Name = "status")] string status,
+        [FromQuery(Name = "sort-by")] string sortBy,
+        [FromQuery(Name = "sort-direction")] string sortDirection,
+        [FromQuery(Name = "page-number")] int pageNumber = 1,
+        [FromQuery(Name = "page-size")] int pageSize = 20,
+        CancellationToken cancellationToken = default)
+    {
+        var query = new GetMyStoriesQuery
+        {
+            Status = status,
+            SortBy = sortBy,
+            SortDirection = sortDirection,
+            PageNumber = pageNumber,
+            PageSize = pageSize
+        };
+
+        var result = await _mediator.Send(query, cancellationToken);
+
+        return Ok(ResponseDto<PagedResponseDto<StorySummaryResponseDto>>.Ok(result));
+    }
+
     [AllowAnonymous]
     [HttpGet(ControllerRouteConstants.StoryBySlugSegment)]
     [ProducesResponseType(typeof(ResponseDto<StoryDetailResponseDto>), StatusCodes.Status200OK)]

@@ -21,4 +21,10 @@ public interface ICurrentAuthorContext
     /// the caller is authenticated but has no author profile.
     /// </summary>
     long GetAuthorProfileId();
+
+    /// <summary>
+    /// True when the caller's role claims expand to the given business permission
+    /// (for example <c>content.moderate</c> for staff who may view any story).
+    /// </summary>
+    bool HasPermission(string permission);
 }
