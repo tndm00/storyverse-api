@@ -81,8 +81,9 @@ public sealed class NotificationsController : ControllerBase
     /// (it is interfaces-only today — domain spec section 5.3). Until then the
     /// command is reachable only through this endpoint.
     /// </remarks>
-    // TODO: restrict to service-to-service auth once the gateway/mTLS is in place.
     [HttpPost]
+    [AllowAnonymous]
+    [ServiceOrUserAuthorize]
     [ProducesResponseType(typeof(ResponseDto<NotificationResponseDto>), StatusCodes.Status201Created)]
     public async Task<IActionResult> CreateNotification(
         [FromBody] CreateNotificationRequestDto request,

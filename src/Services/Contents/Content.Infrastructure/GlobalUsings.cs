@@ -17,6 +17,7 @@ global using Content.Domain.Enums;
 global using Content.Infrastructure.Configurations;
 global using Content.Infrastructure.Constants;
 global using Content.Infrastructure.Context;
+global using Content.Infrastructure.Http;
 global using Content.Infrastructure.Persistence;
 global using Content.Infrastructure.Repositories;
 global using Content.Infrastructure.Security;

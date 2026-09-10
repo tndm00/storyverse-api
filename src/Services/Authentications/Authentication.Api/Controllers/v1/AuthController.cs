@@ -149,4 +149,23 @@ public sealed class AuthController : ControllerBase
 
         return Ok(ResponseDto<PublicAuthorProfileResponseDto>.Ok(result));
     }
+
+    /// <summary>
+    /// Internal, service-to-service: the owning user id for an AuthorProfile id.
+    /// Not for end users. Authorized by a valid JWT OR the <c>X-Service-Token</c>
+    /// header (<c>ServiceAuth:Token</c>). Used by the Content service to address
+    /// chapter-review notifications to a story's author.
+    /// </summary>
+    [AllowAnonymous]
+    [ServiceOrUserAuthorize]
+    [HttpGet(ControllerRouteConstants.InternalAuthorProfileLookupSegment)]
+    [ProducesResponseType(typeof(ResponseDto<AuthorProfileLookupResponseDto>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetAuthorProfileLookup(long authorProfileId, CancellationToken cancellationToken)
+    {
+        var result = await _mediator.Send(
+            new GetAuthorProfileLookupQuery { AuthorProfileId = authorProfileId },
+            cancellationToken);
+
+        return Ok(ResponseDto<AuthorProfileLookupResponseDto>.Ok(result));
+    }
 }

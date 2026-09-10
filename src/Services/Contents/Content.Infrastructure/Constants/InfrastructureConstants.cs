@@ -13,6 +13,7 @@ public static class InfrastructureConstants
     public const string StoriesTableName = "stories";
     public const string VolumesTableName = "volumes";
     public const string ChaptersTableName = "chapters";
+    public const string ChapterReviewActionsTableName = "chapter_review_actions";
     public const string GenresTableName = "genres";
     public const string TagsTableName = "tags";
     public const string StoryGenresTableName = "story_genres";

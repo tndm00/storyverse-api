@@ -7,6 +7,7 @@ global using System.Threading;
 global using System.Threading.Tasks;
 global using Notification.Api.Constants;
 global using Notification.Api.Extensions;
+global using Notification.Api.Security;
 global using Notification.Application.Commands.Notifications.CreateNotification;
 global using Notification.Application.Commands.Notifications.MarkAllNotificationsRead;
 global using Notification.Application.Commands.Notifications.MarkNotificationRead;

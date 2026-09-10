@@ -18,5 +18,11 @@ public enum NotificationType
     ReportResult,
 
     /// <summary>Platform-wide announcement addressed to the recipient.</summary>
-    SystemAnnouncement
+    SystemAnnouncement,
+
+    /// <summary>A moderator approved and published the recipient's submitted chapter.</summary>
+    ChapterApproved,
+
+    /// <summary>A moderator rejected the recipient's submitted chapter.</summary>
+    ChapterRejected
 }

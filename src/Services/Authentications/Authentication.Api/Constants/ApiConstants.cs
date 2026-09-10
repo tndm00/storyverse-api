@@ -7,4 +7,10 @@ namespace Authentication.Api.Constants;
 public static class ApiConstants
 {
     public const string SwaggerTitle = "Be.StoryVerse Authentication API";
+
+    /// <summary>
+    /// Header carrying the shared service-to-service secret on internal endpoints.
+    /// Checked against <c>ServiceAuth:Token</c>.
+    /// </summary>
+    public const string ServiceTokenHeader = "X-Service-Token";
 }

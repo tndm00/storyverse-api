@@ -5,22 +5,39 @@ public sealed class ApproveChapterCommandHandler : ICommandHandler<ApproveChapte
     private readonly IStoryRepository _storyRepository;
     private readonly IChapterRepository _chapterRepository;
     private readonly IVolumeRepository _volumeRepository;
+    private readonly IChapterReviewActionRepository _reviewActionRepository;
+    private readonly IContentUnitOfWork _unitOfWork;
+    private readonly ICurrentAuthorContext _currentUser;
+    private readonly INotificationServiceClient _notificationClient;
+    private readonly IAuthorDirectoryClient _authorDirectory;
     private readonly ILogger<ApproveChapterCommandHandler> _logger;
 
     public ApproveChapterCommandHandler(
         IStoryRepository storyRepository,
         IChapterRepository chapterRepository,
         IVolumeRepository volumeRepository,
+        IChapterReviewActionRepository reviewActionRepository,
+        IContentUnitOfWork unitOfWork,
+        ICurrentAuthorContext currentUser,
+        INotificationServiceClient notificationClient,
+        IAuthorDirectoryClient authorDirectory,
         ILogger<ApproveChapterCommandHandler> logger)
     {
         _storyRepository = storyRepository;
         _chapterRepository = chapterRepository;
         _volumeRepository = volumeRepository;
+        _reviewActionRepository = reviewActionRepository;
+        _unitOfWork = unitOfWork;
+        _currentUser = currentUser;
+        _notificationClient = notificationClient;
+        _authorDirectory = authorDirectory;
         _logger = logger;
     }
 
     public async Task<ChapterDetailResponseDto> Handle(ApproveChapterCommand request, CancellationToken cancellationToken)
     {
+        var moderatorUserId = _currentUser.GetUserId();
+
         var chapter = await _chapterRepository.GetByPublicIdAsync(request.ChapterId, cancellationToken)
             ?? throw new NotFoundException(ApplicationErrorConstants.ChapterNotFound);
 
@@ -38,24 +55,88 @@ public sealed class ApproveChapterCommandHandler : ICommandHandler<ApproveChapte
         chapter.UpdatedAt = now;
         _chapterRepository.Update(chapter);
 
+        var storyChanged = false;
         if (story.Status == StoryStatus.Draft)
         {
             story.Status = StoryStatus.Ongoing;
             story.PublishedAt ??= now;
             story.UpdatedAt = now;
             _storyRepository.Update(story);
+            storyChanged = true;
+        }
+
+        var action = new ChapterReviewAction
+        {
+            ChapterId = chapter.Id,
+            ModeratorUserId = moderatorUserId,
+            Action = ChapterReviewActionType.Approved,
+            Note = null,
+            CreatedAt = now
+        };
+
+        // The chapter status change and its audit row must commit together.
+        await _unitOfWork.ExecuteInTransactionAsync(async ct =>
+        {
+            await _reviewActionRepository.AddAsync(action, ct);
+            await _chapterRepository.SaveChangesAsync(ct);
+        }, cancellationToken);
+
+        if (storyChanged)
+        {
             _logger.LogInformation(ApplicationLogConstants.StoryAutoOngoing, story.Id);
         }
 
-        await _chapterRepository.SaveChangesAsync(cancellationToken);
-
         _logger.LogInformation(ApplicationLogConstants.ChapterApproved, chapter.Id, story.Id);
 
-        // Integration point: publish a "chapter published" event so the Notification
-        // service can alert followers. No event bus implementation exists yet (Phase 1A).
+        await NotifyAuthorAsync(chapter, story, cancellationToken);
 
         var volumePublicId = await ResolveVolumePublicIdAsync(chapter.VolumeId, cancellationToken);
         return ContentDtoMapper.ToDetail(chapter, story.PublicId, volumePublicId);
+    }
+
+    /// <summary>
+    /// Best-effort: tells the author their chapter is live. Runs after the
+    /// approve transaction has committed; a failure here is logged, never thrown.
+    /// </summary>
+    private async Task NotifyAuthorAsync(Chapter chapter, Story story, CancellationToken cancellationToken)
+    {
+        if (!ChapterAuthorRecipient.TryResolveAuthorProfileId(story, out var authorProfileId))
+        {
+            _logger.LogInformation(
+                ApplicationLogConstants.ChapterReviewNotificationSkippedGuest,
+                chapter.Id, NotificationKind.ChapterApproved);
+            return;
+        }
+
+        try
+        {
+            var authorUserId = await _authorDirectory.GetAuthorUserIdAsync(authorProfileId, cancellationToken);
+            if (authorUserId is null)
+            {
+                _logger.LogWarning(
+                    ApplicationLogConstants.ChapterReviewNotificationRecipientUnresolved,
+                    chapter.Id, authorProfileId, NotificationKind.ChapterApproved);
+                return;
+            }
+
+            await _notificationClient.SendAsync(
+                authorUserId.Value,
+                NotificationKind.ChapterApproved,
+                "Chương của bạn đã được duyệt",
+                $"Chương \"{chapter.Title}\" của truyện \"{story.Title}\" đã được duyệt và đăng.",
+                "Chapter",
+                chapter.PublicId,
+                cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(
+                ex,
+                ApplicationLogConstants.ChapterReviewNotificationFailed,
+                NotificationKind.ChapterApproved,
+                chapter.Id,
+                authorProfileId);
+        }
     }
 
     private async Task<Guid?> ResolveVolumePublicIdAsync(long? volumeId, CancellationToken cancellationToken)

@@ -16,6 +16,8 @@ public sealed class ContentDbContext : DbContext
 
     public DbSet<Chapter> Chapters => Set<Chapter>();
 
+    public DbSet<ChapterReviewAction> ChapterReviewActions => Set<ChapterReviewAction>();
+
     public DbSet<Genre> Genres => Set<Genre>();
 
     public DbSet<Tag> Tags => Set<Tag>();

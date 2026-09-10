@@ -5,6 +5,8 @@ public sealed class ReviewChapterCommandHandler : ICommandHandler<ReviewChapterC
     private readonly IStoryRepository _storyRepository;
     private readonly IChapterRepository _chapterRepository;
     private readonly IVolumeRepository _volumeRepository;
+    private readonly IChapterReviewActionRepository _reviewActionRepository;
+    private readonly IContentUnitOfWork _unitOfWork;
     private readonly ICurrentAuthorContext _currentUser;
     private readonly ILogger<ReviewChapterCommandHandler> _logger;
 
@@ -12,18 +14,24 @@ public sealed class ReviewChapterCommandHandler : ICommandHandler<ReviewChapterC
         IStoryRepository storyRepository,
         IChapterRepository chapterRepository,
         IVolumeRepository volumeRepository,
+        IChapterReviewActionRepository reviewActionRepository,
+        IContentUnitOfWork unitOfWork,
         ICurrentAuthorContext currentUser,
         ILogger<ReviewChapterCommandHandler> logger)
     {
         _storyRepository = storyRepository;
         _chapterRepository = chapterRepository;
         _volumeRepository = volumeRepository;
+        _reviewActionRepository = reviewActionRepository;
+        _unitOfWork = unitOfWork;
         _currentUser = currentUser;
         _logger = logger;
     }
 
     public async Task<ChapterDetailResponseDto> Handle(ReviewChapterCommand request, CancellationToken cancellationToken)
     {
+        var moderatorUserId = _currentUser.GetUserId();
+
         var chapter = await _chapterRepository.GetByPublicIdAsync(request.ChapterId, cancellationToken)
             ?? throw new NotFoundException(ApplicationErrorConstants.ChapterNotFound);
 
@@ -32,12 +40,29 @@ public sealed class ReviewChapterCommandHandler : ICommandHandler<ReviewChapterC
             throw new BusinessRuleException(ApplicationErrorConstants.InvalidChapterStatusTransition);
         }
 
-        chapter.Status = ChapterStatus.InReview;
-        chapter.UpdatedAt = DateTime.UtcNow;
-        _chapterRepository.Update(chapter);
-        await _chapterRepository.SaveChangesAsync(cancellationToken);
+        var now = DateTime.UtcNow;
 
-        _logger.LogInformation(ApplicationLogConstants.ChapterReviewStarted, chapter.Id, _currentUser.GetUserId());
+        chapter.Status = ChapterStatus.InReview;
+        chapter.UpdatedAt = now;
+        _chapterRepository.Update(chapter);
+
+        var action = new ChapterReviewAction
+        {
+            ChapterId = chapter.Id,
+            ModeratorUserId = moderatorUserId,
+            Action = ChapterReviewActionType.Reviewed,
+            Note = null,
+            CreatedAt = now
+        };
+
+        // The chapter status change and its audit row must commit together.
+        await _unitOfWork.ExecuteInTransactionAsync(async ct =>
+        {
+            await _reviewActionRepository.AddAsync(action, ct);
+            await _chapterRepository.SaveChangesAsync(ct);
+        }, cancellationToken);
+
+        _logger.LogInformation(ApplicationLogConstants.ChapterReviewStarted, chapter.Id, moderatorUserId);
 
         var story = await _storyRepository.GetByIdAsync(chapter.StoryId, cancellationToken);
         var volumePublicId = await ResolveVolumePublicIdAsync(chapter.VolumeId, cancellationToken);
