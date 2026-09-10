@@ -18,6 +18,16 @@ public interface IChapterRepository
 
     Task<bool> StoryHasPublishedChapterAsync(long storyId, CancellationToken cancellationToken = default);
 
+    /// <summary>A volume's non-removed chapters as change-tracked entities, for a bulk reorder.</summary>
+    Task<IReadOnlyList<Chapter>> GetByVolumeTrackedAsync(long volumeId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// A story's non-removed chapters that belong to no volume, as change-tracked
+    /// entities, for a bulk reorder.
+    /// </summary>
+    Task<IReadOnlyList<Chapter>> GetStoryChaptersWithoutVolumeTrackedAsync(
+        long storyId, CancellationToken cancellationToken = default);
+
     /// <summary>
     /// Scheduled chapters whose <see cref="Chapter.ScheduledAt"/> is at or before
     /// <paramref name="asOfUtc"/>, oldest schedule first, capped at

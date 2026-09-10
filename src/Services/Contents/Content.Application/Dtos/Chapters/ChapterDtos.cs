@@ -40,6 +40,12 @@ public sealed class RejectChapterRequestDto
     public string Reason { get; init; } = string.Empty;
 }
 
+/// <summary>New chapter order within a volume or a story: every chapter id, in the desired sequence.</summary>
+public sealed class ReorderChaptersRequestDto
+{
+    public IReadOnlyList<Guid> OrderedChapterIds { get; init; } = Array.Empty<Guid>();
+}
+
 /// <summary>Chapter entry in a story's table of contents.</summary>
 public sealed class ChapterSummaryResponseDto
 {

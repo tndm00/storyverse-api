@@ -28,6 +28,15 @@ public sealed class VolumeRepository : IVolumeRepository
             .ToListAsync(cancellationToken);
     }
 
+    public async Task<IReadOnlyList<Volume>> GetByStoryTrackedAsync(
+        long storyId, CancellationToken cancellationToken = default)
+    {
+        return await _dbContext.Volumes
+            .Where(x => x.StoryId == storyId)
+            .OrderBy(x => x.OrderIndex)
+            .ToListAsync(cancellationToken);
+    }
+
     public Task<int?> GetMaxOrderIndexAsync(long storyId, CancellationToken cancellationToken = default)
     {
         return _dbContext.Volumes

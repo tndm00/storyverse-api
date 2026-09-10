@@ -34,4 +34,8 @@ public static class ApplicationErrorConstants
     public const string ContentRequired = "Chapter content is required.";
     public const string OriginalSourceRequired = "Original source is required for a translated work.";
     public const string InvalidPageParameters = "Invalid pagination parameters.";
+
+    public const string ReorderListEmpty = "The ordered id list must not be empty.";
+    public const string ReorderDuplicateIds = "The ordered id list contains duplicate ids.";
+    public const string ReorderSetMismatch = "The ordered id list must contain exactly the items being reordered.";
 }

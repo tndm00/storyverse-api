@@ -19,6 +19,20 @@ public interface ICommentRepository
         int pageSize,
         CancellationToken cancellationToken = default);
 
+    /// <summary>
+    /// Moderation search across every chapter: optional chapter / author / status
+    /// filters and an ILIKE match on content, ordered by <see cref="Comment.CreatedAt"/>.
+    /// </summary>
+    Task<(IReadOnlyList<Comment> Items, int TotalCount)> SearchAsync(
+        Guid? chapterId,
+        long? authorUserId,
+        CommentStatus? status,
+        string keyword,
+        bool sortAscending,
+        int pageNumber,
+        int pageSize,
+        CancellationToken cancellationToken = default);
+
     Task AddAsync(Comment comment, CancellationToken cancellationToken = default);
 
     void Update(Comment comment);

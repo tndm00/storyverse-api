@@ -38,6 +38,42 @@ public sealed class CommentsController : ControllerBase
         return Ok(ResponseDto<PagedResponseDto<CommentResponseDto>>.Ok(result));
     }
 
+    /// <summary>
+    /// Cross-chapter comment moderation listing for the admin console. Filters:
+    /// <c>status</c> (Visible/Hidden/Deleted/all), <c>q</c> (ILIKE content),
+    /// <c>chapter-id</c>, <c>author-user-id</c>. Requires <c>community.moderate</c>.
+    /// </summary>
+    [HasPermission(StoryVersePermissions.Community.Moderate)]
+    [HttpGet(ControllerRouteConstants.CommentAdminSegment)]
+    [ProducesResponseType(typeof(ResponseDto<PagedResponseDto<CommentResponseDto>>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetAdminComments(
+        [FromQuery(Name = "status")] string status,
+        [FromQuery(Name = "q")] string q,
+        [FromQuery(Name = "chapter-id")] Guid? chapterId,
+        [FromQuery(Name = "author-user-id")] long? authorUserId,
+        [FromQuery(Name = "sort-by")] string sortBy,
+        [FromQuery(Name = "sort-direction")] string sortDirection,
+        [FromQuery(Name = "page-number")] int pageNumber = 1,
+        [FromQuery(Name = "page-size")] int pageSize = 20,
+        CancellationToken cancellationToken = default)
+    {
+        var query = new GetAdminCommentsQuery
+        {
+            Status = status,
+            Keyword = q,
+            ChapterId = chapterId,
+            AuthorUserId = authorUserId,
+            SortBy = sortBy,
+            SortDirection = sortDirection,
+            PageNumber = pageNumber,
+            PageSize = pageSize
+        };
+
+        var result = await _mediator.Send(query, cancellationToken);
+
+        return Ok(ResponseDto<PagedResponseDto<CommentResponseDto>>.Ok(result));
+    }
+
     [Authorize]
     [HttpPost]
     [ProducesResponseType(typeof(ResponseDto<CommentResponseDto>), StatusCodes.Status201Created)]

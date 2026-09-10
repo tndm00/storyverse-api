@@ -15,6 +15,12 @@ public sealed class UpdateVolumeRequestDto
     public int OrderIndex { get; init; }
 }
 
+/// <summary>New volume order for a story: every volume id, in the desired sequence.</summary>
+public sealed class ReorderVolumesRequestDto
+{
+    public IReadOnlyList<Guid> OrderedVolumeIds { get; init; } = Array.Empty<Guid>();
+}
+
 public sealed class VolumeResponseDto
 {
     public Guid Id { get; init; }

@@ -26,4 +26,10 @@ public static class ControllerRouteConstants
     public const string RatingsMineSegment = "mine";
 
     public const string VotesCountSegment = "count";
+
+    /// <summary>Current weekly voting period boundaries, for the client reset countdown.</summary>
+    public const string VotesCurrentPeriodSegment = "current-period";
+
+    /// <summary>Admin cross-chapter comment moderation listing (community.moderate).</summary>
+    public const string CommentAdminSegment = "admin";
 }

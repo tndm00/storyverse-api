@@ -51,6 +51,53 @@ public sealed class CommentRepository : ICommentRepository
         return (items, totalCount);
     }
 
+    public async Task<(IReadOnlyList<Comment> Items, int TotalCount)> SearchAsync(
+        Guid? chapterId,
+        long? authorUserId,
+        CommentStatus? status,
+        string keyword,
+        bool sortAscending,
+        int pageNumber,
+        int pageSize,
+        CancellationToken cancellationToken = default)
+    {
+        var query = _dbContext.Comments.AsNoTracking();
+
+        if (chapterId is { } chapter && chapter != Guid.Empty)
+        {
+            query = query.Where(x => x.ChapterId == chapter);
+        }
+
+        if (authorUserId is { } author)
+        {
+            query = query.Where(x => x.AuthorUserId == author);
+        }
+
+        if (status is { } commentStatus)
+        {
+            query = query.Where(x => x.Status == commentStatus);
+        }
+
+        if (!string.IsNullOrWhiteSpace(keyword))
+        {
+            var pattern = $"%{keyword.Trim()}%";
+            query = query.Where(x => EF.Functions.ILike(x.Content, pattern));
+        }
+
+        var totalCount = await query.CountAsync(cancellationToken);
+
+        var ordered = sortAscending
+            ? query.OrderBy(x => x.CreatedAt).ThenBy(x => x.Id)
+            : query.OrderByDescending(x => x.CreatedAt).ThenByDescending(x => x.Id);
+
+        var items = await ordered
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync(cancellationToken);
+
+        return (items, totalCount);
+    }
+
     public async Task AddAsync(Comment comment, CancellationToken cancellationToken = default)
     {
         await _dbContext.Comments.AddAsync(comment, cancellationToken);

@@ -53,6 +53,24 @@ public sealed class ChapterRepository : IChapterRepository
             cancellationToken);
     }
 
+    public async Task<IReadOnlyList<Chapter>> GetByVolumeTrackedAsync(
+        long volumeId, CancellationToken cancellationToken = default)
+    {
+        return await _dbContext.Chapters
+            .Where(x => x.VolumeId == volumeId && x.Status != ChapterStatus.Removed)
+            .OrderBy(x => x.OrderIndex)
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<IReadOnlyList<Chapter>> GetStoryChaptersWithoutVolumeTrackedAsync(
+        long storyId, CancellationToken cancellationToken = default)
+    {
+        return await _dbContext.Chapters
+            .Where(x => x.StoryId == storyId && x.VolumeId == null && x.Status != ChapterStatus.Removed)
+            .OrderBy(x => x.OrderIndex)
+            .ToListAsync(cancellationToken);
+    }
+
     public async Task<IReadOnlyList<Chapter>> GetDueScheduledAsync(
         DateTime asOfUtc, int maxItems, CancellationToken cancellationToken = default)
     {

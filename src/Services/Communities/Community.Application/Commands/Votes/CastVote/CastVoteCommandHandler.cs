@@ -44,12 +44,16 @@ public sealed class CastVoteCommandHandler : ICommandHandler<CastVoteCommand, Ca
 
         var weekCount = await _voteRepository.CountForStoryWeekAsync(request.StoryId, weekKey, cancellationToken);
 
+        var now = DateTime.UtcNow;
+
         return new CastVoteResultDto
         {
             StoryId = request.StoryId,
             WeekKey = weekKey,
             Recorded = !alreadyVoted,
-            WeekVoteCount = weekCount
+            WeekVoteCount = weekCount,
+            PeriodStartUtc = IsoWeek.PeriodStartUtc(now),
+            PeriodEndUtc = IsoWeek.PeriodEndUtc(now)
         };
     }
 }

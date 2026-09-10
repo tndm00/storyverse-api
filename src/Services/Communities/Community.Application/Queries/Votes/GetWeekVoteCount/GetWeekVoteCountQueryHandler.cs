@@ -14,11 +14,15 @@ public sealed class GetWeekVoteCountQueryHandler : IQueryHandler<GetWeekVoteCoun
         var weekKey = IsoWeek.Current();
         var count = await _voteRepository.CountForStoryWeekAsync(request.StoryId, weekKey, cancellationToken);
 
+        var now = DateTime.UtcNow;
+
         return new VoteCountResponseDto
         {
             StoryId = request.StoryId,
             WeekKey = weekKey,
-            WeekVoteCount = count
+            WeekVoteCount = count,
+            PeriodStartUtc = IsoWeek.PeriodStartUtc(now),
+            PeriodEndUtc = IsoWeek.PeriodEndUtc(now)
         };
     }
 }

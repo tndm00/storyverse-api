@@ -29,8 +29,11 @@ public static class ControllerRouteConstants
     public const string StoryStatusSegment = "{storyId:guid}/status";
     public const string StoryVolumesSegment = "{storyId:guid}/volumes";
     public const string StoryChaptersSegment = "{storyId:guid}/chapters";
+    public const string StoryVolumesOrderSegment = "{storyId:guid}/volumes/order";
+    public const string StoryChaptersOrderSegment = "{storyId:guid}/chapters/order";
 
     public const string VolumeByIdSegment = "{volumeId:guid}";
+    public const string VolumeChaptersOrderSegment = "{volumeId:guid}/chapters/order";
 
     public const string ChapterByIdSegment = "{chapterId:guid}";
     public const string ChapterSubmitForReviewSegment = "{chapterId:guid}/submit-for-review";

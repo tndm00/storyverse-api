@@ -39,4 +39,15 @@ public sealed class VotesController : ControllerBase
 
         return Ok(ResponseDto<VoteCountResponseDto>.Ok(result));
     }
+
+    /// <summary>Current weekly voting period boundaries (Monday 00:00 UTC .. next Monday 00:00 UTC).</summary>
+    [AllowAnonymous]
+    [HttpGet(ControllerRouteConstants.VotesCurrentPeriodSegment)]
+    [ProducesResponseType(typeof(ResponseDto<VotePeriodResponseDto>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetCurrentVotePeriod(CancellationToken cancellationToken)
+    {
+        var result = await _mediator.Send(new GetCurrentVotePeriodQuery(), cancellationToken);
+
+        return Ok(ResponseDto<VotePeriodResponseDto>.Ok(result));
+    }
 }

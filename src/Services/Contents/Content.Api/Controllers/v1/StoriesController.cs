@@ -325,6 +325,49 @@ public sealed class StoriesController : ControllerBase
         return StatusCode(StatusCodes.Status201Created, ResponseDto<VolumeResponseDto>.Ok(result));
     }
 
+    /// <summary>Reorder every volume in a story. Owner only, or staff with <c>content.moderate</c>.</summary>
+    [Authorize]
+    [HttpPut(ControllerRouteConstants.StoryVolumesOrderSegment)]
+    [ProducesResponseType(typeof(ResponseDto<IReadOnlyList<VolumeResponseDto>>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> ReorderVolumes(
+        Guid storyId,
+        [FromBody] ReorderVolumesRequestDto request,
+        CancellationToken cancellationToken)
+    {
+        var command = new ReorderVolumesCommand
+        {
+            StoryId = storyId,
+            OrderedVolumeIds = request.OrderedVolumeIds
+        };
+
+        var result = await _mediator.Send(command, cancellationToken);
+
+        return Ok(ResponseDto<IReadOnlyList<VolumeResponseDto>>.Ok(result));
+    }
+
+    /// <summary>
+    /// Reorder a story's chapters that belong to no volume. Owner only, or staff
+    /// with <c>content.moderate</c>.
+    /// </summary>
+    [Authorize]
+    [HttpPut(ControllerRouteConstants.StoryChaptersOrderSegment)]
+    [ProducesResponseType(typeof(ResponseDto<IReadOnlyList<ChapterSummaryResponseDto>>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> ReorderStoryChapters(
+        Guid storyId,
+        [FromBody] ReorderChaptersRequestDto request,
+        CancellationToken cancellationToken)
+    {
+        var command = new ReorderChaptersCommand
+        {
+            StoryId = storyId,
+            OrderedChapterIds = request.OrderedChapterIds
+        };
+
+        var result = await _mediator.Send(command, cancellationToken);
+
+        return Ok(ResponseDto<IReadOnlyList<ChapterSummaryResponseDto>>.Ok(result));
+    }
+
     [AllowAnonymous]
     [HttpGet(ControllerRouteConstants.StoryChaptersSegment)]
     [ProducesResponseType(typeof(ResponseDto<IReadOnlyList<ChapterSummaryResponseDto>>), StatusCodes.Status200OK)]

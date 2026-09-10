@@ -20,4 +20,5 @@ public static class ApplicationErrorConstants
     public const string ReviewTextTooLong = "The review text is too long.";
     public const string InvalidRatingScore = "The rating score must be between 1 and 5.";
     public const string InvalidPageParameters = "Invalid pagination parameters.";
+    public const string InvalidCommentStatusFilter = "The comment status filter must be Visible, Hidden, Deleted, or all.";
 }

@@ -31,4 +31,27 @@ public sealed class VolumesController : ControllerBase
 
         return Ok(ResponseDto<VolumeResponseDto>.Ok(result));
     }
+
+    /// <summary>
+    /// Reorder the chapters inside a volume. Owner only, or staff with
+    /// <c>content.moderate</c>.
+    /// </summary>
+    [Authorize]
+    [HttpPut(ControllerRouteConstants.VolumeChaptersOrderSegment)]
+    [ProducesResponseType(typeof(ResponseDto<IReadOnlyList<ChapterSummaryResponseDto>>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> ReorderVolumeChapters(
+        Guid volumeId,
+        [FromBody] ReorderChaptersRequestDto request,
+        CancellationToken cancellationToken)
+    {
+        var command = new ReorderChaptersCommand
+        {
+            VolumeId = volumeId,
+            OrderedChapterIds = request.OrderedChapterIds
+        };
+
+        var result = await _mediator.Send(command, cancellationToken);
+
+        return Ok(ResponseDto<IReadOnlyList<ChapterSummaryResponseDto>>.Ok(result));
+    }
 }
