@@ -65,6 +65,7 @@ public sealed class GlobalExceptionHandlingMiddleware
     private static (HttpStatusCode StatusCode, string ErrorCode) Map(Exception exception) => exception switch
     {
         BadRequestException => (HttpStatusCode.BadRequest, ErrorConstants.BadRequest),
+        UnauthorizedException => (HttpStatusCode.Unauthorized, ErrorConstants.Unauthorized),
         NotFoundException => (HttpStatusCode.NotFound, ErrorConstants.NotFound),
         ForbiddenException => (HttpStatusCode.Forbidden, ErrorConstants.Forbidden),
         ConflictException => (HttpStatusCode.Conflict, ErrorConstants.Conflict),

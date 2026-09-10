@@ -10,6 +10,12 @@ public static class ApplicationErrorConstants
     public const string InvalidCredentials = "Invalid email or password.";
     public const string AccountNotActive = "Invalid email or password.";
     public const string UserNotFound = "User was not found.";
+
+    /// <summary>
+    /// Generic message for every refresh failure (unknown, expired, revoked, or
+    /// reused token) — never says which check failed, per auth-guidelines.md section 11.
+    /// </summary>
+    public const string InvalidRefreshToken = "The refresh token is invalid or has expired.";
     public const string UnauthenticatedRequest = "Authentication is required to access this resource.";
 
     public const string AuthorProfileAlreadyExists = "This account already has an author profile.";

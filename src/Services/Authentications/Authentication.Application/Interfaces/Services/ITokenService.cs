@@ -21,6 +21,12 @@ public interface ITokenService
         IReadOnlyCollection<Role> roles = null);
 
     GeneratedToken GenerateRefreshToken();
+
+    /// <summary>
+    /// Deterministic hash of a raw refresh token value for storage and lookup.
+    /// The raw value is never persisted, per auth-guidelines.md section 8.
+    /// </summary>
+    string HashRefreshToken(string rawRefreshToken);
 }
 
 /// <summary>

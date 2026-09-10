@@ -13,6 +13,8 @@ global using Authentication.Application.Commands.Admin.RevokeUserRole;
 global using Authentication.Application.Commands.CreateAuthorProfile;
 global using Authentication.Application.Commands.GoogleLogin;
 global using Authentication.Application.Commands.Login;
+global using Authentication.Application.Commands.Logout;
+global using Authentication.Application.Commands.Refresh;
 global using Authentication.Application.Commands.Register;
 global using Authentication.Application.Dtos.Authentications.Admin;
 global using Authentication.Application.Dtos.Authentications.AuthorProfiles;

@@ -16,6 +16,8 @@ public static class InfrastructureConstants
 
     public const string UserRolesTableName = "user_roles";
 
+    public const string RefreshTokensTableName = "refresh_tokens";
+
     /// <summary>
     /// JWT claim type for the subject, used as a fallback when the inbound
     /// claim was not remapped to <c>JwtRegisteredClaimNames.Sub</c>.

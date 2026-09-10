@@ -9,5 +9,16 @@ namespace Authentication.Application.Interfaces.Services;
 /// </summary>
 public interface IUserSessionIssuer
 {
-    Task<LoginResponseDto> IssueAsync(User user, CancellationToken cancellationToken = default);
+    /// <summary>
+    /// Mints an access + refresh token pair for <paramref name="user"/>,
+    /// persists the new refresh token (hashed), stamps the login timestamp, and
+    /// saves. When <paramref name="replacedToken"/> is supplied (refresh-token
+    /// rotation) it is revoked and linked to the new token in the same save so
+    /// the swap is atomic. Roles and the <c>author_id</c> claim are always read
+    /// fresh from the database, never copied from a prior token.
+    /// </summary>
+    Task<LoginResponseDto> IssueAsync(
+        User user,
+        RefreshToken replacedToken = null,
+        CancellationToken cancellationToken = default);
 }

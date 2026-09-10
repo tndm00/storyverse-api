@@ -11,6 +11,8 @@ public static class ControllerRouteConstants
 
     public const string RegisterSegment = "register";
     public const string LoginSegment = "login";
+    public const string RefreshSegment = "refresh";
+    public const string LogoutSegment = "logout";
     public const string GoogleLoginSegment = "google";
     public const string MeSegment = "me";
 

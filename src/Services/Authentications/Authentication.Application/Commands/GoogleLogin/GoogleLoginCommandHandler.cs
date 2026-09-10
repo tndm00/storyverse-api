@@ -39,7 +39,7 @@ public sealed class GoogleLoginCommandHandler : ICommandHandler<GoogleLoginComma
             throw new BadRequestException(ApplicationErrorConstants.AccountNotActive);
         }
 
-        var session = await _sessionIssuer.IssueAsync(user, cancellationToken);
+        var session = await _sessionIssuer.IssueAsync(user, cancellationToken: cancellationToken);
 
         _logger.LogInformation(ApplicationLogConstants.GoogleLoginSucceeded, user.Id);
 

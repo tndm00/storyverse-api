@@ -1,3 +1,4 @@
+using Content.Api.BackgroundServices;
 using Content.Api.Seed;
 
 namespace Content.Api.Extensions;
@@ -55,6 +56,11 @@ public static class ServiceRegistration
         services.AddStoryVersePermissions();
 
         services.AddStoryVerseCors(configuration);
+
+        // Background loop that auto-publishes Scheduled chapters when due.
+        services.Configure<Content.Application.Options.ChapterPublishingOptions>(
+            configuration.GetSection(Content.Application.Options.ChapterPublishingOptions.SectionName));
+        services.AddHostedService<ScheduledChapterPublisher>();
 
         // Dev-only seeders. GenreSeeder must run first — DemoContentSeeder looks
         // its genres up by slug. Hosted services start in registration order.

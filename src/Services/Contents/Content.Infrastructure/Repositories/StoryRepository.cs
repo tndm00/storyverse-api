@@ -163,6 +163,19 @@ public sealed class StoryRepository : IStoryRepository
         _dbContext.Stories.Update(story);
     }
 
+    public Task TryStartOngoingOnFirstChapterAsync(
+        long storyId, DateTime nowUtc, CancellationToken cancellationToken = default)
+    {
+        return _dbContext.Stories
+            .Where(x => x.Id == storyId && x.Status == StoryStatus.Draft)
+            .ExecuteUpdateAsync(
+                setters => setters
+                    .SetProperty(x => x.Status, StoryStatus.Ongoing)
+                    .SetProperty(x => x.PublishedAt, x => x.PublishedAt ?? nowUtc)
+                    .SetProperty(x => x.UpdatedAt, x => nowUtc),
+                cancellationToken);
+    }
+
     public Task IncrementViewCountAsync(long storyId, CancellationToken cancellationToken = default)
     {
         return _dbContext.Stories

@@ -42,6 +42,17 @@ public interface IStoryRepository
     /// <summary>Story count per <see cref="StoryStatus"/> across the whole catalog (admin dashboard).</summary>
     Task<IReadOnlyDictionary<StoryStatus, int>> CountByStatusAsync(CancellationToken cancellationToken = default);
 
+    /// <summary>
+    /// Atomically moves a story from <see cref="StoryStatus.Draft"/> to
+    /// <see cref="StoryStatus.Ongoing"/> and stamps <c>PublishedAt</c> (only if
+    /// not already set) when its first chapter is published. A no-op — matching
+    /// no row — for a story that is already past Draft, so it is safe to call
+    /// from concurrent publishers. Mirrors the manual approve flow's
+    /// Draft-&gt;Ongoing transition.
+    /// </summary>
+    Task TryStartOngoingOnFirstChapterAsync(
+        long storyId, DateTime nowUtc, CancellationToken cancellationToken = default);
+
     Task AddAsync(Story story, CancellationToken cancellationToken = default);
 
     void Update(Story story);

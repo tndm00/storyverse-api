@@ -99,7 +99,7 @@ public class LoginCommandHandlerTests
         Func<Task> act = () => _handler.Handle(CreateCommand(), CancellationToken.None);
 
         (await act.Should().ThrowAsync<BadRequestException>()).Which.Message.Should().Be("Invalid email or password.");
-        await _sessionIssuer.DidNotReceive().IssueAsync(Arg.Any<User>(), Arg.Any<CancellationToken>());
+        await _sessionIssuer.DidNotReceive().IssueAsync(Arg.Any<User>(), Arg.Any<RefreshToken>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -116,11 +116,11 @@ public class LoginCommandHandlerTests
         _passwordHasher.Verify("Sup3rSecret!", "hashed-password").Returns(true);
 
         var expectedSession = new LoginResponseDto { AccessToken = "access-token", RefreshToken = "refresh-token" };
-        _sessionIssuer.IssueAsync(user, Arg.Any<CancellationToken>()).Returns(expectedSession);
+        _sessionIssuer.IssueAsync(user, Arg.Any<RefreshToken>(), Arg.Any<CancellationToken>()).Returns(expectedSession);
 
         var result = await _handler.Handle(CreateCommand(), CancellationToken.None);
 
         result.Should().BeSameAs(expectedSession);
-        await _sessionIssuer.Received(1).IssueAsync(user, Arg.Any<CancellationToken>());
+        await _sessionIssuer.Received(1).IssueAsync(user, Arg.Any<RefreshToken>(), Arg.Any<CancellationToken>());
     }
 }

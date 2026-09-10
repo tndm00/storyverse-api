@@ -20,6 +20,7 @@ public static class ServiceRegistration
         services.AddHttpContextAccessor();
 
         services.AddScoped<IUserRepository, UserRepository>();
+        services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
         services.AddScoped<IAuthorProfileRepository, AuthorProfileRepository>();
         services.AddScoped<IPasswordHasher, PasswordHasher>();
         services.AddScoped<ITokenService, TokenService>();

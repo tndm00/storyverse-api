@@ -1,4 +1,5 @@
 using Authentication.Application.Commands.Register;
+using Authentication.Application.Dtos.Authentications.Sessions;
 using Authentication.Application.Interfaces.Repositories;
 using Authentication.Application.Interfaces.Services;
 using Authentication.Domain.Entities;
@@ -15,6 +16,7 @@ public class RegisterCommandHandlerTests
 {
     private readonly IUserRepository _userRepository = Substitute.For<IUserRepository>();
     private readonly IPasswordHasher _passwordHasher = Substitute.For<IPasswordHasher>();
+    private readonly IUserSessionIssuer _sessionIssuer = Substitute.For<IUserSessionIssuer>();
     private readonly ILogger<RegisterCommandHandler> _logger =
         Substitute.For<ILogger<RegisterCommandHandler>>();
 
@@ -22,7 +24,15 @@ public class RegisterCommandHandlerTests
 
     public RegisterCommandHandlerTests()
     {
-        _handler = new RegisterCommandHandler(_userRepository, _passwordHasher, _logger);
+        _handler = new RegisterCommandHandler(_userRepository, _passwordHasher, _sessionIssuer, _logger);
+
+        _sessionIssuer
+            .IssueAsync(Arg.Any<User>(), Arg.Any<RefreshToken>(), Arg.Any<CancellationToken>())
+            .Returns(new LoginResponseDto
+            {
+                AccessToken = "access-token",
+                RefreshToken = "refresh-token"
+            });
     }
 
     private static RegisterCommand CreateCommand()
@@ -47,7 +57,7 @@ public class RegisterCommandHandlerTests
     }
 
     [Fact]
-    public async Task Handle_Should_CreateReaderAccount_When_EmailIsNotRegistered()
+    public async Task Handle_Should_CreateReaderAccountAndIssueSession_When_EmailIsNotRegistered()
     {
         _userRepository.ExistsByEmailAsync("reader@example.com", Arg.Any<CancellationToken>()).Returns(false);
         _passwordHasher.Hash("Sup3rSecret!").Returns("hashed-password");
@@ -56,6 +66,8 @@ public class RegisterCommandHandlerTests
 
         result.Email.Should().Be("reader@example.com");
         result.DisplayName.Should().Be("New Reader");
+        result.AccessToken.Should().Be("access-token");
+        result.RefreshToken.Should().Be("refresh-token");
 
         await _userRepository.Received(1).AddAsync(
             Arg.Is<User>(u =>
@@ -65,5 +77,7 @@ public class RegisterCommandHandlerTests
                 u.Roles.Any(r => r.Role == Role.Reader)),
             Arg.Any<CancellationToken>());
         await _userRepository.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
+        await _sessionIssuer.Received(1).IssueAsync(
+            Arg.Any<User>(), Arg.Any<RefreshToken>(), Arg.Any<CancellationToken>());
     }
 }

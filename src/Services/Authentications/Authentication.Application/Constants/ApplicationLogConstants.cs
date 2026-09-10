@@ -15,6 +15,13 @@ public static class ApplicationLogConstants
     public const string LoginFailedInvalidCredentials = "Login failed: invalid credentials for email {Email}.";
     public const string LoginFailedAccountNotActive = "Login failed: account {UserId} is not active.";
 
+    public const string RefreshAttempt = "Refresh token exchange attempt.";
+    public const string RefreshSucceeded = "User {UserId} exchanged a refresh token for a new access token.";
+    public const string RefreshFailedUnknownOrExpired = "Refresh failed: token unknown, expired, or for an inactive account.";
+    public const string RefreshTokenReuseDetected =
+        "Refresh token reuse detected for user {UserId}; revoked all active refresh tokens for the account.";
+    public const string LogoutSucceeded = "User {UserId} revoked a refresh token (logout).";
+
     public const string GoogleLoginAttempt = "Google login attempt.";
     public const string GoogleLoginSucceeded = "User {UserId} logged in with Google.";
     public const string GoogleLoginFailedUnverifiedEmail = "Google login failed: token carried an unverified email.";

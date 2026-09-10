@@ -25,6 +25,16 @@ public static class ApplicationLogConstants
     public const string ChapterApproved = "Chapter {ChapterId} approved and published for story {StoryId}.";
     public const string ChapterRejected = "Chapter {ChapterId} rejected by moderator {ModeratorUserId}.";
     public const string ChapterScheduled = "Chapter {ChapterId} scheduled for {ScheduledAt}.";
+    public const string ScheduledChapterAutoPublished =
+        "Scheduled chapter {ChapterId} auto-published for story {StoryId} (was due at {ScheduledAt}).";
+    public const string ScheduledChapterPublisherCompleted =
+        "Scheduled chapter publisher pass complete: published {PublishedCount} of {DueCount} due chapter(s).";
+    public const string ScheduledChapterPublisherDisabled =
+        "Scheduled chapter publisher is disabled by configuration (ChapterPublishing:Enabled=false); not starting.";
+    public const string ScheduledChapterPublisherStarting =
+        "Scheduled chapter publisher started; polling every {PollIntervalSeconds}s.";
+    public const string ScheduledChapterPublisherFailed =
+        "Scheduled chapter publisher pass failed; will retry on the next interval.";
     public const string ChapterScheduleCancelled = "Chapter {ChapterId} schedule cancelled.";
     public const string ChapterRemoved = "Chapter {ChapterId} removed.";
     public const string StoryModerationVisibilityChanged = "Story {StoryId} moderation visibility changed (hidden={Hidden}); status now {Status}.";

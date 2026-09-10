@@ -4,15 +4,18 @@ public sealed class RegisterCommandHandler : ICommandHandler<RegisterCommand, Re
 {
     private readonly IUserRepository _userRepository;
     private readonly IPasswordHasher _passwordHasher;
+    private readonly IUserSessionIssuer _sessionIssuer;
     private readonly ILogger<RegisterCommandHandler> _logger;
 
     public RegisterCommandHandler(
         IUserRepository userRepository,
         IPasswordHasher passwordHasher,
+        IUserSessionIssuer sessionIssuer,
         ILogger<RegisterCommandHandler> logger)
     {
         _userRepository = userRepository;
         _passwordHasher = passwordHasher;
+        _sessionIssuer = sessionIssuer;
         _logger = logger;
     }
 
@@ -41,6 +44,20 @@ public sealed class RegisterCommandHandler : ICommandHandler<RegisterCommand, Re
 
         _logger.LogInformation(ApplicationLogConstants.RegisterSucceeded, user.Id);
 
-        return user.Adapt<RegisterResponseDto>();
+        // Registration signs the account in: return a token pair so the client
+        // does not need an immediate follow-up login call.
+        var session = await _sessionIssuer.IssueAsync(user, cancellationToken: cancellationToken);
+
+        return new RegisterResponseDto
+        {
+            UserId = user.Id,
+            Email = user.Email,
+            DisplayName = user.DisplayName,
+            AccessToken = session.AccessToken,
+            AccessTokenExpiresAt = session.AccessTokenExpiresAt,
+            RefreshToken = session.RefreshToken,
+            RefreshTokenExpiresAt = session.RefreshTokenExpiresAt,
+            TokenType = session.TokenType
+        };
     }
 }

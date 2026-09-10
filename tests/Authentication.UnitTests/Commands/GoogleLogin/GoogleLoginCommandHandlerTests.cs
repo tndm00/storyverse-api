@@ -73,7 +73,7 @@ public class GoogleLoginCommandHandlerTests
             .Returns(existingUser);
 
         var expectedSession = new LoginResponseDto { AccessToken = "access-token" };
-        _sessionIssuer.IssueAsync(existingUser, Arg.Any<CancellationToken>()).Returns(expectedSession);
+        _sessionIssuer.IssueAsync(existingUser, Arg.Any<RefreshToken>(), Arg.Any<CancellationToken>()).Returns(expectedSession);
 
         var result = await _handler.Handle(CreateCommand(), CancellationToken.None);
 
@@ -101,7 +101,7 @@ public class GoogleLoginCommandHandlerTests
         _userRepository.GetByEmailAsync("reader@example.com", Arg.Any<CancellationToken>()).Returns(existingUser);
 
         var expectedSession = new LoginResponseDto { AccessToken = "access-token" };
-        _sessionIssuer.IssueAsync(existingUser, Arg.Any<CancellationToken>()).Returns(expectedSession);
+        _sessionIssuer.IssueAsync(existingUser, Arg.Any<RefreshToken>(), Arg.Any<CancellationToken>()).Returns(expectedSession);
 
         var result = await _handler.Handle(CreateCommand(), CancellationToken.None);
 
@@ -129,7 +129,7 @@ public class GoogleLoginCommandHandlerTests
         _userRepository.GetByExternalIdAsync(ApplicationConstants.GoogleProvider, "google-subject-2", Arg.Any<CancellationToken>())
             .Returns((User)null);
         _userRepository.GetByEmailAsync("reader@example.com", Arg.Any<CancellationToken>()).Returns(existingUser);
-        _sessionIssuer.IssueAsync(existingUser, Arg.Any<CancellationToken>())
+        _sessionIssuer.IssueAsync(existingUser, Arg.Any<RefreshToken>(), Arg.Any<CancellationToken>())
             .Returns(new LoginResponseDto { AccessToken = "access-token" });
 
         await _handler.Handle(CreateCommand(), CancellationToken.None);
@@ -148,7 +148,7 @@ public class GoogleLoginCommandHandlerTests
         _userRepository.GetByEmailAsync("newreader@example.com", Arg.Any<CancellationToken>()).Returns((User)null);
 
         var expectedSession = new LoginResponseDto { AccessToken = "access-token" };
-        _sessionIssuer.IssueAsync(Arg.Any<User>(), Arg.Any<CancellationToken>()).Returns(expectedSession);
+        _sessionIssuer.IssueAsync(Arg.Any<User>(), Arg.Any<RefreshToken>(), Arg.Any<CancellationToken>()).Returns(expectedSession);
 
         var result = await _handler.Handle(CreateCommand(), CancellationToken.None);
 
@@ -184,6 +184,6 @@ public class GoogleLoginCommandHandlerTests
         Func<Task> act = () => _handler.Handle(CreateCommand(), CancellationToken.None);
 
         await act.Should().ThrowAsync<BadRequestException>();
-        await _sessionIssuer.DidNotReceive().IssueAsync(Arg.Any<User>(), Arg.Any<CancellationToken>());
+        await _sessionIssuer.DidNotReceive().IssueAsync(Arg.Any<User>(), Arg.Any<RefreshToken>(), Arg.Any<CancellationToken>());
     }
 }

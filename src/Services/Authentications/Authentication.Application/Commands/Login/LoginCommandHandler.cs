@@ -40,7 +40,7 @@ public sealed class LoginCommandHandler : ICommandHandler<LoginCommand, LoginRes
             throw new BadRequestException(ApplicationErrorConstants.AccountNotActive);
         }
 
-        var session = await _sessionIssuer.IssueAsync(user, cancellationToken);
+        var session = await _sessionIssuer.IssueAsync(user, cancellationToken: cancellationToken);
 
         _logger.LogInformation(ApplicationLogConstants.LoginSucceeded, user.Id);
 

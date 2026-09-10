@@ -9,9 +9,6 @@ public sealed class AuthenticationMappingConfig : IRegister
 {
     public void Register(TypeAdapterConfig config)
     {
-        config.NewConfig<User, RegisterResponseDto>()
-            .Map(dest => dest.UserId, src => src.Id);
-
         config.NewConfig<User, CurrentUserResponseDto>()
             .Map(dest => dest.UserId, src => src.Id)
             .Map(dest => dest.LastLoginAt, src => src.LastLoginAt)

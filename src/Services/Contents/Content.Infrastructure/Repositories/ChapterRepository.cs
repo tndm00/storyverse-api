@@ -53,6 +53,34 @@ public sealed class ChapterRepository : IChapterRepository
             cancellationToken);
     }
 
+    public async Task<IReadOnlyList<Chapter>> GetDueScheduledAsync(
+        DateTime asOfUtc, int maxItems, CancellationToken cancellationToken = default)
+    {
+        return await _dbContext.Chapters
+            .AsNoTracking()
+            .Where(x => x.Status == ChapterStatus.Scheduled && x.ScheduledAt != null && x.ScheduledAt <= asOfUtc)
+            .OrderBy(x => x.ScheduledAt)
+            .Take(maxItems)
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<bool> TryMarkPublishedAsync(
+        long chapterId, DateTime nowUtc, CancellationToken cancellationToken = default)
+    {
+        // Conditional UPDATE: only the caller that still sees status = Scheduled
+        // performs the flip, so concurrent publishers cannot double-publish.
+        var affected = await _dbContext.Chapters
+            .Where(x => x.Id == chapterId && x.Status == ChapterStatus.Scheduled)
+            .ExecuteUpdateAsync(
+                setters => setters
+                    .SetProperty(x => x.Status, ChapterStatus.Published)
+                    .SetProperty(x => x.PublishedAt, x => x.PublishedAt ?? x.ScheduledAt ?? nowUtc)
+                    .SetProperty(x => x.UpdatedAt, x => nowUtc),
+                cancellationToken);
+
+        return affected == 1;
+    }
+
     public async Task<(IReadOnlyList<(Chapter Chapter, Story Story)> Items, int TotalCount)> GetPendingReviewAsync(
         ChapterStatus? status,
         string keyword,

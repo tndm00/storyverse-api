@@ -60,6 +60,43 @@ public sealed class AuthController : ControllerBase
     }
 
     /// <summary>
+    /// Exchanges a refresh token for a new access + refresh token pair. The new
+    /// access token reflects the account's current roles and <c>author_id</c>
+    /// (read from the database), so a client that just became an author can call
+    /// this instead of a full re-login. The presented refresh token is rotated
+    /// out; replaying it triggers reuse detection. Public endpoint.
+    /// </summary>
+    [AllowAnonymous]
+    [HttpPost(ControllerRouteConstants.RefreshSegment)]
+    [ProducesResponseType(typeof(ResponseDto<LoginResponseDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<IActionResult> Refresh(
+        [FromBody] RefreshTokenRequestDto request,
+        CancellationToken cancellationToken)
+    {
+        var result = await _mediator.Send(
+            new RefreshCommand { RefreshToken = request.RefreshToken }, cancellationToken);
+
+        return Ok(ResponseDto<LoginResponseDto>.Ok(result));
+    }
+
+    /// <summary>
+    /// Revokes the caller's current refresh token (sign-out). Idempotent. The
+    /// access token remains valid until it expires — keep access-token TTL short.
+    /// </summary>
+    [Authorize]
+    [HttpPost(ControllerRouteConstants.LogoutSegment)]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    public async Task<IActionResult> Logout(
+        [FromBody] LogoutRequestDto request,
+        CancellationToken cancellationToken)
+    {
+        await _mediator.Send(new LogoutCommand { RefreshToken = request.RefreshToken }, cancellationToken);
+
+        return NoContent();
+    }
+
+    /// <summary>
     /// Signs a user in with a Google ID token from the frontend. Provisions a
     /// password-less account on first use. Public endpoint, per
     /// auth-guidelines.md section 14.

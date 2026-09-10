@@ -67,13 +67,21 @@ public sealed class TokenService : ITokenService
 
     public GeneratedToken GenerateRefreshToken()
     {
-        // Opaque, high-entropy refresh token. Only a hash of this value should
-        // ever be persisted (auth-guidelines.md section 8); persistence and
-        // rotation storage are out of scope for this Phase 1 slice.
+        // Opaque, high-entropy refresh token. Only its hash is ever persisted
+        // (auth-guidelines.md section 8); the raw value is returned to the
+        // client once and never stored.
         var bytes = RandomNumberGenerator.GetBytes(64);
         var value = Convert.ToBase64String(bytes);
         var expiresAt = DateTimeOffset.UtcNow.AddDays(_options.RefreshTokenDays);
 
         return new GeneratedToken(value, expiresAt);
+    }
+
+    public string HashRefreshToken(string rawRefreshToken)
+    {
+        // SHA-256 is sufficient here: the token is already 64 bytes of CSPRNG
+        // output, so there is nothing to brute-force and no salt is needed.
+        var hash = SHA256.HashData(Encoding.UTF8.GetBytes(rawRefreshToken ?? string.Empty));
+        return Convert.ToHexString(hash);
     }
 }

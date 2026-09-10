@@ -19,6 +19,25 @@ public interface IChapterRepository
     Task<bool> StoryHasPublishedChapterAsync(long storyId, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Scheduled chapters whose <see cref="Chapter.ScheduledAt"/> is at or before
+    /// <paramref name="asOfUtc"/>, oldest schedule first, capped at
+    /// <paramref name="maxItems"/>. Read-only — publishing is done via
+    /// <see cref="TryMarkPublishedAsync"/>.
+    /// </summary>
+    Task<IReadOnlyList<Chapter>> GetDueScheduledAsync(
+        DateTime asOfUtc, int maxItems, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Atomically flips one chapter from <see cref="ChapterStatus.Scheduled"/> to
+    /// <see cref="ChapterStatus.Published"/> (setting <c>PublishedAt</c> and
+    /// <c>UpdatedAt</c>). Returns <c>true</c> only when this call performed the
+    /// transition, so it is safe to run from multiple instances — the loser's
+    /// <c>WHERE status = 'Scheduled'</c> guard matches no row.
+    /// </summary>
+    Task<bool> TryMarkPublishedAsync(
+        long chapterId, DateTime nowUtc, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Cross-story moderation queue: chapters awaiting a decision (PendingReview
     /// and/or InReview), oldest first, joined to their parent story.
     /// </summary>
