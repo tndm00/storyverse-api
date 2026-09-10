@@ -10,6 +10,7 @@ public sealed class UpdateGenreCommandValidator : AbstractValidator<UpdateGenreC
             .NotEmpty().WithMessage(ApplicationErrorConstants.TitleRequired)
             .MaximumLength(ApplicationConstants.MaxGenreNameLength);
 
-        RuleFor(x => x.DisplayOrder).GreaterThanOrEqualTo(0);
+        // Negative values are allowed on purpose — the admin UI documents this
+        // as a way to bump a genre to the very top of the list.
     }
 }
