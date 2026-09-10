@@ -19,6 +19,13 @@ public sealed class RatingResponseDto
 
     public long UserId { get; init; }
 
+    /// <summary>
+    /// Rater's public display name, resolved from the Authentication service.
+    /// Null when the lookup was unavailable — clients fall back to
+    /// <see cref="UserId"/>.
+    /// </summary>
+    public string UserDisplayName { get; init; }
+
     public int Score { get; init; }
 
     public string ReviewText { get; init; }

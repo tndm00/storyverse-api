@@ -11,5 +11,13 @@ public enum StoryStatus
     Ongoing,
     Completed,
     Hiatus,
-    Dropped
+    Dropped,
+
+    /// <summary>
+    /// Taken down by a moderator (Moderation service Hide/Remove decision). The
+    /// story and its chapters are withheld from public discovery/reading until a
+    /// moderator restores it. Set only through the internal moderation-visibility
+    /// endpoint, never by the author.
+    /// </summary>
+    Removed
 }

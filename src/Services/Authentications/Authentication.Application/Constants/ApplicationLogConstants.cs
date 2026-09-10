@@ -24,4 +24,7 @@ public static class ApplicationLogConstants
     public const string AuthorProfileCreateAttempt = "Author profile creation attempt for user {UserId}.";
     public const string AuthorProfileCreated = "Author profile {AuthorProfileId} created for user {UserId}.";
     public const string AuthorProfileCreateFailedExists = "Author profile creation failed: user {UserId} already has one.";
+
+    public const string UserRoleGranted = "Admin granted role {Role} to user {UserId}.";
+    public const string UserRoleRevoked = "Admin revoked role {Role} from user {UserId}.";
 }

@@ -7,13 +7,17 @@ namespace Moderation.Application.Mappings;
 /// </summary>
 public static class ModerationDtoMapper
 {
-    public static ReportSummaryResponseDto ToSummary(Report report)
+    public static ReportSummaryResponseDto ToSummary(
+        Report report, string reporterDisplayName = null, string targetTitle = null)
     {
         return new ReportSummaryResponseDto
         {
             Id = report.PublicId,
             TargetType = report.TargetType.ToString(),
             TargetId = report.TargetId,
+            TargetTitle = targetTitle,
+            ReporterUserId = report.ReporterUserId,
+            ReporterDisplayName = reporterDisplayName,
             Reason = report.Reason.ToString(),
             Status = report.Status.ToString(),
             CreatedAt = report.CreatedAt,
@@ -21,14 +25,20 @@ public static class ModerationDtoMapper
         };
     }
 
-    public static ReportDetailResponseDto ToDetail(Report report, IReadOnlyList<ModerationAction> actions)
+    public static ReportDetailResponseDto ToDetail(
+        Report report,
+        IReadOnlyList<ModerationAction> actions,
+        string reporterDisplayName = null,
+        string targetTitle = null)
     {
         return new ReportDetailResponseDto
         {
             Id = report.PublicId,
             ReporterUserId = report.ReporterUserId,
+            ReporterDisplayName = reporterDisplayName,
             TargetType = report.TargetType.ToString(),
             TargetId = report.TargetId,
+            TargetTitle = targetTitle,
             Reason = report.Reason.ToString(),
             Description = report.Description,
             Status = report.Status.ToString(),

@@ -31,6 +31,13 @@ public sealed class CommentResponseDto
 
     public long AuthorUserId { get; init; }
 
+    /// <summary>
+    /// Author's public display name, resolved from the Authentication service.
+    /// Null when the lookup was unavailable — clients fall back to
+    /// <see cref="AuthorUserId"/>.
+    /// </summary>
+    public string AuthorDisplayName { get; init; }
+
     public string Content { get; init; }
 
     public string Status { get; init; }

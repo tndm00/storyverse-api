@@ -49,4 +49,12 @@ public static class ControllerRouteConstants
 
     public const string GenreBySlugSegment = "{slug}";
     public const string GenreHideSegment = "{slug}/hide";
+
+    // Internal, service-to-service (X-Service-Token). Base is bare "v1" so each
+    // route below carries its full path and never collides with the guid-id routes.
+    public const string InternalBase = "v1";
+    public const string InternalStoryModerationVisibilitySegment = "stories/{storyId:guid}/moderation-visibility";
+    public const string InternalChapterModerationVisibilitySegment = "chapters/{chapterId:guid}/moderation-visibility";
+    public const string InternalStoryTitlesSegment = "stories/internal/titles";
+    public const string InternalChapterTitlesSegment = "chapters/internal/titles";
 }

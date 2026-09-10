@@ -20,6 +20,9 @@ public static class ServiceRegistration
 
         TypeAdapterConfig.GlobalSettings.Scan(assembly);
 
+        // Composes the Auth/Content/Community lookup clients to enrich report DTOs.
+        services.AddScoped<Services.IReportEnricher, Services.ReportEnricher>();
+
         return services;
     }
 }

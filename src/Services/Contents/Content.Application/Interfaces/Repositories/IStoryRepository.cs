@@ -12,6 +12,10 @@ public interface IStoryRepository
 
     Task<Story> GetBySlugAsync(string slug, CancellationToken cancellationToken = default);
 
+    /// <summary>Public id -&gt; title for a set of stories, for internal cross-service lookups. Unknown ids are omitted.</summary>
+    Task<IReadOnlyList<ContentTitleEntryDto>> GetTitlesByPublicIdsAsync(
+        IEnumerable<Guid> publicIds, CancellationToken cancellationToken = default);
+
     /// <summary>Loads the story with its <see cref="Story.Genres"/> and <see cref="Story.Tags"/> tracked for update.</summary>
     Task<Story> GetWithClassificationByPublicIdAsync(Guid publicId, CancellationToken cancellationToken = default);
 

@@ -40,7 +40,9 @@ public static class ServiceRegistration
                 };
             });
 
-        services.AddAuthorization();
+        // Permission-based authorization: one "perm:<permission>" policy per
+        // StoryVersePermissions entry (e.g. users.manage guards admin role grants).
+        services.AddStoryVersePermissions();
 
         // Dev bootstrap: promote configured emails to PlatformAdmin once they
         // register (Seed:PlatformAdminEmails). No-op when the list is empty.

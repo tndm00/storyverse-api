@@ -27,6 +27,8 @@ public static class ApplicationLogConstants
     public const string ChapterScheduled = "Chapter {ChapterId} scheduled for {ScheduledAt}.";
     public const string ChapterScheduleCancelled = "Chapter {ChapterId} schedule cancelled.";
     public const string ChapterRemoved = "Chapter {ChapterId} removed.";
+    public const string StoryModerationVisibilityChanged = "Story {StoryId} moderation visibility changed (hidden={Hidden}); status now {Status}.";
+    public const string ChapterModerationVisibilityChanged = "Chapter {ChapterId} moderation visibility changed (hidden={Hidden}); status now {Status}.";
 
     public const string GenreCreated = "Genre {GenreId} created.";
     public const string GenreUpdated = "Genre {GenreId} updated.";

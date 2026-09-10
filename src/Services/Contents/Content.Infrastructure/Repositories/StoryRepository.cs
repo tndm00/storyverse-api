@@ -24,6 +24,22 @@ public sealed class StoryRepository : IStoryRepository
         return _dbContext.Stories.FirstOrDefaultAsync(x => x.Slug == slug, cancellationToken);
     }
 
+    public async Task<IReadOnlyList<ContentTitleEntryDto>> GetTitlesByPublicIdsAsync(
+        IEnumerable<Guid> publicIds, CancellationToken cancellationToken = default)
+    {
+        var ids = publicIds.Where(id => id != Guid.Empty).Distinct().ToArray();
+        if (ids.Length == 0)
+        {
+            return Array.Empty<ContentTitleEntryDto>();
+        }
+
+        return await _dbContext.Stories
+            .AsNoTracking()
+            .Where(x => ids.Contains(x.PublicId))
+            .Select(x => new ContentTitleEntryDto { Id = x.PublicId, Title = x.Title })
+            .ToListAsync(cancellationToken);
+    }
+
     public Task<Story> GetWithClassificationByPublicIdAsync(Guid publicId, CancellationToken cancellationToken = default)
     {
         return _dbContext.Stories

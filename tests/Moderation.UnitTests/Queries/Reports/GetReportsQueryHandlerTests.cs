@@ -3,6 +3,7 @@ using Moderation.Application.Constants;
 using Moderation.Application.Dtos;
 using Moderation.Application.Interfaces.Repositories;
 using Moderation.Application.Queries.Reports.GetReports;
+using Moderation.Application.Services;
 using Moderation.Domain.Entities;
 using Moderation.Domain.Enums;
 using NSubstitute;
@@ -13,12 +14,15 @@ namespace Moderation.UnitTests.Queries.Reports;
 public class GetReportsQueryHandlerTests
 {
     private readonly IReportRepository _reportRepository = Substitute.For<IReportRepository>();
+    private readonly IReportEnricher _enricher = Substitute.For<IReportEnricher>();
 
     private readonly GetReportsQueryHandler _handler;
 
     public GetReportsQueryHandlerTests()
     {
-        _handler = new GetReportsQueryHandler(_reportRepository);
+        _enricher.EnrichAsync(Arg.Any<IReadOnlyCollection<Report>>(), Arg.Any<CancellationToken>())
+            .Returns(ReportEnrichmentData.Empty);
+        _handler = new GetReportsQueryHandler(_reportRepository, _enricher);
     }
 
     [Fact]
@@ -66,6 +70,34 @@ public class GetReportsQueryHandlerTests
 
         await _reportRepository.Received(1).SearchAsync(
             Arg.Is<ReportSearchCriteria>(c => c.Status == null && c.Reason == null),
+            Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task Handle_Should_PassTrimmedSearchTerm_When_QueryProvided()
+    {
+        _reportRepository
+            .SearchAsync(Arg.Any<ReportSearchCriteria>(), Arg.Any<CancellationToken>())
+            .Returns((Array.Empty<Report>(), 0));
+
+        await _handler.Handle(new GetReportsQuery { Query = "  spam  " }, CancellationToken.None);
+
+        await _reportRepository.Received(1).SearchAsync(
+            Arg.Is<ReportSearchCriteria>(c => c.SearchTerm == "spam"),
+            Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task Handle_Should_LeaveSearchTermNull_When_QueryBlank()
+    {
+        _reportRepository
+            .SearchAsync(Arg.Any<ReportSearchCriteria>(), Arg.Any<CancellationToken>())
+            .Returns((Array.Empty<Report>(), 0));
+
+        await _handler.Handle(new GetReportsQuery { Query = "   " }, CancellationToken.None);
+
+        await _reportRepository.Received(1).SearchAsync(
+            Arg.Is<ReportSearchCriteria>(c => c.SearchTerm == null),
             Arg.Any<CancellationToken>());
     }
 

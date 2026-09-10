@@ -4,13 +4,16 @@ public sealed class GetReportDetailQueryHandler : IQueryHandler<GetReportDetailQ
 {
     private readonly IReportRepository _reportRepository;
     private readonly IModerationActionRepository _actionRepository;
+    private readonly IReportEnricher _enricher;
 
     public GetReportDetailQueryHandler(
         IReportRepository reportRepository,
-        IModerationActionRepository actionRepository)
+        IModerationActionRepository actionRepository,
+        IReportEnricher enricher)
     {
         _reportRepository = reportRepository;
         _actionRepository = actionRepository;
+        _enricher = enricher;
     }
 
     public async Task<ReportDetailResponseDto> Handle(GetReportDetailQuery request, CancellationToken cancellationToken)
@@ -20,6 +23,12 @@ public sealed class GetReportDetailQueryHandler : IQueryHandler<GetReportDetailQ
 
         var actions = await _actionRepository.GetByReportIdAsync(report.Id, cancellationToken);
 
-        return ModerationDtoMapper.ToDetail(report, actions);
+        var enrichment = await _enricher.EnrichAsync(new[] { report }, cancellationToken);
+
+        return ModerationDtoMapper.ToDetail(
+            report,
+            actions,
+            enrichment.ReporterNameFor(report.ReporterUserId),
+            enrichment.TargetTitleFor(report.TargetId));
     }
 }

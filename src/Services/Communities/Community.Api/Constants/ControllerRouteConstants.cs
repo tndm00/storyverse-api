@@ -17,6 +17,12 @@ public static class ControllerRouteConstants
     public const string CommentHideSegment = "{commentId:guid}/hide";
     public const string CommentUnhideSegment = "{commentId:guid}/unhide";
 
+    /// <summary>Internal (X-Service-Token): Moderation applies a Hide/restore decision to a comment.</summary>
+    public const string CommentModerationVisibilitySegment = "{commentId:guid}/moderation-visibility";
+
+    /// <summary>Internal (X-Service-Token): batch comment id -&gt; excerpt for the reports queue.</summary>
+    public const string CommentExcerptsSegment = "internal/excerpts";
+
     public const string RatingsMineSegment = "mine";
 
     public const string VotesCountSegment = "count";

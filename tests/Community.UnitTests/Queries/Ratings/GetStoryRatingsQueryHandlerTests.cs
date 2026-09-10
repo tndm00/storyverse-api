@@ -1,4 +1,6 @@
+using System.Collections.Generic;
 using Community.Application.Interfaces.Repositories;
+using Community.Application.Interfaces.Services;
 using Community.Application.Queries.Ratings.GetStoryRatings;
 using Community.Domain.Entities;
 using FluentAssertions;
@@ -10,12 +12,15 @@ namespace Community.UnitTests.Queries.Ratings;
 public class GetStoryRatingsQueryHandlerTests
 {
     private readonly IRatingRepository _ratingRepository = Substitute.For<IRatingRepository>();
+    private readonly IUserDirectoryClient _userDirectory = Substitute.For<IUserDirectoryClient>();
 
     private readonly GetStoryRatingsQueryHandler _handler;
 
     public GetStoryRatingsQueryHandlerTests()
     {
-        _handler = new GetStoryRatingsQueryHandler(_ratingRepository);
+        _userDirectory.GetDisplayNamesAsync(Arg.Any<IEnumerable<long>>(), Arg.Any<CancellationToken>())
+            .Returns(new Dictionary<long, string>());
+        _handler = new GetStoryRatingsQueryHandler(_ratingRepository, _userDirectory);
     }
 
     [Fact]

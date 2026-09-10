@@ -115,4 +115,49 @@ public sealed class CommentsController : ControllerBase
 
         return Ok(ResponseDto<CommentResponseDto>.Ok(result));
     }
+
+    /// <summary>
+    /// Internal, service-to-service: the Moderation service applies a Hide/Remove
+    /// (or restore) report decision to a comment. Authorized by a valid JWT OR the
+    /// <c>X-Service-Token</c> header. Same effect as hide/unhide above.
+    /// </summary>
+    [AllowAnonymous]
+    [ServiceOrUserAuthorize]
+    [HttpPost(ControllerRouteConstants.CommentModerationVisibilitySegment)]
+    [ProducesResponseType(typeof(ResponseDto<CommentResponseDto>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> SetCommentModerationVisibility(
+        Guid commentId,
+        [FromBody] ModerationVisibilityRequestDto request,
+        CancellationToken cancellationToken)
+    {
+        var command = new SetCommentVisibilityCommand { CommentId = commentId, Hide = request.Hidden };
+
+        var result = await _mediator.Send(command, cancellationToken);
+
+        return Ok(ResponseDto<CommentResponseDto>.Ok(result));
+    }
+
+    /// <summary>
+    /// Internal, service-to-service: batch comment public id -&gt; content excerpt
+    /// (<c>?ids=guid,guid</c>), for the Moderation reports queue. Authorized by a
+    /// valid JWT OR the <c>X-Service-Token</c> header. Unknown ids are omitted.
+    /// </summary>
+    [AllowAnonymous]
+    [ServiceOrUserAuthorize]
+    [HttpGet(ControllerRouteConstants.CommentExcerptsSegment)]
+    [ProducesResponseType(typeof(ResponseDto<IReadOnlyList<CommentExcerptEntryDto>>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetCommentExcerpts(
+        [FromQuery(Name = "ids")] string ids,
+        CancellationToken cancellationToken)
+    {
+        var parsed = (ids ?? string.Empty)
+            .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Select(part => Guid.TryParse(part, out var id) ? id : Guid.Empty)
+            .Where(id => id != Guid.Empty)
+            .ToArray();
+
+        var result = await _mediator.Send(new GetCommentExcerptsQuery { Ids = parsed }, cancellationToken);
+
+        return Ok(ResponseDto<IReadOnlyList<CommentExcerptEntryDto>>.Ok(result));
+    }
 }

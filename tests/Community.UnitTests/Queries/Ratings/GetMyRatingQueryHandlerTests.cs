@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Be.StoryVerse.Core.Exceptions;
 using Community.Application.Interfaces.Repositories;
 using Community.Application.Interfaces.Services;
@@ -13,12 +14,15 @@ public class GetMyRatingQueryHandlerTests
 {
     private readonly IRatingRepository _ratingRepository = Substitute.For<IRatingRepository>();
     private readonly ICurrentUserContext _userContext = Substitute.For<ICurrentUserContext>();
+    private readonly IUserDirectoryClient _userDirectory = Substitute.For<IUserDirectoryClient>();
 
     private readonly GetMyRatingQueryHandler _handler;
 
     public GetMyRatingQueryHandlerTests()
     {
-        _handler = new GetMyRatingQueryHandler(_ratingRepository, _userContext);
+        _userDirectory.GetDisplayNamesAsync(Arg.Any<IEnumerable<long>>(), Arg.Any<CancellationToken>())
+            .Returns(new Dictionary<long, string>());
+        _handler = new GetMyRatingQueryHandler(_ratingRepository, _userContext, _userDirectory);
     }
 
     [Fact]

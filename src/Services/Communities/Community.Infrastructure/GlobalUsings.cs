@@ -13,6 +13,7 @@ global using Community.Application.Interfaces.Services;
 global using Community.Domain.Entities;
 global using Community.Domain.Enums;
 global using Community.Infrastructure.Constants;
+global using Community.Infrastructure.Http;
 global using Community.Infrastructure.Context;
 global using Community.Infrastructure.Persistence;
 global using Community.Infrastructure.Repositories;

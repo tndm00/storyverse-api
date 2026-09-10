@@ -30,6 +30,25 @@ public sealed class ReportRepository : IReportRepository
             query = query.Where(x => x.Reason == reason);
         }
 
+        if (!string.IsNullOrWhiteSpace(criteria.SearchTerm))
+        {
+            var term = criteria.SearchTerm.Trim();
+            var like = $"%{term}%";
+
+            // A term that parses as a GUID targets the report or its content by id;
+            // an enum-name term narrows by reason/status; anything else is a
+            // substring match on the reporter's free-text description.
+            Guid.TryParse(term, out var termGuid);
+            var reasonMatch = Enum.TryParse<ReportReason>(term, ignoreCase: true, out var r) ? r : (ReportReason?)null;
+            var statusMatch = Enum.TryParse<ReportStatus>(term, ignoreCase: true, out var s) ? s : (ReportStatus?)null;
+
+            query = query.Where(x =>
+                (termGuid != Guid.Empty && (x.PublicId == termGuid || x.TargetId == termGuid))
+                || (x.Description != null && EF.Functions.ILike(x.Description, like))
+                || (reasonMatch != null && x.Reason == reasonMatch)
+                || (statusMatch != null && x.Status == statusMatch));
+        }
+
         var totalCount = await query.CountAsync(cancellationToken);
 
         var items = await query

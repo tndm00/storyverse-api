@@ -9,5 +9,7 @@ public static class ApplicationLogConstants
     public const string ReportSubmitted = "Report {ReportId} submitted against {TargetType} {TargetId}.";
     public const string ReportPickedUp = "Report {ReportId} moved to Reviewing by moderator {ModeratorUserId}.";
     public const string ReportResolved = "Report {ReportId} resolved with action {Action} by moderator {ModeratorUserId} (moderation action {ModerationActionId}).";
+    public const string ReportModerationApplied = "Report {ReportId}: {Action} applied to {TargetType} {TargetId} in the owning service.";
+    public const string ReportModerationApplyFailed = "Report {ReportId}: could not apply {Action} to {TargetType} {TargetId}; report left open.";
     public const string ReportDismissed = "Report {ReportId} dismissed by moderator {ModeratorUserId} (moderation action {ModerationActionId}).";
 }

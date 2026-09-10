@@ -36,6 +36,18 @@ public sealed class ReportSummaryResponseDto
 
     public Guid TargetId { get; init; }
 
+    /// <summary>
+    /// Reported target's title (story/chapter) or comment excerpt, resolved from
+    /// the owning service. Null when the lookup was unavailable — clients fall
+    /// back to <c>"&lt;TargetType&gt; &lt;id8&gt;"</c>.
+    /// </summary>
+    public string TargetTitle { get; init; }
+
+    public long ReporterUserId { get; init; }
+
+    /// <summary>Reporter's display name from Authentication. Null on lookup failure.</summary>
+    public string ReporterDisplayName { get; init; }
+
     public string Reason { get; init; }
 
     public string Status { get; init; }
@@ -52,9 +64,15 @@ public sealed class ReportDetailResponseDto
 
     public long ReporterUserId { get; init; }
 
+    /// <summary>Reporter's display name from Authentication. Null on lookup failure.</summary>
+    public string ReporterDisplayName { get; init; }
+
     public string TargetType { get; init; }
 
     public Guid TargetId { get; init; }
+
+    /// <summary>Reported target's title / comment excerpt from the owning service. Null on lookup failure.</summary>
+    public string TargetTitle { get; init; }
 
     public string Reason { get; init; }
 

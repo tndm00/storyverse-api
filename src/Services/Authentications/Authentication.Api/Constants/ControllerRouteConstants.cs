@@ -21,4 +21,16 @@ public static class ControllerRouteConstants
 
     /// <summary>Service-to-service: AuthorProfile id -&gt; owning user id. X-Service-Token protected.</summary>
     public const string InternalAuthorProfileLookupSegment = "internal/author-profiles/{authorProfileId:long}";
+
+    /// <summary>Service-to-service: batch user id -&gt; display name lookup. X-Service-Token protected.</summary>
+    public const string InternalUsersLookupSegment = "internal/users";
+
+    /// <summary>Platform-admin user administration base: <c>v1/auth/admin/users</c>.</summary>
+    public const string AdminUsersBase = "v1/auth/admin/users";
+
+    /// <summary>Grant a role: <c>POST v1/auth/admin/users/{userId}/roles</c>.</summary>
+    public const string AdminUserRolesSegment = "{userId:long}/roles";
+
+    /// <summary>Revoke a role: <c>DELETE v1/auth/admin/users/{userId}/roles/{role}</c>.</summary>
+    public const string AdminUserRoleByNameSegment = "{userId:long}/roles/{role}";
 }

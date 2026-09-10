@@ -168,4 +168,30 @@ public sealed class AuthController : ControllerBase
 
         return Ok(ResponseDto<AuthorProfileLookupResponseDto>.Ok(result));
     }
+
+    /// <summary>
+    /// Internal, service-to-service: batch resolves account ids to public display
+    /// names (<c>?ids=1,2,3</c>). Not for end users. Authorized by a valid JWT OR
+    /// the <c>X-Service-Token</c> header. Used by Moderation (report reporter
+    /// names) and Community (comment/rating author names). Unknown ids are omitted.
+    /// </summary>
+    [AllowAnonymous]
+    [ServiceOrUserAuthorize]
+    [HttpGet(ControllerRouteConstants.InternalUsersLookupSegment)]
+    [ProducesResponseType(typeof(ResponseDto<IReadOnlyList<UserDirectoryEntryDto>>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetUsersDirectory(
+        [FromQuery(Name = "ids")] string ids,
+        CancellationToken cancellationToken)
+    {
+        var parsed = (ids ?? string.Empty)
+            .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Select(part => long.TryParse(part, out var id) ? id : 0L)
+            .Where(id => id > 0)
+            .ToArray();
+
+        var result = await _mediator.Send(
+            new GetUsersDirectoryQuery { UserIds = parsed }, cancellationToken);
+
+        return Ok(ResponseDto<IReadOnlyList<UserDirectoryEntryDto>>.Ok(result));
+    }
 }

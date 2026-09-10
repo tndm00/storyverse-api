@@ -47,6 +47,7 @@ public sealed class ReportsController : ControllerBase
     public async Task<IActionResult> GetReports(
         [FromQuery(Name = "status")] string status,
         [FromQuery(Name = "reason")] string reason,
+        [FromQuery(Name = "q")] string q,
         [FromQuery(Name = "page-number")] int pageNumber = 1,
         [FromQuery(Name = "page-size")] int pageSize = 20,
         CancellationToken cancellationToken = default)
@@ -55,6 +56,7 @@ public sealed class ReportsController : ControllerBase
         {
             Status = status,
             Reason = reason,
+            Query = q,
             PageNumber = pageNumber,
             PageSize = pageSize
         };

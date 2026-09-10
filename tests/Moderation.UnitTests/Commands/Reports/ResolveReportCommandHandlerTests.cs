@@ -1,7 +1,9 @@
+using System.Net.Http;
 using Be.StoryVerse.Core.Exceptions;
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using Moderation.Application.Commands.Reports.ResolveReport;
+using Moderation.Application.Interfaces.Http;
 using Moderation.Application.Interfaces.Persistence;
 using Moderation.Application.Interfaces.Repositories;
 using Moderation.Application.Interfaces.Services;
@@ -18,6 +20,8 @@ public class ResolveReportCommandHandlerTests
     private readonly IModerationActionRepository _actionRepository = Substitute.For<IModerationActionRepository>();
     private readonly IModerationUnitOfWork _unitOfWork = Substitute.For<IModerationUnitOfWork>();
     private readonly ICurrentUserContext _currentUser = Substitute.For<ICurrentUserContext>();
+    private readonly IContentModerationClient _contentClient = Substitute.For<IContentModerationClient>();
+    private readonly ICommunityModerationClient _communityClient = Substitute.For<ICommunityModerationClient>();
     private readonly ILogger<ResolveReportCommandHandler> _logger =
         Substitute.For<ILogger<ResolveReportCommandHandler>>();
 
@@ -26,7 +30,8 @@ public class ResolveReportCommandHandlerTests
     public ResolveReportCommandHandlerTests()
     {
         _handler = new ResolveReportCommandHandler(
-            _reportRepository, _actionRepository, _unitOfWork, _currentUser, _logger);
+            _reportRepository, _actionRepository, _unitOfWork, _currentUser,
+            _contentClient, _communityClient, _logger);
 
         // Run the transactional callback inline so assertions can observe its effects.
         _unitOfWork
@@ -91,6 +96,9 @@ public class ResolveReportCommandHandlerTests
 
         var result = await _handler.Handle(command, CancellationToken.None);
 
+        // Hide/Remove must be applied to the real content before the report closes.
+        await _contentClient.Received(1).SetStoryVisibilityAsync(
+            targetId, true, "removed for policy violation", Arg.Any<CancellationToken>());
         report.Status.Should().Be(ReportStatus.Resolved);
         report.ResolvedAt.Should().NotBeNull();
         result.Status.Should().Be(nameof(ReportStatus.Resolved));
@@ -131,5 +139,33 @@ public class ResolveReportCommandHandlerTests
 
         report.Status.Should().Be(ReportStatus.Resolved);
         result.Status.Should().Be(nameof(ReportStatus.Resolved));
+    }
+
+    [Fact]
+    public async Task Handle_Should_NotResolveReport_When_ContentHideFails()
+    {
+        var publicId = Guid.NewGuid();
+        var report = new Report
+        {
+            Id = 12,
+            PublicId = publicId,
+            TargetType = ModerationTargetType.Comment,
+            TargetId = Guid.NewGuid(),
+            Status = ReportStatus.Reviewing
+        };
+
+        _reportRepository.GetByPublicIdAsync(publicId, Arg.Any<CancellationToken>()).Returns(report);
+        _currentUser.GetUserId().Returns(5L);
+        _communityClient
+            .SetCommentVisibilityAsync(Arg.Any<Guid>(), true, Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns<Task>(_ => throw new HttpRequestException("boom"));
+
+        var command = new ResolveReportCommand { ReportId = publicId, Action = ModerationActionType.Hide };
+
+        Func<Task> act = () => _handler.Handle(command, CancellationToken.None);
+
+        await act.Should().ThrowAsync<BusinessRuleException>();
+        report.Status.Should().Be(ReportStatus.Reviewing);
+        await _actionRepository.DidNotReceive().AddAsync(Arg.Any<ModerationAction>(), Arg.Any<CancellationToken>());
     }
 }

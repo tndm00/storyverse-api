@@ -7,4 +7,10 @@ namespace Community.Api.Constants;
 public static class ApiConstants
 {
     public const string SwaggerTitle = "Be.StoryVerse Community API";
+
+    /// <summary>
+    /// Header carrying the shared service-to-service secret on internal endpoints
+    /// (comment moderation-visibility). Checked against <c>ServiceAuth:Token</c>.
+    /// </summary>
+    public const string ServiceTokenHeader = "X-Service-Token";
 }

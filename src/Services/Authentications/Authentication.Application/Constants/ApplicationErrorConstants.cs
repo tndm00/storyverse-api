@@ -15,6 +15,12 @@ public static class ApplicationErrorConstants
     public const string AuthorProfileAlreadyExists = "This account already has an author profile.";
     public const string AuthorProfileNotFound = "No author profile exists for this account.";
 
+    /// <summary>Admin role management: the supplied role name is not a platform role.</summary>
+    public const string InvalidRoleName = "Unknown role name. Valid roles: Reader, Author, Moderator, PlatformAdmin.";
+
+    /// <summary>Admin role management: Reader is the implicit floor and cannot be revoked.</summary>
+    public const string ReaderRoleCannotBeRevoked = "The Reader role is implicit and cannot be revoked.";
+
     /// <summary>Generic message for every Google sign-in failure — never says which check failed.</summary>
     public const string GoogleAuthFailed = "Unable to sign in with Google.";
 

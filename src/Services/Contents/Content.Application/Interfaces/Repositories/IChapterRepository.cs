@@ -7,6 +7,10 @@ public interface IChapterRepository
 {
     Task<Chapter> GetByPublicIdAsync(Guid publicId, CancellationToken cancellationToken = default);
 
+    /// <summary>Public id -&gt; title for a set of chapters, for internal cross-service lookups. Unknown ids are omitted.</summary>
+    Task<IReadOnlyList<ContentTitleEntryDto>> GetTitlesByPublicIdsAsync(
+        IEnumerable<Guid> publicIds, CancellationToken cancellationToken = default);
+
     Task<IReadOnlyList<Chapter>> GetByStoryAsync(
         long storyId,
         bool publishedOnly,

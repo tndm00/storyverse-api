@@ -14,6 +14,21 @@ public sealed class CommentRepository : ICommentRepository
         return _dbContext.Comments.FirstOrDefaultAsync(x => x.PublicId == publicId, cancellationToken);
     }
 
+    public async Task<IReadOnlyList<Comment>> GetByPublicIdsAsync(
+        IEnumerable<Guid> publicIds, CancellationToken cancellationToken = default)
+    {
+        var ids = publicIds.Where(id => id != Guid.Empty).Distinct().ToArray();
+        if (ids.Length == 0)
+        {
+            return Array.Empty<Comment>();
+        }
+
+        return await _dbContext.Comments
+            .AsNoTracking()
+            .Where(x => ids.Contains(x.PublicId))
+            .ToListAsync(cancellationToken);
+    }
+
     public async Task<(IReadOnlyList<Comment> Items, int TotalCount)> GetVisibleByChapterAsync(
         Guid chapterId,
         int pageNumber,

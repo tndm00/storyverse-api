@@ -20,6 +20,11 @@ public static class ServiceRegistration
 
         services.AddStoryVerseSwagger(ApiConstants.SwaggerTitle);
 
+        // Shared secret for trusted service-to-service callers of internal endpoints
+        // (see ServiceOrUserAuthorizeAttribute): Moderation hiding a reported comment.
+        services.Configure<Community.Application.Options.ServiceAuthOptions>(
+            configuration.GetSection(Community.Application.Options.ServiceAuthOptions.SectionName));
+
         var jwtOptions = configuration.GetSection(JwtOptions.SectionName).Get<JwtOptions>() ?? new JwtOptions();
 
         services

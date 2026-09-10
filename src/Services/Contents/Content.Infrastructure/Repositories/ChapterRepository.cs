@@ -14,6 +14,22 @@ public sealed class ChapterRepository : IChapterRepository
         return _dbContext.Chapters.FirstOrDefaultAsync(x => x.PublicId == publicId, cancellationToken);
     }
 
+    public async Task<IReadOnlyList<ContentTitleEntryDto>> GetTitlesByPublicIdsAsync(
+        IEnumerable<Guid> publicIds, CancellationToken cancellationToken = default)
+    {
+        var ids = publicIds.Where(id => id != Guid.Empty).Distinct().ToArray();
+        if (ids.Length == 0)
+        {
+            return Array.Empty<ContentTitleEntryDto>();
+        }
+
+        return await _dbContext.Chapters
+            .AsNoTracking()
+            .Where(x => ids.Contains(x.PublicId))
+            .Select(x => new ContentTitleEntryDto { Id = x.PublicId, Title = x.Title })
+            .ToListAsync(cancellationToken);
+    }
+
     public async Task<IReadOnlyList<Chapter>> GetByStoryAsync(
         long storyId,
         bool publishedOnly,

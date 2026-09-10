@@ -18,7 +18,9 @@ public sealed class SetCommentVisibilityCommandHandler : ICommandHandler<SetComm
 
     public async Task<CommentResponseDto> Handle(SetCommentVisibilityCommand request, CancellationToken cancellationToken)
     {
-        var moderatorUserId = _userContext.GetUserId();
+        // A trusted service-to-service call (Moderation applying a report decision)
+        // carries no user principal; fall back to 0 for the audit log line.
+        var moderatorUserId = _userContext.IsAuthenticated ? _userContext.GetUserId() : 0L;
 
         var comment = await _commentRepository.GetByPublicIdAsync(request.CommentId, cancellationToken)
             ?? throw new NotFoundException(ApplicationErrorConstants.CommentNotFound);

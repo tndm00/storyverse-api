@@ -4,10 +4,14 @@ public sealed class GetChapterCommentsQueryHandler
     : IQueryHandler<GetChapterCommentsQuery, PagedResponseDto<CommentResponseDto>>
 {
     private readonly ICommentRepository _commentRepository;
+    private readonly IUserDirectoryClient _userDirectory;
 
-    public GetChapterCommentsQueryHandler(ICommentRepository commentRepository)
+    public GetChapterCommentsQueryHandler(
+        ICommentRepository commentRepository,
+        IUserDirectoryClient userDirectory)
     {
         _commentRepository = commentRepository;
+        _userDirectory = userDirectory;
     }
 
     public async Task<PagedResponseDto<CommentResponseDto>> Handle(
@@ -19,7 +23,14 @@ public sealed class GetChapterCommentsQueryHandler
         var (items, totalCount) = await _commentRepository.GetVisibleByChapterAsync(
             request.ChapterId, pageNumber, pageSize, cancellationToken);
 
-        var dtos = items.Select(CommunityDtoMapper.ToDto).ToArray();
+        // One batched lookup for every distinct author on the page.
+        var names = await _userDirectory.GetDisplayNamesAsync(
+            items.Select(c => c.AuthorUserId), cancellationToken);
+
+        var dtos = items
+            .Select(c => CommunityDtoMapper.ToDto(
+                c, names.TryGetValue(c.AuthorUserId, out var name) ? name : null))
+            .ToArray();
 
         return PagedResponseDto<CommentResponseDto>.Create(dtos, pageNumber, pageSize, totalCount);
     }

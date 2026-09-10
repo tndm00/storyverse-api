@@ -8,6 +8,9 @@ public interface IUserRepository
 {
     Task<User> GetByIdAsync(long id, CancellationToken cancellationToken = default);
 
+    /// <summary>Accounts for the given ids, in no particular order. Unknown ids are omitted.</summary>
+    Task<IReadOnlyList<User>> GetByIdsAsync(IEnumerable<long> ids, CancellationToken cancellationToken = default);
+
     Task<User> GetByEmailAsync(string email, CancellationToken cancellationToken = default);
 
     Task<User> GetByExternalIdAsync(string provider, string externalId, CancellationToken cancellationToken = default);
@@ -29,6 +32,12 @@ public interface IUserRepository
     /// caller persists via <see cref="SaveChangesAsync"/>.
     /// </summary>
     Task GrantRoleAsync(long userId, Role role, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Removes <paramref name="role"/> from the user if granted. No-op otherwise.
+    /// The caller persists via <see cref="SaveChangesAsync"/>.
+    /// </summary>
+    Task RevokeRoleAsync(long userId, Role role, CancellationToken cancellationToken = default);
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

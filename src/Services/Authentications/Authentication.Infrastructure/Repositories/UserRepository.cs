@@ -14,6 +14,20 @@ public sealed class UserRepository : IUserRepository
         return _dbContext.Users.FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
     }
 
+    public async Task<IReadOnlyList<User>> GetByIdsAsync(
+        IEnumerable<long> ids, CancellationToken cancellationToken = default)
+    {
+        var idList = ids.Distinct().ToArray();
+        if (idList.Length == 0)
+        {
+            return Array.Empty<User>();
+        }
+
+        return await _dbContext.Users
+            .Where(x => idList.Contains(x.Id))
+            .ToListAsync(cancellationToken);
+    }
+
     public Task<User> GetByEmailAsync(string email, CancellationToken cancellationToken = default)
     {
         return _dbContext.Users.FirstOrDefaultAsync(x => x.Email == email, cancellationToken);
@@ -62,6 +76,17 @@ public sealed class UserRepository : IUserRepository
         }
 
         await _dbContext.UserRoles.AddAsync(new UserRole { UserId = userId, Role = role }, cancellationToken);
+    }
+
+    public async Task RevokeRoleAsync(long userId, Role role, CancellationToken cancellationToken = default)
+    {
+        var grant = await _dbContext.UserRoles
+            .FirstOrDefaultAsync(x => x.UserId == userId && x.Role == role, cancellationToken);
+
+        if (grant is not null)
+        {
+            _dbContext.UserRoles.Remove(grant);
+        }
     }
 
     public Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)

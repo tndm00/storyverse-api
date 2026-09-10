@@ -2,6 +2,7 @@ using Be.StoryVerse.Core.Exceptions;
 using FluentAssertions;
 using Moderation.Application.Interfaces.Repositories;
 using Moderation.Application.Queries.Reports.GetReportDetail;
+using Moderation.Application.Services;
 using Moderation.Domain.Entities;
 using Moderation.Domain.Enums;
 using NSubstitute;
@@ -13,12 +14,15 @@ public class GetReportDetailQueryHandlerTests
 {
     private readonly IReportRepository _reportRepository = Substitute.For<IReportRepository>();
     private readonly IModerationActionRepository _actionRepository = Substitute.For<IModerationActionRepository>();
+    private readonly IReportEnricher _enricher = Substitute.For<IReportEnricher>();
 
     private readonly GetReportDetailQueryHandler _handler;
 
     public GetReportDetailQueryHandlerTests()
     {
-        _handler = new GetReportDetailQueryHandler(_reportRepository, _actionRepository);
+        _enricher.EnrichAsync(Arg.Any<IReadOnlyCollection<Report>>(), Arg.Any<CancellationToken>())
+            .Returns(ReportEnrichmentData.Empty);
+        _handler = new GetReportDetailQueryHandler(_reportRepository, _actionRepository, _enricher);
     }
 
     [Fact]

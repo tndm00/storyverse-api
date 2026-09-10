@@ -7,7 +7,7 @@ namespace Community.Application.Mappings;
 /// </summary>
 public static class CommunityDtoMapper
 {
-    public static CommentResponseDto ToDto(Comment comment)
+    public static CommentResponseDto ToDto(Comment comment, string authorDisplayName = null)
     {
         return new CommentResponseDto
         {
@@ -15,6 +15,7 @@ public static class CommunityDtoMapper
             ChapterId = comment.ChapterId,
             ParentCommentId = comment.ParentCommentId,
             AuthorUserId = comment.AuthorUserId,
+            AuthorDisplayName = authorDisplayName,
             Content = comment.Content,
             Status = comment.Status.ToString(),
             LikeCount = comment.LikeCount,
@@ -23,13 +24,14 @@ public static class CommunityDtoMapper
         };
     }
 
-    public static RatingResponseDto ToDto(Rating rating)
+    public static RatingResponseDto ToDto(Rating rating, string userDisplayName = null)
     {
         return new RatingResponseDto
         {
             Id = rating.PublicId,
             StoryId = rating.StoryId,
             UserId = rating.UserId,
+            UserDisplayName = userDisplayName,
             Score = rating.Score,
             ReviewText = rating.ReviewText,
             CreatedAt = rating.CreatedAt,

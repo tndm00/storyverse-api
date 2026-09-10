@@ -7,6 +7,9 @@ public sealed class GetReportsQuery : IQuery<PagedResponseDto<ReportSummaryRespo
 
     public string Reason { get; init; }
 
+    /// <summary>Free-text search term (<c>q</c>): report/target id, description, reason or status.</summary>
+    public string Query { get; init; }
+
     public int PageNumber { get; init; } = 1;
 
     public int PageSize { get; init; } = ApplicationConstants.DefaultPageSize;
