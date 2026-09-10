@@ -1,5 +1,6 @@
 using Be.StoryVerse.Core.Exceptions;
 using Content.Application.Commands.Chapters.ReviewChapter;
+using Content.Application.Interfaces.Persistence;
 using Content.Application.Interfaces.Repositories;
 using Content.Application.Interfaces.Services;
 using Content.Domain.Entities;
@@ -16,6 +17,9 @@ public class ReviewChapterCommandHandlerTests
     private readonly IStoryRepository _storyRepository = Substitute.For<IStoryRepository>();
     private readonly IChapterRepository _chapterRepository = Substitute.For<IChapterRepository>();
     private readonly IVolumeRepository _volumeRepository = Substitute.For<IVolumeRepository>();
+    private readonly IChapterReviewActionRepository _reviewActionRepository =
+        Substitute.For<IChapterReviewActionRepository>();
+    private readonly IContentUnitOfWork _unitOfWork = Substitute.For<IContentUnitOfWork>();
     private readonly ICurrentAuthorContext _currentUser = Substitute.For<ICurrentAuthorContext>();
     private readonly ILogger<ReviewChapterCommandHandler> _logger =
         Substitute.For<ILogger<ReviewChapterCommandHandler>>();
@@ -25,7 +29,12 @@ public class ReviewChapterCommandHandlerTests
     public ReviewChapterCommandHandlerTests()
     {
         _handler = new ReviewChapterCommandHandler(
-            _storyRepository, _chapterRepository, _volumeRepository, _currentUser, _logger);
+            _storyRepository, _chapterRepository, _volumeRepository, _reviewActionRepository,
+            _unitOfWork, _currentUser, _logger);
+
+        _unitOfWork
+            .ExecuteInTransactionAsync(Arg.Any<Func<CancellationToken, Task>>(), Arg.Any<CancellationToken>())
+            .Returns(callInfo => callInfo.Arg<Func<CancellationToken, Task>>()(CancellationToken.None));
     }
 
     [Fact]

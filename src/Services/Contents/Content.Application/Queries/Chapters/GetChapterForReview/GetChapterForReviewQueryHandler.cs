@@ -5,15 +5,18 @@ public sealed class GetChapterForReviewQueryHandler : IQueryHandler<GetChapterFo
     private readonly IStoryRepository _storyRepository;
     private readonly IChapterRepository _chapterRepository;
     private readonly IVolumeRepository _volumeRepository;
+    private readonly IChapterReviewActionRepository _reviewActionRepository;
 
     public GetChapterForReviewQueryHandler(
         IStoryRepository storyRepository,
         IChapterRepository chapterRepository,
-        IVolumeRepository volumeRepository)
+        IVolumeRepository volumeRepository,
+        IChapterReviewActionRepository reviewActionRepository)
     {
         _storyRepository = storyRepository;
         _chapterRepository = chapterRepository;
         _volumeRepository = volumeRepository;
+        _reviewActionRepository = reviewActionRepository;
     }
 
     public async Task<ChapterDetailResponseDto> Handle(GetChapterForReviewQuery request, CancellationToken cancellationToken)
@@ -28,6 +31,8 @@ public sealed class GetChapterForReviewQueryHandler : IQueryHandler<GetChapterFo
             ? (await _volumeRepository.GetByIdAsync(volumeId, cancellationToken))?.PublicId
             : null;
 
-        return ContentDtoMapper.ToDetail(chapter, story.PublicId, volumePublicId);
+        var reviewActions = await _reviewActionRepository.GetByChapterIdAsync(chapter.Id, cancellationToken);
+
+        return ContentDtoMapper.ToDetail(chapter, story.PublicId, volumePublicId, reviewActions);
     }
 }

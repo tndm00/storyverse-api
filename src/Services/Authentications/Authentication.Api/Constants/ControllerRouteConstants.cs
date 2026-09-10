@@ -18,4 +18,7 @@ public static class ControllerRouteConstants
     public const string AuthorProfileSegment = "author-profile";
 
     public const string PublicAuthorSegment = "authors/{authorProfileId:long}";
+
+    /// <summary>Service-to-service: AuthorProfile id -&gt; owning user id. X-Service-Token protected.</summary>
+    public const string InternalAuthorProfileLookupSegment = "internal/author-profiles/{authorProfileId:long}";
 }

@@ -1,6 +1,8 @@
 using Be.StoryVerse.Core.Exceptions;
 using Content.Application.Commands.Chapters.ApproveChapter;
+using Content.Application.Interfaces.Persistence;
 using Content.Application.Interfaces.Repositories;
+using Content.Application.Interfaces.Services;
 using Content.Domain.Entities;
 using Content.Domain.Enums;
 using FluentAssertions;
@@ -15,6 +17,12 @@ public class ApproveChapterCommandHandlerTests
     private readonly IStoryRepository _storyRepository = Substitute.For<IStoryRepository>();
     private readonly IChapterRepository _chapterRepository = Substitute.For<IChapterRepository>();
     private readonly IVolumeRepository _volumeRepository = Substitute.For<IVolumeRepository>();
+    private readonly IChapterReviewActionRepository _reviewActionRepository =
+        Substitute.For<IChapterReviewActionRepository>();
+    private readonly IContentUnitOfWork _unitOfWork = Substitute.For<IContentUnitOfWork>();
+    private readonly ICurrentAuthorContext _currentUser = Substitute.For<ICurrentAuthorContext>();
+    private readonly INotificationServiceClient _notificationClient = Substitute.For<INotificationServiceClient>();
+    private readonly IAuthorDirectoryClient _authorDirectory = Substitute.For<IAuthorDirectoryClient>();
     private readonly ILogger<ApproveChapterCommandHandler> _logger =
         Substitute.For<ILogger<ApproveChapterCommandHandler>>();
 
@@ -22,7 +30,16 @@ public class ApproveChapterCommandHandlerTests
 
     public ApproveChapterCommandHandlerTests()
     {
-        _handler = new ApproveChapterCommandHandler(_storyRepository, _chapterRepository, _volumeRepository, _logger);
+        _handler = new ApproveChapterCommandHandler(
+            _storyRepository, _chapterRepository, _volumeRepository, _reviewActionRepository,
+            _unitOfWork, _currentUser, _notificationClient, _authorDirectory, _logger);
+
+        _unitOfWork
+            .ExecuteInTransactionAsync(Arg.Any<Func<CancellationToken, Task>>(), Arg.Any<CancellationToken>())
+            .Returns(callInfo => callInfo.Arg<Func<CancellationToken, Task>>()(CancellationToken.None));
+
+        // Author profile 42 maps to user id 7 (Id != UserId, the case this feature exists for).
+        _authorDirectory.GetAuthorUserIdAsync(42, Arg.Any<CancellationToken>()).Returns(7L);
     }
 
     [Theory]
@@ -90,5 +107,115 @@ public class ApproveChapterCommandHandlerTests
         story.Status.Should().Be(StoryStatus.Ongoing);
         story.PublishedAt.Should().Be(originalPublishedAt);
         _storyRepository.DidNotReceive().Update(Arg.Any<Story>());
+    }
+
+    [Fact]
+    public async Task Handle_Should_SendChapterApprovedNotification_ToAuthor_AfterCommit()
+    {
+        var publicId = Guid.NewGuid();
+        var chapter = new Chapter
+        {
+            Id = 7, StoryId = 5, PublicId = publicId, Title = "Ch 1", Status = ChapterStatus.InReview
+        };
+        var story = new Story
+        {
+            Id = 5, PublicId = Guid.NewGuid(), Title = "My Story", AuthorProfileId = 42, Status = StoryStatus.Ongoing
+        };
+
+        _chapterRepository.GetByPublicIdAsync(publicId, Arg.Any<CancellationToken>()).Returns(chapter);
+        _storyRepository.GetByIdAsync(5, Arg.Any<CancellationToken>()).Returns(story);
+
+        await _handler.Handle(new ApproveChapterCommand { ChapterId = publicId }, CancellationToken.None);
+
+        await _authorDirectory.Received(1).GetAuthorUserIdAsync(42, Arg.Any<CancellationToken>());
+        await _notificationClient.Received(1).SendAsync(
+            7,
+            NotificationKind.ChapterApproved,
+            Arg.Any<string>(),
+            Arg.Any<string>(),
+            "Chapter",
+            publicId,
+            Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task Handle_Should_NotSendNotification_When_AuthorUserIdCannotBeResolved()
+    {
+        var publicId = Guid.NewGuid();
+        var chapter = new Chapter { Id = 10, StoryId = 5, PublicId = publicId, Status = ChapterStatus.InReview };
+        var story = new Story { Id = 5, PublicId = Guid.NewGuid(), AuthorProfileId = 99, Status = StoryStatus.Ongoing };
+
+        _chapterRepository.GetByPublicIdAsync(publicId, Arg.Any<CancellationToken>()).Returns(chapter);
+        _storyRepository.GetByIdAsync(5, Arg.Any<CancellationToken>()).Returns(story);
+        _authorDirectory.GetAuthorUserIdAsync(99, Arg.Any<CancellationToken>()).Returns((long?)null);
+
+        await _handler.Handle(new ApproveChapterCommand { ChapterId = publicId }, CancellationToken.None);
+
+        chapter.Status.Should().Be(ChapterStatus.Published);
+        await _notificationClient.DidNotReceive().SendAsync(
+            Arg.Any<long>(), Arg.Any<NotificationKind>(), Arg.Any<string>(), Arg.Any<string>(),
+            Arg.Any<string>(), Arg.Any<Guid?>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task Handle_Should_NotFailApprove_When_AuthorLookupThrows()
+    {
+        var publicId = Guid.NewGuid();
+        var chapter = new Chapter { Id = 11, StoryId = 5, PublicId = publicId, Status = ChapterStatus.InReview };
+        var story = new Story { Id = 5, PublicId = Guid.NewGuid(), AuthorProfileId = 42, Status = StoryStatus.Ongoing };
+
+        _chapterRepository.GetByPublicIdAsync(publicId, Arg.Any<CancellationToken>()).Returns(chapter);
+        _storyRepository.GetByIdAsync(5, Arg.Any<CancellationToken>()).Returns(story);
+        _authorDirectory
+            .When(x => x.GetAuthorUserIdAsync(Arg.Any<long>(), Arg.Any<CancellationToken>()))
+            .Do(_ => throw new InvalidOperationException("auth service down"));
+
+        var act = () => _handler.Handle(new ApproveChapterCommand { ChapterId = publicId }, CancellationToken.None);
+
+        await act.Should().NotThrowAsync();
+        chapter.Status.Should().Be(ChapterStatus.Published);
+        await _notificationClient.DidNotReceive().SendAsync(
+            Arg.Any<long>(), Arg.Any<NotificationKind>(), Arg.Any<string>(), Arg.Any<string>(),
+            Arg.Any<string>(), Arg.Any<Guid?>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task Handle_Should_NotFailApprove_When_NotificationThrows()
+    {
+        var publicId = Guid.NewGuid();
+        var chapter = new Chapter { Id = 8, StoryId = 5, PublicId = publicId, Status = ChapterStatus.InReview };
+        var story = new Story { Id = 5, PublicId = Guid.NewGuid(), AuthorProfileId = 42, Status = StoryStatus.Ongoing };
+
+        _chapterRepository.GetByPublicIdAsync(publicId, Arg.Any<CancellationToken>()).Returns(chapter);
+        _storyRepository.GetByIdAsync(5, Arg.Any<CancellationToken>()).Returns(story);
+        _notificationClient
+            .When(x => x.SendAsync(Arg.Any<long>(), Arg.Any<NotificationKind>(), Arg.Any<string>(), Arg.Any<string>(),
+                Arg.Any<string>(), Arg.Any<Guid?>(), Arg.Any<CancellationToken>()))
+            .Do(_ => throw new InvalidOperationException("notification service down"));
+
+        var act = () => _handler.Handle(new ApproveChapterCommand { ChapterId = publicId }, CancellationToken.None);
+
+        await act.Should().NotThrowAsync();
+        chapter.Status.Should().Be(ChapterStatus.Published);
+    }
+
+    [Fact]
+    public async Task Handle_Should_NotSendNotification_When_GuestAuthor()
+    {
+        var publicId = Guid.NewGuid();
+        var chapter = new Chapter { Id = 9, StoryId = 5, PublicId = publicId, Status = ChapterStatus.InReview };
+        var story = new Story
+        {
+            Id = 5, PublicId = Guid.NewGuid(), AuthorProfileId = 0, GuestAuthorName = "Anon", Status = StoryStatus.Ongoing
+        };
+
+        _chapterRepository.GetByPublicIdAsync(publicId, Arg.Any<CancellationToken>()).Returns(chapter);
+        _storyRepository.GetByIdAsync(5, Arg.Any<CancellationToken>()).Returns(story);
+
+        await _handler.Handle(new ApproveChapterCommand { ChapterId = publicId }, CancellationToken.None);
+
+        await _notificationClient.DidNotReceive().SendAsync(
+            Arg.Any<long>(), Arg.Any<NotificationKind>(), Arg.Any<string>(), Arg.Any<string>(),
+            Arg.Any<string>(), Arg.Any<Guid?>(), Arg.Any<CancellationToken>());
     }
 }

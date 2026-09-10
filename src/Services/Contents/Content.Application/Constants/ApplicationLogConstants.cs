@@ -33,4 +33,8 @@ public static class ApplicationLogConstants
     public const string GenreHidden = "Genre {GenreId} hidden.";
 
     public const string OwnershipCheckFailed = "Author {AuthorProfileId} attempted to modify story {StoryId} they do not own.";
+
+    public const string ChapterReviewNotificationFailed = "Failed to send {NotificationKind} notification for chapter {ChapterId} (author profile {AuthorProfileId}); approve/reject was not affected.";
+    public const string ChapterReviewNotificationSkippedGuest = "Chapter {ChapterId} belongs to a guest author; skipped {NotificationKind} notification.";
+    public const string ChapterReviewNotificationRecipientUnresolved = "Could not resolve an author user id for chapter {ChapterId} (author profile {AuthorProfileId}); skipped {NotificationKind} notification.";
 }

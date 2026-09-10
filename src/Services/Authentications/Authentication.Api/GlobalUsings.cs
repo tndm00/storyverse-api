@@ -5,6 +5,8 @@ global using System.Threading.Tasks;
 global using Authentication.Api.Constants;
 global using Authentication.Api.Extensions;
 global using Authentication.Api.Seed;
+global using Authentication.Api.Security;
+global using Authentication.Application.Queries.AuthorProfileLookup;
 global using Authentication.Application.Commands.CreateAuthorProfile;
 global using Authentication.Application.Commands.GoogleLogin;
 global using Authentication.Application.Commands.Login;

@@ -14,12 +14,18 @@ public class GetChapterForReviewQueryHandlerTests
     private readonly IStoryRepository _storyRepository = Substitute.For<IStoryRepository>();
     private readonly IChapterRepository _chapterRepository = Substitute.For<IChapterRepository>();
     private readonly IVolumeRepository _volumeRepository = Substitute.For<IVolumeRepository>();
+    private readonly IChapterReviewActionRepository _reviewActionRepository =
+        Substitute.For<IChapterReviewActionRepository>();
 
     private readonly GetChapterForReviewQueryHandler _handler;
 
     public GetChapterForReviewQueryHandlerTests()
     {
-        _handler = new GetChapterForReviewQueryHandler(_storyRepository, _chapterRepository, _volumeRepository);
+        _reviewActionRepository.GetByChapterIdAsync(Arg.Any<long>(), Arg.Any<CancellationToken>())
+            .Returns(Array.Empty<ChapterReviewAction>());
+
+        _handler = new GetChapterForReviewQueryHandler(
+            _storyRepository, _chapterRepository, _volumeRepository, _reviewActionRepository);
     }
 
     [Fact]

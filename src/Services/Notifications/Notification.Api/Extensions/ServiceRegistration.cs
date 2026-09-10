@@ -20,6 +20,10 @@ public static class ServiceRegistration
 
         services.AddStoryVerseSwagger(ApiConstants.SwaggerTitle);
 
+        // Shared secret for trusted service-to-service callers of the internal
+        // notification-creation endpoint (see ServiceOrUserAuthorizeAttribute).
+        services.Configure<ServiceAuthOptions>(configuration.GetSection(ServiceAuthOptions.SectionName));
+
         var jwtOptions = configuration.GetSection(JwtOptions.SectionName).Get<JwtOptions>() ?? new JwtOptions();
 
         services

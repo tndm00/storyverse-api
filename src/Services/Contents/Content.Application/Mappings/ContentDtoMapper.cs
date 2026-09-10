@@ -105,10 +105,29 @@ public static class ContentDtoMapper
         };
     }
 
-    public static ChapterDetailResponseDto ToDetail(Chapter chapter, Guid storyPublicId, Guid? volumePublicId)
+    public static ChapterReviewActionResponseDto ToDto(ChapterReviewAction action)
+    {
+        return new ChapterReviewActionResponseDto
+        {
+            Id = action.PublicId,
+            ModeratorUserId = action.ModeratorUserId,
+            Action = action.Action.ToString(),
+            Note = action.Note,
+            CreatedAt = action.CreatedAt
+        };
+    }
+
+    public static ChapterDetailResponseDto ToDetail(
+        Chapter chapter,
+        Guid storyPublicId,
+        Guid? volumePublicId,
+        IReadOnlyList<ChapterReviewAction> reviewActions = null)
     {
         return new ChapterDetailResponseDto
         {
+            ReviewActions = reviewActions is null
+                ? Array.Empty<ChapterReviewActionResponseDto>()
+                : reviewActions.Select(ToDto).ToArray(),
             Id = chapter.PublicId,
             StoryId = storyPublicId,
             VolumeId = volumePublicId,

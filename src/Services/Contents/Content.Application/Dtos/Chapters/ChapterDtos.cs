@@ -120,4 +120,26 @@ public sealed class ChapterDetailResponseDto
 
     /// <summary>Moderator's note when <c>Status</c> is <c>Rejected</c>; null otherwise.</summary>
     public string RejectionReason { get; init; }
+
+    /// <summary>
+    /// Chapter review timeline (who picked it up / approved / rejected, when, why),
+    /// oldest first. Populated only by the moderator "for review" endpoint; empty
+    /// on every other response.
+    /// </summary>
+    public IReadOnlyList<ChapterReviewActionResponseDto> ReviewActions { get; init; } =
+        Array.Empty<ChapterReviewActionResponseDto>();
+}
+
+/// <summary>One entry of a chapter's review timeline.</summary>
+public sealed class ChapterReviewActionResponseDto
+{
+    public Guid Id { get; init; }
+
+    public long ModeratorUserId { get; init; }
+
+    public string Action { get; init; }
+
+    public string Note { get; init; }
+
+    public DateTime CreatedAt { get; init; }
 }
