@@ -3,7 +3,11 @@ namespace Content.Application.Interfaces.Repositories;
 /// <summary>
 /// Append-only persistence boundary for the <see cref="ChapterReviewAction"/>
 /// audit trail. There is deliberately no update or delete member — audit records
-/// are immutable.
+/// are immutable at the application layer. Note, however, that an audit row
+/// will be cascade-deleted at the database level along with its owning
+/// Chapter if the owning Story is hard-deleted; that only ever happens while
+/// the Story is still in Draft status (never published/public) — see
+/// <c>DeleteStoryCommandHandler</c>.
 /// </summary>
 public interface IChapterReviewActionRepository
 {

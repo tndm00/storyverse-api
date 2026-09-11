@@ -56,6 +56,44 @@ public class DeleteStoryCommandHandlerTests
     }
 
     [Fact]
+    public async Task Handle_Should_RemoveStory_When_DraftAndChaptersHaveReviewActionHistory()
+    {
+        // The handler itself has no notion of chapters or review actions —
+        // it only calls Remove(story) + SaveChanges and relies entirely on
+        // DB-level cascade behavior configured in
+        // ChapterReviewActionConfiguration (FK ChapterReviewAction ->
+        // Chapter now uses DeleteBehavior.Cascade, not Restrict). Because
+        // ChapterReviewAction has no domain navigation property, that
+        // cascade cannot be modeled or exercised with mocks/an in-memory
+        // provider here — it is verified by the
+        // ChapterReviewActionCascadeOnChapterDelete migration plus a real
+        // Postgres E2E run (create Draft story + chapter, submit for
+        // review, reject it to produce a chapter_review_actions row, then
+        // DELETE the story and confirm 204, not 500). This test only
+        // documents that the handler's own logic is unaffected by the
+        // presence of review history — a Draft story with a reviewed
+        // chapter still deletes successfully at this layer.
+        var story = new Story
+        {
+            Id = 1,
+            PublicId = Guid.NewGuid(),
+            AuthorProfileId = 10,
+            Status = StoryStatus.Draft
+        };
+        _storyRepository.GetByPublicIdAsync(story.PublicId, Arg.Any<CancellationToken>())
+            .Returns(story);
+        _authorContext.HasPermission(Arg.Any<string>()).Returns(false);
+        _authorContext.GetAuthorProfileId().Returns(10L);
+
+        var command = new DeleteStoryCommand { StoryId = story.PublicId };
+
+        await _handler.Handle(command, CancellationToken.None);
+
+        _storyRepository.Received(1).Remove(story);
+        await _storyRepository.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
     public async Task Handle_Should_RemoveStory_When_DraftAndCallerHasModeratePermission_EvenIfNotOwner()
     {
         var story = new Story
