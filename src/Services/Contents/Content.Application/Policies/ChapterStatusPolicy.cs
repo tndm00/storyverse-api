@@ -13,17 +13,20 @@ public static class ChapterStatusPolicy
         return from is ChapterStatus.Draft or ChapterStatus.Rejected;
     }
 
-    /// <summary>Moderator picks the item up off the queue.</summary>
+    /// <summary>Moderator picks the item up off the queue. A previously rejected
+    /// chapter can also be sent back into review to go through the normal
+    /// approve/reject flow again.</summary>
     public static bool CanStartReview(ChapterStatus from)
     {
-        return from is ChapterStatus.PendingReview;
+        return from is ChapterStatus.PendingReview or ChapterStatus.Rejected;
     }
 
-    /// <summary>Moderator approves — the chapter is published. A moderator may also
-    /// reverse an earlier rejection by approving directly from <see cref="ChapterStatus.Rejected"/>.</summary>
+    /// <summary>Moderator approves — the chapter is published. Only reachable from
+    /// <see cref="ChapterStatus.InReview"/>; a rejected chapter must go back through
+    /// review first.</summary>
     public static bool CanApprove(ChapterStatus from)
     {
-        return from is ChapterStatus.InReview or ChapterStatus.Rejected;
+        return from is ChapterStatus.InReview;
     }
 
     /// <summary>Moderator rejects — the author may edit and resubmit.</summary>

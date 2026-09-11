@@ -26,7 +26,7 @@ public class ChapterStatusPolicyTests
     [InlineData(ChapterStatus.PendingReview, true)]
     [InlineData(ChapterStatus.InReview, false)]
     [InlineData(ChapterStatus.Published, false)]
-    [InlineData(ChapterStatus.Rejected, false)]
+    [InlineData(ChapterStatus.Rejected, true)]
     [InlineData(ChapterStatus.Removed, false)]
     public void CanStartReview_Should_ReturnExpected_When_GivenFromStatus(ChapterStatus from, bool expected)
     {
@@ -39,7 +39,7 @@ public class ChapterStatusPolicyTests
     [InlineData(ChapterStatus.PendingReview, false)]
     [InlineData(ChapterStatus.InReview, true)]
     [InlineData(ChapterStatus.Published, false)]
-    [InlineData(ChapterStatus.Rejected, true)]
+    [InlineData(ChapterStatus.Rejected, false)]
     [InlineData(ChapterStatus.Removed, false)]
     public void CanApprove_Should_ReturnExpected_When_GivenFromStatus(ChapterStatus from, bool expected)
     {

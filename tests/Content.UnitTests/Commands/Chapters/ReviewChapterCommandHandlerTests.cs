@@ -61,8 +61,7 @@ public class ReviewChapterCommandHandlerTests
     [InlineData(ChapterStatus.Draft)]
     [InlineData(ChapterStatus.InReview)]
     [InlineData(ChapterStatus.Published)]
-    [InlineData(ChapterStatus.Rejected)]
-    public async Task Handle_Should_ThrowBusinessRuleException_When_ChapterIsNotPendingReview(ChapterStatus status)
+    public async Task Handle_Should_ThrowBusinessRuleException_When_ChapterIsNotPendingReviewOrRejected(ChapterStatus status)
     {
         var publicId = Guid.NewGuid();
         var chapter = new Chapter { Id = 1, StoryId = 5, PublicId = publicId, Status = status };
@@ -74,5 +73,33 @@ public class ReviewChapterCommandHandlerTests
         Func<Task> act = () => _handler.Handle(command, CancellationToken.None);
 
         await act.Should().ThrowAsync<BusinessRuleException>();
+    }
+
+    [Fact]
+    public async Task Handle_Should_MoveChapterBackToInReview_And_KeepRejectionReason_When_ChapterIsRejected()
+    {
+        // Sending a rejected chapter back into review puts it through the normal
+        // approve/reject flow again; the old rejection reason stays visible to the
+        // moderator until a new Approve/Reject decision replaces or clears it.
+        var publicId = Guid.NewGuid();
+        var chapter = new Chapter
+        {
+            Id = 2,
+            StoryId = 5,
+            PublicId = publicId,
+            Status = ChapterStatus.Rejected,
+            RejectionReason = "Vi phạm quy định nội dung"
+        };
+        var story = new Story { Id = 5, AuthorProfileId = 123, PublicId = Guid.NewGuid() };
+
+        _chapterRepository.GetByPublicIdAsync(publicId, Arg.Any<CancellationToken>()).Returns(chapter);
+        _storyRepository.GetByIdAsync(5, Arg.Any<CancellationToken>()).Returns(story);
+
+        var command = new ReviewChapterCommand { ChapterId = publicId };
+
+        await _handler.Handle(command, CancellationToken.None);
+
+        chapter.Status.Should().Be(ChapterStatus.InReview);
+        chapter.RejectionReason.Should().Be("Vi phạm quy định nội dung");
     }
 }
