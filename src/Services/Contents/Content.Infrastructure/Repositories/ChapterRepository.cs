@@ -142,16 +142,17 @@ public sealed class ChapterRepository : IChapterRepository
         int pageSize,
         CancellationToken cancellationToken = default)
     {
-        var reviewedChapterIds = _dbContext.ChapterReviewActions
-            .AsNoTracking()
-            .Where(a => a.Action == actionType)
-            .Select(a => a.ChapterId)
-            .Distinct();
+        // Filter by the chapter's CURRENT status, not "ever had this action in its
+        // history" — a chapter that was Rejected and later re-reviewed + approved
+        // must leave the Rejected list (and appear as Approved instead).
+        var status = actionType == ChapterReviewActionType.Rejected
+            ? ChapterStatus.Rejected
+            : ChapterStatus.Published;
 
         var query =
             from chapter in _dbContext.Chapters.AsNoTracking()
             join story in _dbContext.Stories.AsNoTracking() on chapter.StoryId equals story.Id
-            where reviewedChapterIds.Contains(chapter.Id)
+            where chapter.Status == status
             select new { chapter, story };
 
         if (!string.IsNullOrWhiteSpace(keyword))
