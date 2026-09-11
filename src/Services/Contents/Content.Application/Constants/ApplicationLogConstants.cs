@@ -12,6 +12,7 @@ public static class ApplicationLogConstants
     public const string StoryTagsAssigned = "Story {StoryId} tags reassigned ({TagCount} tags).";
     public const string StoryStatusChanged = "Story {StoryId} status changed from {FromStatus} to {ToStatus}.";
     public const string StoryAutoOngoing = "Story {StoryId} auto-transitioned to Ongoing on first chapter publish.";
+    public const string StoryDeleted = "Story {StoryId} hard-deleted (was Draft).";
 
     public const string StoryQuickPublished = "Story {StoryId} quick-published by author {AuthorProfileId} (first chapter {ChapterId}, completed {Completed}).";
 

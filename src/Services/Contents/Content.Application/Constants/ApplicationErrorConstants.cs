@@ -25,6 +25,7 @@ public static class ApplicationErrorConstants
     public const string DuplicateQuickPublish = "You already have a story with this title. Edit that story instead of publishing a new one.";
 
     public const string InvalidStoryStatusTransition = "That story status change is not allowed.";
+    public const string OnlyDraftStoryCanBeDeleted = "Chỉ có thể xoá truyện đang ở trạng thái Draft.";
     public const string InvalidChapterStatusTransition = "That chapter status change is not allowed.";
     public const string RejectionReasonRequired = "A reason is required to reject a chapter.";
     public const string ScheduledTimeMustBeFuture = "The scheduled publish time must be in the future.";

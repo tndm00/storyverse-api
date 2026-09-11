@@ -29,6 +29,7 @@ global using Content.Application.Commands.Stories.AssignStoryGenres;
 global using Content.Application.Commands.Stories.AssignStoryTags;
 global using Content.Application.Commands.Stories.ChangeStoryStatus;
 global using Content.Application.Commands.Stories.CreateStory;
+global using Content.Application.Commands.Stories.DeleteStory;
 global using Content.Application.Commands.Stories.GuestPublishStory;
 global using Content.Application.Commands.Stories.QuickPublishStory;
 global using Content.Application.Commands.Stories.UpdateStory;

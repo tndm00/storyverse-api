@@ -163,6 +163,11 @@ public sealed class StoryRepository : IStoryRepository
         _dbContext.Stories.Update(story);
     }
 
+    public void Remove(Story story)
+    {
+        _dbContext.Stories.Remove(story);
+    }
+
     public Task TryStartOngoingOnFirstChapterAsync(
         long storyId, DateTime nowUtc, CancellationToken cancellationToken = default)
     {

@@ -57,6 +57,14 @@ public interface IStoryRepository
 
     void Update(Story story);
 
+    /// <summary>
+    /// Hard-deletes the story. Callers must have already verified it is safe to
+    /// remove (only <see cref="StoryStatus.Draft"/> stories are ever deleted).
+    /// Child chapters/volumes/story_genres/story_tags cascade at the database
+    /// level (see StoryConfiguration/ChapterConfiguration/VolumeConfiguration).
+    /// </summary>
+    void Remove(Story story);
+
     /// <summary>Atomic <c>view_count = view_count + 1</c> for one story; used on the read path.</summary>
     Task IncrementViewCountAsync(long storyId, CancellationToken cancellationToken = default);
 

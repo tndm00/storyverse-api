@@ -244,6 +244,22 @@ public sealed class StoriesController : ControllerBase
         return Ok(ResponseDto<StoryDetailResponseDto>.Ok(result));
     }
 
+    /// <summary>
+    /// Hard-deletes a story. Only allowed while it is still Draft (never
+    /// published, never seen publicly). Every other status must go through
+    /// <c>POST {storyId}/status</c> instead. Owner only, or staff with
+    /// <c>content.moderate</c>.
+    /// </summary>
+    [Authorize]
+    [HttpDelete(ControllerRouteConstants.StoryByIdSegment)]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    public async Task<IActionResult> DeleteStory(Guid storyId, CancellationToken cancellationToken)
+    {
+        await _mediator.Send(new DeleteStoryCommand { StoryId = storyId }, cancellationToken);
+
+        return NoContent();
+    }
+
     [Authorize]
     [HttpPut(ControllerRouteConstants.StoryGenresSegment)]
     [ProducesResponseType(typeof(ResponseDto<StoryDetailResponseDto>), StatusCodes.Status200OK)]
