@@ -14,13 +14,14 @@ public class AddCommentCommandHandlerTests
 {
     private readonly ICommentRepository _commentRepository = Substitute.For<ICommentRepository>();
     private readonly ICurrentUserContext _userContext = Substitute.For<ICurrentUserContext>();
+    private readonly IContentCommentCountSyncClient _commentCountSyncClient = Substitute.For<IContentCommentCountSyncClient>();
     private readonly ILogger<AddCommentCommandHandler> _logger = Substitute.For<ILogger<AddCommentCommandHandler>>();
 
     private readonly AddCommentCommandHandler _handler;
 
     public AddCommentCommandHandlerTests()
     {
-        _handler = new AddCommentCommandHandler(_commentRepository, _userContext, _logger);
+        _handler = new AddCommentCommandHandler(_commentRepository, _userContext, _commentCountSyncClient, _logger);
     }
 
     [Fact]

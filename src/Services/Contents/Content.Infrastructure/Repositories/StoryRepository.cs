@@ -137,7 +137,7 @@ public sealed class StoryRepository : IStoryRepository
         return query;
     }
 
-    private static async Task<(IReadOnlyList<Story> Items, int TotalCount)> PageAsync(
+    private async Task<(IReadOnlyList<Story> Items, int TotalCount)> PageAsync(
         IQueryable<Story> query,
         StorySearchCriteria criteria,
         CancellationToken cancellationToken)
@@ -193,7 +193,7 @@ public sealed class StoryRepository : IStoryRepository
         return _dbContext.SaveChangesAsync(cancellationToken);
     }
 
-    private static IQueryable<Story> ApplySort(IQueryable<Story> query, StorySearchCriteria criteria)
+    private IQueryable<Story> ApplySort(IQueryable<Story> query, StorySearchCriteria criteria)
     {
         // Always append Id as a tie-breaker so pagination stays stable.
         return criteria.SortBy switch
@@ -210,6 +210,12 @@ public sealed class StoryRepository : IStoryRepository
             StorySortField.CreatedAt => criteria.Descending
                 ? query.OrderByDescending(x => x.CreatedAt).ThenByDescending(x => x.Id)
                 : query.OrderBy(x => x.CreatedAt).ThenBy(x => x.Id),
+            // Computed on the fly (SUM over the story's chapters) rather than a
+            // denormalized Story.CommentCount column, to avoid a second sync tier
+            // on top of the Chapter.CommentCount sync already coming from Community.
+            StorySortField.CommentCount => criteria.Descending
+                ? query.OrderByDescending(x => _dbContext.Chapters.Where(c => c.StoryId == x.Id).Sum(c => (int?)c.CommentCount) ?? 0).ThenByDescending(x => x.Id)
+                : query.OrderBy(x => _dbContext.Chapters.Where(c => c.StoryId == x.Id).Sum(c => (int?)c.CommentCount) ?? 0).ThenBy(x => x.Id),
             _ => criteria.Descending
                 ? query.OrderByDescending(x => x.PublishedAt).ThenByDescending(x => x.Id)
                 : query.OrderBy(x => x.PublishedAt).ThenBy(x => x.Id)

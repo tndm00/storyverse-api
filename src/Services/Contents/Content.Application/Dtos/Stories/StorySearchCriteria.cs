@@ -33,5 +33,8 @@ public enum StorySortField
     Title,
     ViewCount,
     RatingAvg,
-    CreatedAt
+    CreatedAt,
+
+    /// <summary>Sum of <see cref="Content.Domain.Entities.Chapter.CommentCount"/> over the story's chapters, computed on the fly.</summary>
+    CommentCount
 }

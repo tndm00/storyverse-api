@@ -20,6 +20,21 @@ public interface ICommentRepository
         CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Real count of <see cref="CommentStatus.Visible"/> comments for one chapter,
+    /// computed fresh from the DB. Used to push the denormalized
+    /// <c>Chapter.CommentCount</c> aggregate to the Content service after a
+    /// comment write.
+    /// </summary>
+    Task<int> CountVisibleByChapterAsync(Guid chapterId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// The <paramref name="limit"/> most recent <see cref="CommentStatus.Visible"/>
+    /// comments across every chapter, newest first — feed for "recently commented
+    /// stories".
+    /// </summary>
+    Task<IReadOnlyList<Comment>> GetRecentVisibleAsync(int limit, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Moderation search across every chapter: optional chapter / author / status
     /// filters and an ILIKE match on content, ordered by <see cref="Comment.CreatedAt"/>.
     /// </summary>

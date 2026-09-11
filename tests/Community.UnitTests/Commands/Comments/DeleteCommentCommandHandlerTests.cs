@@ -15,6 +15,7 @@ public class DeleteCommentCommandHandlerTests
 {
     private readonly ICommentRepository _commentRepository = Substitute.For<ICommentRepository>();
     private readonly ICurrentUserContext _userContext = Substitute.For<ICurrentUserContext>();
+    private readonly IContentCommentCountSyncClient _commentCountSyncClient = Substitute.For<IContentCommentCountSyncClient>();
     private readonly ILogger<DeleteCommentCommandHandler> _logger =
         Substitute.For<ILogger<DeleteCommentCommandHandler>>();
 
@@ -22,7 +23,7 @@ public class DeleteCommentCommandHandlerTests
 
     public DeleteCommentCommandHandlerTests()
     {
-        _handler = new DeleteCommentCommandHandler(_commentRepository, _userContext, _logger);
+        _handler = new DeleteCommentCommandHandler(_commentRepository, _userContext, _commentCountSyncClient, _logger);
     }
 
     [Fact]

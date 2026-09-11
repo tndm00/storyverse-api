@@ -30,6 +30,29 @@ public sealed class ChapterRepository : IChapterRepository
             .ToListAsync(cancellationToken);
     }
 
+    public async Task<IReadOnlyList<ChapterContextEntryDto>> GetContextByPublicIdsAsync(
+        IEnumerable<Guid> publicIds, CancellationToken cancellationToken = default)
+    {
+        var ids = publicIds.Where(id => id != Guid.Empty).Distinct().ToArray();
+        if (ids.Length == 0)
+        {
+            return Array.Empty<ChapterContextEntryDto>();
+        }
+
+        return await (
+            from chapter in _dbContext.Chapters.AsNoTracking()
+            join story in _dbContext.Stories.AsNoTracking() on chapter.StoryId equals story.Id
+            where ids.Contains(chapter.PublicId)
+            select new ChapterContextEntryDto
+            {
+                ChapterId = chapter.PublicId,
+                ChapterTitle = chapter.Title,
+                StoryId = story.PublicId,
+                StorySlug = story.Slug,
+                StoryTitle = story.Title
+            }).ToListAsync(cancellationToken);
+    }
+
     public async Task<IReadOnlyList<Chapter>> GetByStoryAsync(
         long storyId,
         bool publishedOnly,

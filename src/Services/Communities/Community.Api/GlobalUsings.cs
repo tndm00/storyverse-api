@@ -20,6 +20,7 @@ global using Community.Application.Extensions;
 global using Community.Application.Options;
 global using Community.Application.Queries.Comments.GetChapterComments;
 global using Community.Application.Queries.Comments.GetCommentExcerpts;
+global using Community.Application.Queries.Comments.GetRecentComments;
 global using Community.Application.Queries.Ratings.GetMyRating;
 global using Community.Application.Queries.Ratings.GetStoryRatings;
 global using Community.Application.Queries.Votes.GetCurrentVotePeriod;

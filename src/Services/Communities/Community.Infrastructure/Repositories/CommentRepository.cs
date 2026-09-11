@@ -51,6 +51,25 @@ public sealed class CommentRepository : ICommentRepository
         return (items, totalCount);
     }
 
+    public Task<int> CountVisibleByChapterAsync(Guid chapterId, CancellationToken cancellationToken = default)
+    {
+        return _dbContext.Comments
+            .AsNoTracking()
+            .CountAsync(x => x.ChapterId == chapterId && x.Status == CommentStatus.Visible, cancellationToken);
+    }
+
+    public async Task<IReadOnlyList<Comment>> GetRecentVisibleAsync(
+        int limit, CancellationToken cancellationToken = default)
+    {
+        return await _dbContext.Comments
+            .AsNoTracking()
+            .Where(x => x.Status == CommentStatus.Visible)
+            .OrderByDescending(x => x.CreatedAt)
+            .ThenByDescending(x => x.Id)
+            .Take(limit)
+            .ToListAsync(cancellationToken);
+    }
+
     public async Task<(IReadOnlyList<Comment> Items, int TotalCount)> SearchAsync(
         Guid? chapterId,
         long? authorUserId,

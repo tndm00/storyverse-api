@@ -4,15 +4,18 @@ public sealed class ReplyCommentCommandHandler : ICommandHandler<ReplyCommentCom
 {
     private readonly ICommentRepository _commentRepository;
     private readonly ICurrentUserContext _userContext;
+    private readonly IContentCommentCountSyncClient _commentCountSyncClient;
     private readonly ILogger<ReplyCommentCommandHandler> _logger;
 
     public ReplyCommentCommandHandler(
         ICommentRepository commentRepository,
         ICurrentUserContext userContext,
+        IContentCommentCountSyncClient commentCountSyncClient,
         ILogger<ReplyCommentCommandHandler> logger)
     {
         _commentRepository = commentRepository;
         _userContext = userContext;
+        _commentCountSyncClient = commentCountSyncClient;
         _logger = logger;
     }
 
@@ -46,6 +49,11 @@ public sealed class ReplyCommentCommandHandler : ICommandHandler<ReplyCommentCom
         await _commentRepository.SaveChangesAsync(cancellationToken);
 
         _logger.LogInformation(ApplicationLogConstants.CommentReplied, reply.PublicId, parent.PublicId, userId);
+
+        // Best-effort sync of the real visible-comment count to Content; see
+        // IContentCommentCountSyncClient.
+        var commentCount = await _commentRepository.CountVisibleByChapterAsync(reply.ChapterId, cancellationToken);
+        await _commentCountSyncClient.SyncCommentCountAsync(reply.ChapterId, commentCount, cancellationToken);
 
         // Integration point: publish a "comment replied" event so Notification can
         // alert the parent comment's author. No event bus implementation yet (Phase 1).

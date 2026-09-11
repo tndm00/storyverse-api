@@ -15,6 +15,7 @@ public class SetCommentVisibilityCommandHandlerTests
 {
     private readonly ICommentRepository _commentRepository = Substitute.For<ICommentRepository>();
     private readonly ICurrentUserContext _userContext = Substitute.For<ICurrentUserContext>();
+    private readonly IContentCommentCountSyncClient _commentCountSyncClient = Substitute.For<IContentCommentCountSyncClient>();
     private readonly ILogger<SetCommentVisibilityCommandHandler> _logger =
         Substitute.For<ILogger<SetCommentVisibilityCommandHandler>>();
 
@@ -22,7 +23,7 @@ public class SetCommentVisibilityCommandHandlerTests
 
     public SetCommentVisibilityCommandHandlerTests()
     {
-        _handler = new SetCommentVisibilityCommandHandler(_commentRepository, _userContext, _logger);
+        _handler = new SetCommentVisibilityCommandHandler(_commentRepository, _userContext, _commentCountSyncClient, _logger);
     }
 
     [Fact]

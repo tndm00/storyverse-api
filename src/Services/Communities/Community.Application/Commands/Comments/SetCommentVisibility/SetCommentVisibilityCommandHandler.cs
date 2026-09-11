@@ -4,15 +4,18 @@ public sealed class SetCommentVisibilityCommandHandler : ICommandHandler<SetComm
 {
     private readonly ICommentRepository _commentRepository;
     private readonly ICurrentUserContext _userContext;
+    private readonly IContentCommentCountSyncClient _commentCountSyncClient;
     private readonly ILogger<SetCommentVisibilityCommandHandler> _logger;
 
     public SetCommentVisibilityCommandHandler(
         ICommentRepository commentRepository,
         ICurrentUserContext userContext,
+        IContentCommentCountSyncClient commentCountSyncClient,
         ILogger<SetCommentVisibilityCommandHandler> logger)
     {
         _commentRepository = commentRepository;
         _userContext = userContext;
+        _commentCountSyncClient = commentCountSyncClient;
         _logger = logger;
     }
 
@@ -41,6 +44,11 @@ public sealed class SetCommentVisibilityCommandHandler : ICommandHandler<SetComm
                     request.Hide ? ApplicationLogConstants.CommentHidden : ApplicationLogConstants.CommentUnhidden,
                     comment.PublicId,
                     moderatorUserId);
+
+                // Best-effort sync of the real visible-comment count to Content;
+                // see IContentCommentCountSyncClient.
+                var commentCount = await _commentRepository.CountVisibleByChapterAsync(comment.ChapterId, cancellationToken);
+                await _commentCountSyncClient.SyncCommentCountAsync(comment.ChapterId, commentCount, cancellationToken);
             }
         }
 

@@ -15,6 +15,7 @@ public class ReplyCommentCommandHandlerTests
 {
     private readonly ICommentRepository _commentRepository = Substitute.For<ICommentRepository>();
     private readonly ICurrentUserContext _userContext = Substitute.For<ICurrentUserContext>();
+    private readonly IContentCommentCountSyncClient _commentCountSyncClient = Substitute.For<IContentCommentCountSyncClient>();
     private readonly ILogger<ReplyCommentCommandHandler> _logger =
         Substitute.For<ILogger<ReplyCommentCommandHandler>>();
 
@@ -22,7 +23,7 @@ public class ReplyCommentCommandHandlerTests
 
     public ReplyCommentCommandHandlerTests()
     {
-        _handler = new ReplyCommentCommandHandler(_commentRepository, _userContext, _logger);
+        _handler = new ReplyCommentCommandHandler(_commentRepository, _userContext, _commentCountSyncClient, _logger);
     }
 
     [Fact]

@@ -79,6 +79,59 @@ public static class ServiceRegistration
         })
         .SetHandlerLifetime(TimeSpan.FromMinutes(5));
 
+        // Outbound HTTP to the Content service: pushes the recomputed visible
+        // comment count after a comment write commits, so Chapter.CommentCount
+        // stays in sync for story sorting/listings. Best-effort: see
+        // ContentCommentCountSyncClient. Same Services:ContentApi config as above.
+        services.AddHttpClient<IContentCommentCountSyncClient, ContentCommentCountSyncClient>((sp, client) =>
+        {
+            var options = sp.GetRequiredService<IOptions<ContentApiOptions>>().Value;
+            if (!string.IsNullOrWhiteSpace(options.BaseUrl))
+            {
+                client.BaseAddress = new Uri(options.BaseUrl.EndsWith('/') ? options.BaseUrl : options.BaseUrl + "/");
+            }
+
+            client.Timeout = TimeSpan.FromSeconds(5);
+        })
+        .ConfigurePrimaryHttpMessageHandler(sp =>
+        {
+            var handler = new System.Net.Http.HttpClientHandler();
+            if (sp.GetRequiredService<IOptions<ContentApiOptions>>().Value.DangerousAcceptAnyServerCertificate)
+            {
+                handler.ServerCertificateCustomValidationCallback =
+                    System.Net.Http.HttpClientHandler.DangerousAcceptAnyServerCertificateValidator;
+            }
+
+            return handler;
+        })
+        .SetHandlerLifetime(TimeSpan.FromMinutes(5));
+
+        // Outbound HTTP to the Content service: batch-resolves chapter ->
+        // story context to enrich the cross-platform recent-comments feed.
+        // Best-effort: see ContentChapterContextClient. Same config as above.
+        services.AddHttpClient<IContentChapterContextClient, ContentChapterContextClient>((sp, client) =>
+        {
+            var options = sp.GetRequiredService<IOptions<ContentApiOptions>>().Value;
+            if (!string.IsNullOrWhiteSpace(options.BaseUrl))
+            {
+                client.BaseAddress = new Uri(options.BaseUrl.EndsWith('/') ? options.BaseUrl : options.BaseUrl + "/");
+            }
+
+            client.Timeout = TimeSpan.FromSeconds(5);
+        })
+        .ConfigurePrimaryHttpMessageHandler(sp =>
+        {
+            var handler = new System.Net.Http.HttpClientHandler();
+            if (sp.GetRequiredService<IOptions<ContentApiOptions>>().Value.DangerousAcceptAnyServerCertificate)
+            {
+                handler.ServerCertificateCustomValidationCallback =
+                    System.Net.Http.HttpClientHandler.DangerousAcceptAnyServerCertificateValidator;
+            }
+
+            return handler;
+        })
+        .SetHandlerLifetime(TimeSpan.FromMinutes(5));
+
         return services;
     }
 }

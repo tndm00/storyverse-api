@@ -39,6 +39,23 @@ public sealed class CommentsController : ControllerBase
     }
 
     /// <summary>
+    /// Cross-platform feed: the most recent visible comments across every
+    /// chapter, newest first, enriched with story/chapter context — powers a
+    /// "recently commented stories" section. Default 15, capped at 50.
+    /// </summary>
+    [AllowAnonymous]
+    [HttpGet(ControllerRouteConstants.CommentRecentSegment)]
+    [ProducesResponseType(typeof(ResponseDto<IReadOnlyList<RecentCommentEntryDto>>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetRecentComments(
+        [FromQuery(Name = "limit")] int limit = 15,
+        CancellationToken cancellationToken = default)
+    {
+        var result = await _mediator.Send(new GetRecentCommentsQuery { Limit = limit }, cancellationToken);
+
+        return Ok(ResponseDto<IReadOnlyList<RecentCommentEntryDto>>.Ok(result));
+    }
+
+    /// <summary>
     /// Cross-chapter comment moderation listing for the admin console. Filters:
     /// <c>status</c> (Visible/Hidden/Deleted/all), <c>q</c> (ILIKE content),
     /// <c>chapter-id</c>, <c>author-user-id</c>. Requires <c>community.moderate</c>.

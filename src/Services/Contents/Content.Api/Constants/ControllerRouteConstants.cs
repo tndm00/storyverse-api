@@ -61,4 +61,6 @@ public static class ControllerRouteConstants
     public const string InternalStoryTitlesSegment = "stories/internal/titles";
     public const string InternalChapterTitlesSegment = "chapters/internal/titles";
     public const string InternalStoryRatingSummarySegment = "stories/{storyId:guid}/rating-summary";
+    public const string InternalChapterCommentCountSegment = "chapters/{chapterId:guid}/comment-count";
+    public const string InternalChapterContextSegment = "chapters/internal/context";
 }

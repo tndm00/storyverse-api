@@ -11,6 +11,14 @@ public interface IChapterRepository
     Task<IReadOnlyList<ContentTitleEntryDto>> GetTitlesByPublicIdsAsync(
         IEnumerable<Guid> publicIds, CancellationToken cancellationToken = default);
 
+    /// <summary>
+    /// Public id -&gt; chapter title plus parent story id/slug/title, for internal
+    /// cross-service lookups that need story context (not just the chapter
+    /// title). Unknown ids are omitted.
+    /// </summary>
+    Task<IReadOnlyList<ChapterContextEntryDto>> GetContextByPublicIdsAsync(
+        IEnumerable<Guid> publicIds, CancellationToken cancellationToken = default);
+
     Task<IReadOnlyList<Chapter>> GetByStoryAsync(
         long storyId,
         bool publishedOnly,

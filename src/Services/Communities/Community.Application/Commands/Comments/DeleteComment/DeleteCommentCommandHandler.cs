@@ -4,15 +4,18 @@ public sealed class DeleteCommentCommandHandler : ICommandHandler<DeleteCommentC
 {
     private readonly ICommentRepository _commentRepository;
     private readonly ICurrentUserContext _userContext;
+    private readonly IContentCommentCountSyncClient _commentCountSyncClient;
     private readonly ILogger<DeleteCommentCommandHandler> _logger;
 
     public DeleteCommentCommandHandler(
         ICommentRepository commentRepository,
         ICurrentUserContext userContext,
+        IContentCommentCountSyncClient commentCountSyncClient,
         ILogger<DeleteCommentCommandHandler> logger)
     {
         _commentRepository = commentRepository;
         _userContext = userContext;
+        _commentCountSyncClient = commentCountSyncClient;
         _logger = logger;
     }
 
@@ -36,6 +39,11 @@ public sealed class DeleteCommentCommandHandler : ICommandHandler<DeleteCommentC
             await _commentRepository.SaveChangesAsync(cancellationToken);
 
             _logger.LogInformation(ApplicationLogConstants.CommentDeleted, comment.PublicId, userId);
+
+            // Best-effort sync of the real visible-comment count to Content; see
+            // IContentCommentCountSyncClient.
+            var commentCount = await _commentRepository.CountVisibleByChapterAsync(comment.ChapterId, cancellationToken);
+            await _commentCountSyncClient.SyncCommentCountAsync(comment.ChapterId, commentCount, cancellationToken);
         }
 
         return CommunityDtoMapper.ToDto(comment);

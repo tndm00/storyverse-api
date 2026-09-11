@@ -118,6 +118,52 @@ public sealed class InternalContentController : ControllerBase
         return Ok(ResponseDto<RatingSummaryResponseDto>.Ok(result));
     }
 
+    /// <summary>
+    /// Applies the Community service's recomputed visible-comment count to the
+    /// chapter. Called best-effort after a comment add/reply/delete/visibility
+    /// change commits; a missing chapter here must not fail the caller's request.
+    /// </summary>
+    [AllowAnonymous]
+    [ServiceOrUserAuthorize]
+    [HttpPost(ControllerRouteConstants.InternalChapterCommentCountSegment)]
+    [ProducesResponseType(typeof(ResponseDto<ChapterCommentCountResponseDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> SetChapterCommentCount(
+        Guid chapterId,
+        [FromBody] ChapterCommentCountRequestDto request,
+        CancellationToken cancellationToken)
+    {
+        var result = await _mediator.Send(
+            new SetChapterCommentCountCommand { ChapterId = chapterId, Count = request.Count },
+            cancellationToken);
+
+        if (result is null)
+        {
+            return NotFound();
+        }
+
+        return Ok(ResponseDto<ChapterCommentCountResponseDto>.Ok(result));
+    }
+
+    /// <summary>
+    /// Batch chapter public id -&gt; chapter title + parent story id/slug/title
+    /// (<c>?ids=guid,guid</c>). Unknown ids are omitted. Used by the Community
+    /// service to enrich its cross-story recent-comments feed.
+    /// </summary>
+    [AllowAnonymous]
+    [ServiceOrUserAuthorize]
+    [HttpGet(ControllerRouteConstants.InternalChapterContextSegment)]
+    [ProducesResponseType(typeof(ResponseDto<IReadOnlyList<ChapterContextEntryDto>>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetChapterContext(
+        [FromQuery(Name = "ids")] string ids,
+        CancellationToken cancellationToken)
+    {
+        var result = await _mediator.Send(
+            new GetChapterContextQuery { Ids = ParseGuidCsv(ids) }, cancellationToken);
+
+        return Ok(ResponseDto<IReadOnlyList<ChapterContextEntryDto>>.Ok(result));
+    }
+
     private static IReadOnlyCollection<Guid> ParseGuidCsv(string ids)
     {
         return (ids ?? string.Empty)

@@ -23,6 +23,9 @@ public static class ControllerRouteConstants
     /// <summary>Internal (X-Service-Token): batch comment id -&gt; excerpt for the reports queue.</summary>
     public const string CommentExcerptsSegment = "internal/excerpts";
 
+    /// <summary>Cross-platform feed: most recent visible comments, newest first.</summary>
+    public const string CommentRecentSegment = "recent";
+
     public const string RatingsMineSegment = "mine";
 
     public const string VotesCountSegment = "count";

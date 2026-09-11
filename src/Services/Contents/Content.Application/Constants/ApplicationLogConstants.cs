@@ -41,6 +41,7 @@ public static class ApplicationLogConstants
     public const string StoryModerationVisibilityChanged = "Story {StoryId} moderation visibility changed (hidden={Hidden}); status now {Status}.";
     public const string StoryRatingSummaryUpdated = "Story {StoryId} rating summary updated to avg {RatingAvg} ({RatingCount} ratings).";
     public const string ChapterModerationVisibilityChanged = "Chapter {ChapterId} moderation visibility changed (hidden={Hidden}); status now {Status}.";
+    public const string ChapterCommentCountUpdated = "Chapter {ChapterId} comment count updated to {CommentCount}.";
 
     public const string GenreCreated = "Genre {GenreId} created.";
     public const string GenreUpdated = "Genre {GenreId} updated.";
