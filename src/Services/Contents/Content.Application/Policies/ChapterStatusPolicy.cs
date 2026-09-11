@@ -19,10 +19,11 @@ public static class ChapterStatusPolicy
         return from is ChapterStatus.PendingReview;
     }
 
-    /// <summary>Moderator approves — the chapter is published.</summary>
+    /// <summary>Moderator approves — the chapter is published. A moderator may also
+    /// reverse an earlier rejection by approving directly from <see cref="ChapterStatus.Rejected"/>.</summary>
     public static bool CanApprove(ChapterStatus from)
     {
-        return from is ChapterStatus.InReview;
+        return from is ChapterStatus.InReview or ChapterStatus.Rejected;
     }
 
     /// <summary>Moderator rejects — the author may edit and resubmit.</summary>

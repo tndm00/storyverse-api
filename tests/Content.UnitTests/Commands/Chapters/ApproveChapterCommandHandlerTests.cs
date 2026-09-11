@@ -46,8 +46,7 @@ public class ApproveChapterCommandHandlerTests
     [InlineData(ChapterStatus.Draft)]
     [InlineData(ChapterStatus.PendingReview)]
     [InlineData(ChapterStatus.Published)]
-    [InlineData(ChapterStatus.Rejected)]
-    public async Task Handle_Should_ThrowBusinessRuleException_When_ChapterIsNotInReview(ChapterStatus status)
+    public async Task Handle_Should_ThrowBusinessRuleException_When_ChapterIsNotInReviewOrRejected(ChapterStatus status)
     {
         var publicId = Guid.NewGuid();
         var chapter = new Chapter { Id = 1, StoryId = 5, PublicId = publicId, Status = status };
@@ -59,6 +58,34 @@ public class ApproveChapterCommandHandlerTests
         Func<Task> act = () => _handler.Handle(command, CancellationToken.None);
 
         await act.Should().ThrowAsync<BusinessRuleException>();
+    }
+
+    [Fact]
+    public async Task Handle_Should_PublishAndClearRejectionReason_When_ChapterIsRejected()
+    {
+        var publicId = Guid.NewGuid();
+        var chapter = new Chapter
+        {
+            Id = 12,
+            StoryId = 5,
+            PublicId = publicId,
+            Status = ChapterStatus.Rejected,
+            RejectionReason = "Vi phạm quy định nội dung"
+        };
+        var story = new Story { Id = 5, PublicId = Guid.NewGuid(), Status = StoryStatus.Ongoing };
+
+        _chapterRepository.GetByPublicIdAsync(publicId, Arg.Any<CancellationToken>()).Returns(chapter);
+        _storyRepository.GetByIdAsync(5, Arg.Any<CancellationToken>()).Returns(story);
+
+        var command = new ApproveChapterCommand { ChapterId = publicId };
+
+        await _handler.Handle(command, CancellationToken.None);
+
+        chapter.Status.Should().Be(ChapterStatus.Published);
+        chapter.RejectionReason.Should().BeNull();
+        await _reviewActionRepository.Received(1).AddAsync(
+            Arg.Is<ChapterReviewAction>(a => a.ChapterId == chapter.Id && a.Action == ChapterReviewActionType.Approved),
+            Arg.Any<CancellationToken>());
     }
 
     [Fact]
