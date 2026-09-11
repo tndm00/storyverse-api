@@ -193,6 +193,23 @@ public sealed class StoryRepository : IStoryRepository
         return _dbContext.SaveChangesAsync(cancellationToken);
     }
 
+    public async Task<IReadOnlyDictionary<long, int>> GetCommentCountsAsync(
+        IEnumerable<long> storyIds, CancellationToken cancellationToken = default)
+    {
+        var ids = storyIds.Distinct().ToArray();
+        if (ids.Length == 0)
+        {
+            return new Dictionary<long, int>();
+        }
+
+        return await _dbContext.Chapters
+            .AsNoTracking()
+            .Where(c => ids.Contains(c.StoryId))
+            .GroupBy(c => c.StoryId)
+            .Select(g => new { StoryId = g.Key, Count = g.Sum(c => c.CommentCount) })
+            .ToDictionaryAsync(x => x.StoryId, x => x.Count, cancellationToken);
+    }
+
     private IQueryable<Story> ApplySort(IQueryable<Story> query, StorySearchCriteria criteria)
     {
         // Always append Id as a tie-breaker so pagination stays stable.

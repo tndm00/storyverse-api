@@ -68,5 +68,9 @@ public interface IStoryRepository
     /// <summary>Atomic <c>view_count = view_count + 1</c> for one story; used on the read path.</summary>
     Task IncrementViewCountAsync(long storyId, CancellationToken cancellationToken = default);
 
+    /// <summary>Story id -&gt; sum of its chapters' <see cref="Content.Domain.Entities.Chapter.CommentCount"/>. Stories with no comments are omitted.</summary>
+    Task<IReadOnlyDictionary<long, int>> GetCommentCountsAsync(
+        IEnumerable<long> storyIds, CancellationToken cancellationToken = default);
+
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

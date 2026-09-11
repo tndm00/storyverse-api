@@ -23,6 +23,9 @@ public sealed class StorySummaryResponseDto
 
     public int RatingCount { get; init; }
 
+    /// <summary>Sum of <see cref="Content.Domain.Entities.Chapter.CommentCount"/> over the story's chapters. Only populated on the public discovery listing (GET /v1/stories); 0 elsewhere.</summary>
+    public int CommentCount { get; init; }
+
     public DateTime? PublishedAt { get; init; }
 }
 

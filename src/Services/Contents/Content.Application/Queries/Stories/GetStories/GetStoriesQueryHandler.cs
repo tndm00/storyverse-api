@@ -34,8 +34,14 @@ public sealed class GetStoriesQueryHandler
 
         var (items, totalCount) = await _storyRepository.SearchPublishedAsync(criteria, cancellationToken);
 
+        var commentCounts = await _storyRepository.GetCommentCountsAsync(
+            items.Select(x => x.Id), cancellationToken) ?? new Dictionary<long, int>();
+
         var summaries = items
-            .Select(story => ContentDtoMapper.ToSummary(story, ContentDtoMapper.PrimaryGenreName(story)))
+            .Select(story => ContentDtoMapper.ToSummary(
+                story,
+                ContentDtoMapper.PrimaryGenreName(story),
+                commentCounts.GetValueOrDefault(story.Id)))
             .ToArray();
 
         return PagedResponseDto<StorySummaryResponseDto>.Create(summaries, pageNumber, pageSize, totalCount);

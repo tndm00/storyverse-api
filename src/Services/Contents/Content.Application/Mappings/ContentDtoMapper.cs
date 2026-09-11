@@ -7,7 +7,7 @@ namespace Content.Application.Mappings;
 /// </summary>
 public static class ContentDtoMapper
 {
-    public static StorySummaryResponseDto ToSummary(Story story, string primaryGenre)
+    public static StorySummaryResponseDto ToSummary(Story story, string primaryGenre, int commentCount = 0)
     {
         return new StorySummaryResponseDto
         {
@@ -21,6 +21,7 @@ public static class ContentDtoMapper
             ViewCount = story.ViewCount,
             RatingAvg = story.RatingAvg,
             RatingCount = story.RatingCount,
+            CommentCount = commentCount,
             PublishedAt = story.PublishedAt
         };
     }
