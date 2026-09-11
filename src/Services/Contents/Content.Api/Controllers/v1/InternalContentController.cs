@@ -92,6 +92,32 @@ public sealed class InternalContentController : ControllerBase
         return Ok(ResponseDto<IReadOnlyList<ContentTitleEntryDto>>.Ok(result));
     }
 
+    /// <summary>
+    /// Applies the Community service's recomputed rating aggregate (avg + count
+    /// over all real ratings) to the story. Called best-effort after a rating
+    /// write commits; a missing story here must not fail the caller's request.
+    /// </summary>
+    [AllowAnonymous]
+    [ServiceOrUserAuthorize]
+    [HttpPost(ControllerRouteConstants.InternalStoryRatingSummarySegment)]
+    [ProducesResponseType(typeof(ResponseDto<RatingSummaryResponseDto>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> SetStoryRatingSummary(
+        Guid storyId,
+        [FromBody] RatingSummaryRequestDto request,
+        CancellationToken cancellationToken)
+    {
+        var result = await _mediator.Send(
+            new SetStoryRatingSummaryCommand
+            {
+                StoryId = storyId,
+                RatingAvg = request.RatingAvg,
+                RatingCount = request.RatingCount
+            },
+            cancellationToken);
+
+        return Ok(ResponseDto<RatingSummaryResponseDto>.Ok(result));
+    }
+
     private static IReadOnlyCollection<Guid> ParseGuidCsv(string ids)
     {
         return (ids ?? string.Empty)

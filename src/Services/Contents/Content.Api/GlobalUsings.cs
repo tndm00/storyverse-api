@@ -10,6 +10,7 @@ global using Content.Api.Extensions;
 global using Content.Api.Security;
 global using Content.Application.Commands.Moderation.SetChapterModerationVisibility;
 global using Content.Application.Commands.Moderation.SetStoryModerationVisibility;
+global using Content.Application.Commands.Ratings.SetStoryRatingSummary;
 global using Content.Application.Queries.Moderation.GetChapterTitles;
 global using Content.Application.Queries.Moderation.GetStoryTitles;
 global using Content.Application.Commands.Chapters.ApproveChapter;

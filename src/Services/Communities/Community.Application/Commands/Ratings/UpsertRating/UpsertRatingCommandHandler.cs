@@ -5,17 +5,20 @@ public sealed class UpsertRatingCommandHandler : ICommandHandler<UpsertRatingCom
     private readonly IRatingRepository _ratingRepository;
     private readonly ICommunityUnitOfWork _unitOfWork;
     private readonly ICurrentUserContext _userContext;
+    private readonly IContentRatingSyncClient _contentRatingSyncClient;
     private readonly ILogger<UpsertRatingCommandHandler> _logger;
 
     public UpsertRatingCommandHandler(
         IRatingRepository ratingRepository,
         ICommunityUnitOfWork unitOfWork,
         ICurrentUserContext userContext,
+        IContentRatingSyncClient contentRatingSyncClient,
         ILogger<UpsertRatingCommandHandler> logger)
     {
         _ratingRepository = ratingRepository;
         _unitOfWork = unitOfWork;
         _userContext = userContext;
+        _contentRatingSyncClient = contentRatingSyncClient;
         _logger = logger;
     }
 
@@ -57,10 +60,15 @@ public sealed class UpsertRatingCommandHandler : ICommandHandler<UpsertRatingCom
         _logger.LogInformation(
             ApplicationLogConstants.RatingUpserted, rating.PublicId, rating.StoryId, rating.Score, userId);
 
-        // Integration point: publish a "RatingChanged" event carrying the story id so
-        // the Content service can recompute Story.RatingAvg / Story.RatingCount. This
-        // service must never write the Content database directly. The EventBus package
-        // is interfaces-only in Phase 1, so there is nothing to dispatch to yet.
+        // Sync the real aggregate to Content outside the transaction (it already
+        // committed above) so Story.RatingAvg/RatingCount reflect every rating,
+        // not just this one. Recomputed from the DB, never accumulated in memory.
+        // Best-effort by contract (see IContentRatingSyncClient): a sync failure
+        // is logged there and never propagates here.
+        var (averageScore, ratingCount) = await _ratingRepository.GetAggregateByStoryAsync(
+            request.StoryId, cancellationToken);
+        await _contentRatingSyncClient.SyncRatingSummaryAsync(
+            request.StoryId, averageScore, ratingCount, cancellationToken);
 
         return CommunityDtoMapper.ToDto(rating);
     }

@@ -60,4 +60,5 @@ public static class ControllerRouteConstants
     public const string InternalChapterModerationVisibilitySegment = "chapters/{chapterId:guid}/moderation-visibility";
     public const string InternalStoryTitlesSegment = "stories/internal/titles";
     public const string InternalChapterTitlesSegment = "chapters/internal/titles";
+    public const string InternalStoryRatingSummarySegment = "stories/{storyId:guid}/rating-summary";
 }

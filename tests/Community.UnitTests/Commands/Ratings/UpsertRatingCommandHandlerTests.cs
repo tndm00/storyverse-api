@@ -15,6 +15,7 @@ public class UpsertRatingCommandHandlerTests
     private readonly IRatingRepository _ratingRepository = Substitute.For<IRatingRepository>();
     private readonly ICommunityUnitOfWork _unitOfWork = Substitute.For<ICommunityUnitOfWork>();
     private readonly ICurrentUserContext _userContext = Substitute.For<ICurrentUserContext>();
+    private readonly IContentRatingSyncClient _contentRatingSyncClient = Substitute.For<IContentRatingSyncClient>();
     private readonly ILogger<UpsertRatingCommandHandler> _logger =
         Substitute.For<ILogger<UpsertRatingCommandHandler>>();
 
@@ -25,8 +26,11 @@ public class UpsertRatingCommandHandlerTests
         _unitOfWork
             .ExecuteInTransactionAsync(Arg.Any<Func<CancellationToken, Task>>(), Arg.Any<CancellationToken>())
             .Returns(callInfo => callInfo.Arg<Func<CancellationToken, Task>>()(CancellationToken.None));
+        _ratingRepository.GetAggregateByStoryAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+            .Returns((0m, 0));
 
-        _handler = new UpsertRatingCommandHandler(_ratingRepository, _unitOfWork, _userContext, _logger);
+        _handler = new UpsertRatingCommandHandler(
+            _ratingRepository, _unitOfWork, _userContext, _contentRatingSyncClient, _logger);
     }
 
     [Fact]
@@ -85,5 +89,22 @@ public class UpsertRatingCommandHandlerTests
         var result = await _handler.Handle(command, CancellationToken.None);
 
         result.ReviewText.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task Handle_Should_SyncRecomputedAggregate_When_RatingSaved()
+    {
+        const long userId = 13;
+        var storyId = Guid.NewGuid();
+        _userContext.GetUserId().Returns(userId);
+        _ratingRepository.GetByStoryAndUserAsync(storyId, userId, Arg.Any<CancellationToken>())
+            .Returns((Rating)null);
+        _ratingRepository.GetAggregateByStoryAsync(storyId, Arg.Any<CancellationToken>())
+            .Returns((4m, 2));
+
+        await _handler.Handle(new UpsertRatingCommand { StoryId = storyId, Score = 5 }, CancellationToken.None);
+
+        await _contentRatingSyncClient.Received(1).SyncRatingSummaryAsync(
+            storyId, 4m, 2, Arg.Any<CancellationToken>());
     }
 }

@@ -52,6 +52,33 @@ public static class ServiceRegistration
         })
         .SetHandlerLifetime(TimeSpan.FromMinutes(5));
 
+        // Outbound HTTP to the Content service: pushes the recomputed rating
+        // aggregate after a rating write commits, so Story.RatingAvg/RatingCount
+        // stay in sync for story listings. Best-effort: see ContentRatingSyncClient.
+        services.Configure<ContentApiOptions>(configuration.GetSection(ContentApiOptions.SectionName));
+        services.AddHttpClient<IContentRatingSyncClient, ContentRatingSyncClient>((sp, client) =>
+        {
+            var options = sp.GetRequiredService<IOptions<ContentApiOptions>>().Value;
+            if (!string.IsNullOrWhiteSpace(options.BaseUrl))
+            {
+                client.BaseAddress = new Uri(options.BaseUrl.EndsWith('/') ? options.BaseUrl : options.BaseUrl + "/");
+            }
+
+            client.Timeout = TimeSpan.FromSeconds(5);
+        })
+        .ConfigurePrimaryHttpMessageHandler(sp =>
+        {
+            var handler = new System.Net.Http.HttpClientHandler();
+            if (sp.GetRequiredService<IOptions<ContentApiOptions>>().Value.DangerousAcceptAnyServerCertificate)
+            {
+                handler.ServerCertificateCustomValidationCallback =
+                    System.Net.Http.HttpClientHandler.DangerousAcceptAnyServerCertificateValidator;
+            }
+
+            return handler;
+        })
+        .SetHandlerLifetime(TimeSpan.FromMinutes(5));
+
         return services;
     }
 }
