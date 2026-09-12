@@ -72,5 +72,9 @@ public interface IStoryRepository
     Task<IReadOnlyDictionary<long, int>> GetCommentCountsAsync(
         IEnumerable<long> storyIds, CancellationToken cancellationToken = default);
 
+    /// <summary>Story id -&gt; count of its Published chapters. Stories with none are omitted.</summary>
+    Task<IReadOnlyDictionary<long, int>> GetPublishedChapterCountsAsync(
+        IEnumerable<long> storyIds, CancellationToken cancellationToken = default);
+
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }
