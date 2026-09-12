@@ -1,0 +1,277 @@
+# Production compose for a single VPS. All 6 services + Postgres run on one
+# private docker network; nothing is published to the host except what
+# cloudflared needs (nothing — cloudflared reaches services by container name
+# over the compose network, no host ports required at all).
+#
+# Usage:
+#   cp .env.production.example .env.production   # fill in real secrets
+#   docker compose -f docker-compose.prod.yml --env-file .env.production up -d --build
+#
+# First-time schema setup / after a migration-adding change, per service:
+#   docker compose -f docker-compose.prod.yml --env-file .env.production \
+#     run --rm migrate-content   # (or migrate-authentication, ...)
+#
+# See deploy/README.md for the per-service Dockerfile + migrate contract this
+# reuses unchanged (originally written for Cloud Run; both listen on $PORT /
+# take DB_ENV_VAR+DB_CONNECTION, neither is Cloud Run-specific).
+
+services:
+  postgres:
+    image: postgres:16
+    container_name: storyverse-pg
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - storyverse-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    networks: [storyverse]
+
+  authentication-api:
+    build:
+      context: .
+      dockerfile: deploy/authentication/Dockerfile
+    container_name: storyverse-authentication
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ConnectionStrings__AuthenticationDatabase: "Host=postgres;Port=5432;Database=storyverse_authentication;Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}"
+      ServiceAuth__Token: ${SERVICE_AUTH_TOKEN}
+      GcpSettings__AuthSettings__Issuer: Authentication.Api
+      GcpSettings__AuthSettings__Audiences__0: StoryVerse.Web
+      GcpSettings__AuthSettings__Audiences__1: StoryVerse.Mobile
+      GcpSettings__AuthSettings__SecretKey: ${JWT_SECRET_KEY}
+      GcpSettings__GoogleAuthSettings__ClientId: ${GOOGLE_CLIENT_ID}
+      Cors__AllowedOrigins__0: ${FRONTEND_ORIGIN}
+    networks: [storyverse]
+
+  content-api:
+    build:
+      context: .
+      dockerfile: deploy/content/Dockerfile
+    container_name: storyverse-content
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ConnectionStrings__ContentDatabase: "Host=postgres;Port=5432;Database=storyverse_content;Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}"
+      ServiceAuth__Token: ${SERVICE_AUTH_TOKEN}
+      Services__NotificationApi__BaseUrl: http://notification-api:8080
+      Services__NotificationApi__ServiceToken: ${SERVICE_AUTH_TOKEN}
+      Services__AuthApi__BaseUrl: http://authentication-api:8080
+      Services__AuthApi__ServiceToken: ${SERVICE_AUTH_TOKEN}
+      GcpSettings__AuthSettings__Issuer: Authentication.Api
+      GcpSettings__AuthSettings__Audiences__0: StoryVerse.Web
+      GcpSettings__AuthSettings__Audiences__1: StoryVerse.Mobile
+      GcpSettings__AuthSettings__SecretKey: ${JWT_SECRET_KEY}
+      Cors__AllowedOrigins__0: ${FRONTEND_ORIGIN}
+    networks: [storyverse]
+
+  community-api:
+    build:
+      context: .
+      dockerfile: deploy/community/Dockerfile
+    container_name: storyverse-community
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ConnectionStrings__CommunityDatabase: "Host=postgres;Port=5432;Database=storyverse_community;Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}"
+      ServiceAuth__Token: ${SERVICE_AUTH_TOKEN}
+      Services__AuthApi__BaseUrl: http://authentication-api:8080
+      Services__AuthApi__ServiceToken: ${SERVICE_AUTH_TOKEN}
+      Services__ContentApi__BaseUrl: http://content-api:8080
+      Services__ContentApi__ServiceToken: ${SERVICE_AUTH_TOKEN}
+      GcpSettings__AuthSettings__Issuer: Authentication.Api
+      GcpSettings__AuthSettings__Audiences__0: StoryVerse.Web
+      GcpSettings__AuthSettings__Audiences__1: StoryVerse.Mobile
+      GcpSettings__AuthSettings__SecretKey: ${JWT_SECRET_KEY}
+      Cors__AllowedOrigins__0: ${FRONTEND_ORIGIN}
+    networks: [storyverse]
+
+  library-api:
+    build:
+      context: .
+      dockerfile: deploy/library/Dockerfile
+    container_name: storyverse-library
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ConnectionStrings__LibraryDatabase: "Host=postgres;Port=5432;Database=storyverse_library;Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}"
+      GcpSettings__AuthSettings__Issuer: Authentication.Api
+      GcpSettings__AuthSettings__Audiences__0: StoryVerse.Web
+      GcpSettings__AuthSettings__Audiences__1: StoryVerse.Mobile
+      GcpSettings__AuthSettings__SecretKey: ${JWT_SECRET_KEY}
+      Cors__AllowedOrigins__0: ${FRONTEND_ORIGIN}
+    networks: [storyverse]
+
+  moderation-api:
+    build:
+      context: .
+      dockerfile: deploy/moderation/Dockerfile
+    container_name: storyverse-moderation
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ConnectionStrings__ModerationDatabase: "Host=postgres;Port=5432;Database=storyverse_moderation;Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}"
+      Services__ContentApi__BaseUrl: http://content-api:8080
+      Services__ContentApi__ServiceToken: ${SERVICE_AUTH_TOKEN}
+      Services__CommunityApi__BaseUrl: http://community-api:8080
+      Services__CommunityApi__ServiceToken: ${SERVICE_AUTH_TOKEN}
+      Services__AuthApi__BaseUrl: http://authentication-api:8080
+      Services__AuthApi__ServiceToken: ${SERVICE_AUTH_TOKEN}
+      GcpSettings__AuthSettings__Issuer: Authentication.Api
+      GcpSettings__AuthSettings__Audiences__0: StoryVerse.Web
+      GcpSettings__AuthSettings__Audiences__1: StoryVerse.Mobile
+      GcpSettings__AuthSettings__SecretKey: ${JWT_SECRET_KEY}
+      Cors__AllowedOrigins__0: ${FRONTEND_ORIGIN}
+    networks: [storyverse]
+
+  notification-api:
+    build:
+      context: .
+      dockerfile: deploy/notification/Dockerfile
+    container_name: storyverse-notification
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ConnectionStrings__NotificationDatabase: "Host=postgres;Port=5432;Database=storyverse_notification;Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}"
+      ServiceAuth__Token: ${SERVICE_AUTH_TOKEN}
+      GcpSettings__AuthSettings__Issuer: Authentication.Api
+      GcpSettings__AuthSettings__Audiences__0: StoryVerse.Web
+      GcpSettings__AuthSettings__Audiences__1: StoryVerse.Mobile
+      GcpSettings__AuthSettings__SecretKey: ${JWT_SECRET_KEY}
+      Cors__AllowedOrigins__0: ${FRONTEND_ORIGIN}
+    networks: [storyverse]
+
+  # Outbound-only connection to Cloudflare — no inbound port ever opened on
+  # this VPS. Public hostname -> internal service routing (e.g.
+  # svc-content.yourdomain.com -> http://content-api:8080) is configured in
+  # the Cloudflare Zero Trust dashboard (Networks > Tunnels), not here.
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: storyverse-tunnel
+    restart: unless-stopped
+    command: tunnel run
+    environment:
+      TUNNEL_TOKEN: ${CLOUDFLARE_TUNNEL_TOKEN}
+    networks: [storyverse]
+
+  # One-shot migration runners. Not started by `up`; run explicitly:
+  #   docker compose -f docker-compose.prod.yml --env-file .env.production run --rm migrate-content
+  migrate-authentication:
+    build:
+      context: .
+      dockerfile: deploy/migrate/Dockerfile
+      args:
+        INFRA_PROJECT: src/Services/Authentications/Authentication.Infrastructure
+    profiles: ["migrate"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DB_ENV_VAR: AUTH_DB_CONNECTION
+      DB_CONNECTION: "Host=postgres;Port=5432;Database=storyverse_authentication;Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}"
+    networks: [storyverse]
+
+  migrate-content:
+    build:
+      context: .
+      dockerfile: deploy/migrate/Dockerfile
+      args:
+        INFRA_PROJECT: src/Services/Contents/Content.Infrastructure
+    profiles: ["migrate"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DB_ENV_VAR: CONTENT_DB_CONNECTION
+      DB_CONNECTION: "Host=postgres;Port=5432;Database=storyverse_content;Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}"
+    networks: [storyverse]
+
+  migrate-community:
+    build:
+      context: .
+      dockerfile: deploy/migrate/Dockerfile
+      args:
+        INFRA_PROJECT: src/Services/Communities/Community.Infrastructure
+    profiles: ["migrate"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DB_ENV_VAR: COMMUNITY_DB_CONNECTION
+      DB_CONNECTION: "Host=postgres;Port=5432;Database=storyverse_community;Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}"
+    networks: [storyverse]
+
+  migrate-library:
+    build:
+      context: .
+      dockerfile: deploy/migrate/Dockerfile
+      args:
+        INFRA_PROJECT: src/Services/Libraries/Library.Infrastructure
+    profiles: ["migrate"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DB_ENV_VAR: LIBRARY_DB_CONNECTION
+      DB_CONNECTION: "Host=postgres;Port=5432;Database=storyverse_library;Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}"
+    networks: [storyverse]
+
+  migrate-moderation:
+    build:
+      context: .
+      dockerfile: deploy/migrate/Dockerfile
+      args:
+        INFRA_PROJECT: src/Services/Moderations/Moderation.Infrastructure
+    profiles: ["migrate"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DB_ENV_VAR: MODERATION_DB_CONNECTION
+      DB_CONNECTION: "Host=postgres;Port=5432;Database=storyverse_moderation;Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}"
+    networks: [storyverse]
+
+  migrate-notification:
+    build:
+      context: .
+      dockerfile: deploy/migrate/Dockerfile
+      args:
+        INFRA_PROJECT: src/Services/Notifications/Notification.Infrastructure
+    profiles: ["migrate"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DB_ENV_VAR: NOTIFICATION_DB_CONNECTION
+      DB_CONNECTION: "Host=postgres;Port=5432;Database=storyverse_notification;Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}"
+    networks: [storyverse]
+
+networks:
+  storyverse:
+
+volumes:
+  storyverse-pgdata:
