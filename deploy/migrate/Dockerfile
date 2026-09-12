@@ -13,14 +13,18 @@
 FROM mcr.microsoft.com/dotnet/sdk:8.0
 WORKDIR /src
 
-ENV PATH="$PATH:/root/.dotnet/tools" \
-    DOTNET_CLI_TELEMETRY_OPTOUT=1
-RUN dotnet tool install --global dotnet-ef --version 8.0.*
+ENV DOTNET_CLI_TELEMETRY_OPTOUT=1
 
 ARG INFRA_PROJECT
 ENV INFRA_PROJECT=${INFRA_PROJECT}
 
 COPY . .
+
+# The repo pins dotnet-ef as a LOCAL tool (.config/dotnet-tools.json), which
+# shadows any --global install once that manifest is present in the working
+# tree — `dotnet ef` then refuses to run ("Run dotnet tool restore") instead
+# of falling back to a global tool. Restore the local tool instead.
+RUN dotnet tool restore
 RUN dotnet restore "${INFRA_PROJECT}"
 
 # The factory reads $DB_ENV_VAR for the connection string; export it from the
