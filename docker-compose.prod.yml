@@ -1,7 +1,8 @@
 # Production compose for a single VPS. All 6 services + Postgres run on one
-# private docker network; nothing is published to the host except what
-# cloudflared needs (nothing — cloudflared reaches services by container name
-# over the compose network, no host ports required at all).
+# private docker network; only the `edge` nginx container is published to the
+# host (port 80), doing Host-header routing to each service by container
+# name. Cloudflare (orange-cloud DNS, SSL/TLS mode: Flexible) terminates TLS
+# for browsers and talks to this VPS over plain HTTP — no cert needed here.
 #
 # Usage:
 #   cp .env.production.example .env.production   # fill in real secrets
@@ -165,17 +166,24 @@ services:
       Cors__AllowedOrigins__0: ${FRONTEND_ORIGIN}
     networks: [storyverse]
 
-  # Outbound-only connection to Cloudflare — no inbound port ever opened on
-  # this VPS. Public hostname -> internal service routing (e.g.
-  # svc-content.yourdomain.com -> http://content-api:8080) is configured in
-  # the Cloudflare Zero Trust dashboard (Networks > Tunnels), not here.
-  cloudflared:
-    image: cloudflare/cloudflared:latest
-    container_name: storyverse-tunnel
+  # The only container with a host port. Cloudflare's 6 proxied A records
+  # (svc-<service>.truyenmacanh3.com -> this VPS's IP) all land here; nginx
+  # routes each by Host header to the right service container.
+  edge:
+    image: nginx:alpine
+    container_name: storyverse-edge
     restart: unless-stopped
-    command: tunnel run
-    environment:
-      TUNNEL_TOKEN: ${CLOUDFLARE_TUNNEL_TOKEN}
+    ports:
+      - "80:80"
+    volumes:
+      - ./deploy/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - authentication-api
+      - content-api
+      - community-api
+      - library-api
+      - moderation-api
+      - notification-api
     networks: [storyverse]
 
   # One-shot migration runners. Not started by `up`; run explicitly:
