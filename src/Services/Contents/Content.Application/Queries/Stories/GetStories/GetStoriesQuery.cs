@@ -7,6 +7,9 @@ public sealed class GetStoriesQuery : IQuery<PagedResponseDto<StorySummaryRespon
 
     public string TagSlug { get; init; }
 
+    /// <summary>Free-text match against the story title.</summary>
+    public string Keyword { get; init; }
+
     public long? AuthorProfileId { get; init; }
 
     public string Status { get; init; }

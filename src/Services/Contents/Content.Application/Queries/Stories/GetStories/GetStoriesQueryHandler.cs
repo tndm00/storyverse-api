@@ -24,6 +24,7 @@ public sealed class GetStoriesQueryHandler
         {
             GenreSlug = NormalizeSlug(request.GenreSlug),
             TagSlug = NormalizeSlug(request.TagSlug),
+            Keyword = string.IsNullOrWhiteSpace(request.Keyword) ? null : request.Keyword.Trim(),
             AuthorProfileId = request.AuthorProfileId is > 0 ? request.AuthorProfileId : null,
             Status = ParseStatus(request.Status),
             ChapterLength = ParseChapterLength(request.Length),

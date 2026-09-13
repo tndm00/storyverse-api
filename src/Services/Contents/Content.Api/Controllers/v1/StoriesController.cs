@@ -23,6 +23,7 @@ public sealed class StoriesController : ControllerBase
     public async Task<IActionResult> GetStories(
         [FromQuery(Name = "genre-slug")] string genreSlug,
         [FromQuery(Name = "tag-slug")] string tagSlug,
+        [FromQuery(Name = "q")] string q,
         [FromQuery(Name = "author-profile-id")] long? authorProfileId,
         [FromQuery(Name = "status")] string status,
         [FromQuery(Name = "length")] string length,
@@ -36,6 +37,7 @@ public sealed class StoriesController : ControllerBase
         {
             GenreSlug = genreSlug,
             TagSlug = tagSlug,
+            Keyword = q,
             AuthorProfileId = authorProfileId,
             Status = status,
             Length = length,
