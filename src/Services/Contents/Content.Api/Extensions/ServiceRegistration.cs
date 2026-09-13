@@ -62,6 +62,11 @@ public static class ServiceRegistration
             configuration.GetSection(Content.Application.Options.ChapterPublishingOptions.SectionName));
         services.AddHostedService<ScheduledChapterPublisher>();
 
+        // Background loop that posts a daily "truyện hot hôm nay" digest to Facebook.
+        services.Configure<Content.Application.Options.FacebookDigestOptions>(
+            configuration.GetSection(Content.Application.Options.FacebookDigestOptions.SectionName));
+        services.AddHostedService<FacebookDailyDigestPublisher>();
+
         // Dev-only seeders. GenreSeeder must run first — DemoContentSeeder looks
         // its genres up by slug. Hosted services start in registration order.
         services.AddHostedService<GenreSeeder>();
