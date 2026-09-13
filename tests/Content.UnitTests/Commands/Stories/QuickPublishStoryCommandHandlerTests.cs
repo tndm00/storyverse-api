@@ -97,4 +97,20 @@ public class QuickPublishStoryCommandHandlerTests
 
         result.FirstChapter.Status.Should().Be(ChapterStatus.PendingReview.ToString());
     }
+
+    [Fact]
+    public async Task Handle_Should_DeriveDescriptionFromChapterContent_When_DescriptionBlank()
+    {
+        var command = new QuickPublishStoryCommand
+        {
+            Title = "My Novel",
+            Description = "",
+            Genres = new List<StoryGenreSelection> { new("fantasy", true) },
+            ChapterContent = "Chapter one content."
+        };
+
+        var result = await _handler.Handle(command, CancellationToken.None);
+
+        result.Story.Description.Should().Be("Chapter one content.");
+    }
 }

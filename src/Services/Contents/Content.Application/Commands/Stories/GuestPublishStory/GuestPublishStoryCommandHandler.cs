@@ -42,7 +42,9 @@ public sealed class GuestPublishStoryCommandHandler
                 GuestAuthorName = request.GuestPenName.Trim(),
                 Title = title,
                 Slug = await BuildUniqueSlugAsync(title, ct),
-                Description = request.Description,
+                Description = string.IsNullOrWhiteSpace(request.Description)
+                    ? DescriptionExcerpt.From(request.ChapterContent)
+                    : request.Description.Trim(),
                 Status = StoryStatus.Draft,
                 ContentType = StoryContentType.Original,
                 Language = ApplicationConstants.DefaultLanguage,

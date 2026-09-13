@@ -52,7 +52,9 @@ public sealed class QuickPublishStoryCommandHandler
                 AuthorProfileId = authorProfileId,
                 Title = title,
                 Slug = await BuildUniqueSlugAsync(title, ct),
-                Description = request.Description,
+                Description = string.IsNullOrWhiteSpace(request.Description)
+                    ? DescriptionExcerpt.From(request.ChapterContent)
+                    : request.Description.Trim(),
                 CoverImageUrl = request.CoverImageUrl,
                 Status = StoryStatus.Draft,
                 ContentType = request.ContentType,

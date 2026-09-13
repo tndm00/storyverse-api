@@ -88,4 +88,22 @@ public class GuestPublishStoryCommandHandlerTests
 
         result.Slug.Should().Be("my-guest-story");
     }
+
+    [Fact]
+    public async Task Handle_Should_DeriveDescriptionFromChapterContent_When_DescriptionBlank()
+    {
+        _storyRepository.SlugExistsAsync(Arg.Any<string>(), Arg.Any<CancellationToken>()).Returns(false);
+        var command = new GuestPublishStoryCommand
+        {
+            GuestPenName = "Anon",
+            Title = "My Guest Story",
+            Description = "  ",
+            Genres = new List<StoryGenreSelection> { new("fantasy", true) },
+            ChapterContent = "Once upon a time in a haunted house."
+        };
+
+        var result = await _handler.Handle(command, CancellationToken.None);
+
+        result.Description.Should().Be("Once upon a time in a haunted house.");
+    }
 }
