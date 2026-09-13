@@ -106,11 +106,18 @@ public sealed class StoryRepository : IStoryRepository
         return result;
     }
 
-    private static IQueryable<Story> ApplyFilters(IQueryable<Story> query, StorySearchCriteria criteria)
+    private IQueryable<Story> ApplyFilters(IQueryable<Story> query, StorySearchCriteria criteria)
     {
         if (criteria.Status is { } status)
         {
             query = query.Where(x => x.Status == status);
+        }
+
+        if (criteria.ChapterLength is { } chapterLength)
+        {
+            query = chapterLength == ChapterLengthFilter.Long
+                ? query.Where(x => _dbContext.Chapters.Count(c => c.StoryId == x.Id && c.Status == ChapterStatus.Published) >= 2)
+                : query.Where(x => _dbContext.Chapters.Count(c => c.StoryId == x.Id && c.Status == ChapterStatus.Published) == 1);
         }
 
         if (criteria.AuthorProfileId is { } authorProfileId)

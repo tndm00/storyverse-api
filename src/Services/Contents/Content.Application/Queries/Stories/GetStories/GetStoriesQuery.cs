@@ -11,6 +11,9 @@ public sealed class GetStoriesQuery : IQuery<PagedResponseDto<StorySummaryRespon
 
     public string Status { get; init; }
 
+    /// <summary>"long" (2+ published chapters) or "short" (exactly 1); any other value means no filter.</summary>
+    public string Length { get; init; }
+
     public string SortBy { get; init; }
 
     public string SortDirection { get; init; }

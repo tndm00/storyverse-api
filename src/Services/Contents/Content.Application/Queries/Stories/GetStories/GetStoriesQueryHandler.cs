@@ -26,6 +26,7 @@ public sealed class GetStoriesQueryHandler
             TagSlug = NormalizeSlug(request.TagSlug),
             AuthorProfileId = request.AuthorProfileId is > 0 ? request.AuthorProfileId : null,
             Status = ParseStatus(request.Status),
+            ChapterLength = ParseChapterLength(request.Length),
             SortBy = ParseSortField(request.SortBy),
             Descending = !string.Equals(request.SortDirection, "asc", StringComparison.OrdinalIgnoreCase),
             PageNumber = pageNumber,
@@ -63,6 +64,13 @@ public sealed class GetStoriesQueryHandler
         }
 
         return null;
+    }
+
+    private static ChapterLengthFilter? ParseChapterLength(string value)
+    {
+        return Enum.TryParse<ChapterLengthFilter>(value, ignoreCase: true, out var length)
+            ? length
+            : null;
     }
 
     private static StorySortField ParseSortField(string value)

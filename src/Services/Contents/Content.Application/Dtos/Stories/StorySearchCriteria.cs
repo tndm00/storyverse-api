@@ -18,6 +18,9 @@ public sealed record StorySearchCriteria
 
     public StoryStatus? Status { get; init; }
 
+    /// <summary>Filter by published-chapter count: Long = 2+ chapters, Short = exactly 1.</summary>
+    public ChapterLengthFilter? ChapterLength { get; init; }
+
     public StorySortField SortBy { get; init; } = StorySortField.PublishedAt;
 
     public bool Descending { get; init; } = true;
@@ -37,4 +40,10 @@ public enum StorySortField
 
     /// <summary>Sum of <see cref="Content.Domain.Entities.Chapter.CommentCount"/> over the story's chapters, computed on the fly.</summary>
     CommentCount
+}
+
+public enum ChapterLengthFilter
+{
+    Long,
+    Short
 }

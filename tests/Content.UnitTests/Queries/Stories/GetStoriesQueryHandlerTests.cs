@@ -76,4 +76,27 @@ public class GetStoriesQueryHandlerTests
         capturedCriteria.Should().NotBeNull();
         capturedCriteria!.Status.Should().BeNull();
     }
+
+    [Theory]
+    [InlineData("long", ChapterLengthFilter.Long)]
+    [InlineData("Short", ChapterLengthFilter.Short)]
+    [InlineData("invalid", null)]
+    [InlineData(null, null)]
+    public async Task Handle_Should_ParseChapterLength_When_RequestedInAnyCasing(string input, ChapterLengthFilter? expected)
+    {
+        StorySearchCriteria capturedCriteria = null;
+        _storyRepository.SearchPublishedAsync(Arg.Any<StorySearchCriteria>(), Arg.Any<CancellationToken>())
+            .Returns(ci =>
+            {
+                capturedCriteria = ci.Arg<StorySearchCriteria>();
+                return (new List<Story>(), 0);
+            });
+
+        var query = new GetStoriesQuery { Length = input };
+
+        await _handler.Handle(query, CancellationToken.None);
+
+        capturedCriteria.Should().NotBeNull();
+        capturedCriteria!.ChapterLength.Should().Be(expected);
+    }
 }
