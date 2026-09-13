@@ -24,20 +24,17 @@ public sealed class PublishDueChaptersCommandHandler
     private readonly IChapterRepository _chapterRepository;
     private readonly IStoryRepository _storyRepository;
     private readonly IContentUnitOfWork _unitOfWork;
-    private readonly IFacebookPageClient _facebookPageClient;
     private readonly ILogger<PublishDueChaptersCommandHandler> _logger;
 
     public PublishDueChaptersCommandHandler(
         IChapterRepository chapterRepository,
         IStoryRepository storyRepository,
         IContentUnitOfWork unitOfWork,
-        IFacebookPageClient facebookPageClient,
         ILogger<PublishDueChaptersCommandHandler> logger)
     {
         _chapterRepository = chapterRepository;
         _storyRepository = storyRepository;
         _unitOfWork = unitOfWork;
-        _facebookPageClient = facebookPageClient;
         _logger = logger;
     }
 
@@ -77,8 +74,6 @@ public sealed class PublishDueChaptersCommandHandler
                 _logger.LogInformation(
                     ApplicationLogConstants.ScheduledChapterAutoPublished,
                     chapter.Id, chapter.StoryId, chapter.ScheduledAt);
-
-                await PostToFacebookAsync(chapter, cancellationToken);
             }
         }
 
@@ -86,23 +81,5 @@ public sealed class PublishDueChaptersCommandHandler
             ApplicationLogConstants.ScheduledChapterPublisherCompleted, published, due.Count);
 
         return new PublishDueChaptersResultDto { PublishedCount = published, DueCount = due.Count };
-    }
-
-    /// <summary>
-    /// Best-effort: announces the auto-published chapter on the Facebook Page. A
-    /// failure here must not stop the rest of this pass from publishing.
-    /// </summary>
-    private async Task PostToFacebookAsync(Chapter chapter, CancellationToken cancellationToken)
-    {
-        try
-        {
-            var story = await _storyRepository.GetByIdAsync(chapter.StoryId, cancellationToken);
-            var (message, link) = FacebookPostContentBuilder.ForPublishedChapter(story, chapter);
-            await _facebookPageClient.PostAsync(message, link, cancellationToken);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogWarning(ex, ApplicationLogConstants.FacebookPostFailed, chapter.Id, chapter.StoryId);
-        }
     }
 }

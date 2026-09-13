@@ -51,16 +51,6 @@ public static class ServiceRegistration
         .ConfigurePrimaryHttpMessageHandler(sp =>
             BuildHandler(sp.GetRequiredService<IOptions<AuthApiOptions>>().Value.DangerousAcceptAnyServerCertificate));
 
-        // Outbound HTTP to the Facebook Graph API: best-effort Page-feed posting.
-        services.Configure<FacebookIntegrationOptions>(
-            configuration.GetSection(FacebookIntegrationOptions.SectionName));
-        services.AddHttpClient<IFacebookPageClient, FacebookPageClient>((sp, client) =>
-        {
-            var options = sp.GetRequiredService<IOptions<FacebookIntegrationOptions>>().Value;
-            SetBaseAddress(client, options.GraphApiBaseUrl);
-            client.Timeout = TimeSpan.FromSeconds(10);
-        });
-
         return services;
     }
 

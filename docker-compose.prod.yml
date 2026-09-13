@@ -76,12 +76,6 @@ services:
       GcpSettings__AuthSettings__Audiences__1: StoryVerse.Mobile
       GcpSettings__AuthSettings__SecretKey: ${JWT_SECRET_KEY}
       Cors__AllowedOrigins__0: ${FRONTEND_ORIGIN}
-      FacebookIntegration__Enabled: ${FACEBOOK_POSTING_ENABLED}
-      FacebookIntegration__PageId: ${FACEBOOK_PAGE_ID}
-      FacebookIntegration__PageAccessToken: ${FACEBOOK_PAGE_ACCESS_TOKEN}
-      FacebookDigest__Enabled: ${FACEBOOK_DIGEST_ENABLED}
-      FacebookDigest__PostHourUtc: ${FACEBOOK_DIGEST_POST_HOUR_UTC}
-      FacebookDigest__TopCount: ${FACEBOOK_DIGEST_TOP_COUNT}
     networks: [storyverse]
 
   community-api:

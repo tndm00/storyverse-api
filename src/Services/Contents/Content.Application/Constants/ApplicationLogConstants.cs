@@ -52,10 +52,4 @@ public static class ApplicationLogConstants
     public const string ChapterReviewNotificationFailed = "Failed to send {NotificationKind} notification for chapter {ChapterId} (author profile {AuthorProfileId}); approve/reject was not affected.";
     public const string ChapterReviewNotificationSkippedGuest = "Chapter {ChapterId} belongs to a guest author; skipped {NotificationKind} notification.";
     public const string ChapterReviewNotificationRecipientUnresolved = "Could not resolve an author user id for chapter {ChapterId} (author profile {AuthorProfileId}); skipped {NotificationKind} notification.";
-
-    public const string FacebookPostFailed = "Failed to post chapter {ChapterId} (story {StoryId}) to Facebook; publish was not affected.";
-    public const string FacebookDigestPosted = "Facebook daily digest posted with {StoryCount} stories.";
-    public const string FacebookDigestFailed = "Failed to post the Facebook daily digest; will retry on the next scheduled run.";
-    public const string FacebookDigestPublisherDisabled = "Facebook daily digest publisher is disabled by configuration (FacebookDigest:Enabled=false); not starting.";
-    public const string FacebookDigestPublisherStarting = "Facebook daily digest publisher started; will post at hour {PostHourUtc} UTC.";
 }

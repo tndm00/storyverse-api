@@ -1,7 +1,6 @@
 using Content.Application.Commands.Chapters.PublishDueChapters;
 using Content.Application.Interfaces.Persistence;
 using Content.Application.Interfaces.Repositories;
-using Content.Application.Interfaces.Services;
 using Content.Domain.Entities;
 using Content.Domain.Enums;
 using FluentAssertions;
@@ -16,7 +15,6 @@ public class PublishDueChaptersCommandHandlerTests
     private readonly IChapterRepository _chapterRepository = Substitute.For<IChapterRepository>();
     private readonly IStoryRepository _storyRepository = Substitute.For<IStoryRepository>();
     private readonly IContentUnitOfWork _unitOfWork = Substitute.For<IContentUnitOfWork>();
-    private readonly IFacebookPageClient _facebookPageClient = Substitute.For<IFacebookPageClient>();
     private readonly ILogger<PublishDueChaptersCommandHandler> _logger =
         Substitute.For<ILogger<PublishDueChaptersCommandHandler>>();
 
@@ -25,15 +23,12 @@ public class PublishDueChaptersCommandHandlerTests
     public PublishDueChaptersCommandHandlerTests()
     {
         _handler = new PublishDueChaptersCommandHandler(
-            _chapterRepository, _storyRepository, _unitOfWork, _facebookPageClient, _logger);
+            _chapterRepository, _storyRepository, _unitOfWork, _logger);
 
         // Run the transactional body inline.
         _unitOfWork
             .ExecuteInTransactionAsync(Arg.Any<Func<CancellationToken, Task>>(), Arg.Any<CancellationToken>())
             .Returns(ci => ci.ArgAt<Func<CancellationToken, Task>>(0).Invoke(CancellationToken.None));
-
-        _storyRepository.GetByIdAsync(Arg.Any<long>(), Arg.Any<CancellationToken>())
-            .Returns(ci => new Story { Id = ci.Arg<long>(), Slug = $"story-{ci.Arg<long>()}" });
     }
 
     private static Chapter DueChapter(long id, long storyId) => new()
@@ -101,49 +96,5 @@ public class PublishDueChaptersCommandHandlerTests
         result.DueCount.Should().Be(1);
         await _storyRepository.DidNotReceive()
             .TryStartOngoingOnFirstChapterAsync(Arg.Any<long>(), Arg.Any<DateTime>(), Arg.Any<CancellationToken>());
-    }
-
-    [Fact]
-    public async Task Handle_Should_PostToFacebook_ForEachPublishedChapter()
-    {
-        _chapterRepository.GetDueScheduledAsync(Arg.Any<DateTime>(), Arg.Any<int>(), Arg.Any<CancellationToken>())
-            .Returns(new[] { DueChapter(1, 10), DueChapter(2, 20) });
-        _chapterRepository.TryMarkPublishedAsync(Arg.Any<long>(), Arg.Any<DateTime>(), Arg.Any<CancellationToken>())
-            .Returns(true);
-
-        await _handler.Handle(new PublishDueChaptersCommand(), CancellationToken.None);
-
-        await _facebookPageClient.Received(2)
-            .PostAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>());
-    }
-
-    [Fact]
-    public async Task Handle_Should_NotPostToFacebook_When_ChapterWasNotClaimedByThisInstance()
-    {
-        _chapterRepository.GetDueScheduledAsync(Arg.Any<DateTime>(), Arg.Any<int>(), Arg.Any<CancellationToken>())
-            .Returns(new[] { DueChapter(1, 10) });
-        _chapterRepository.TryMarkPublishedAsync(1, Arg.Any<DateTime>(), Arg.Any<CancellationToken>())
-            .Returns(false);
-
-        await _handler.Handle(new PublishDueChaptersCommand(), CancellationToken.None);
-
-        await _facebookPageClient.DidNotReceive()
-            .PostAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>());
-    }
-
-    [Fact]
-    public async Task Handle_Should_KeepPublishingRemainingChapters_When_FacebookPostThrows()
-    {
-        _chapterRepository.GetDueScheduledAsync(Arg.Any<DateTime>(), Arg.Any<int>(), Arg.Any<CancellationToken>())
-            .Returns(new[] { DueChapter(1, 10), DueChapter(2, 20) });
-        _chapterRepository.TryMarkPublishedAsync(Arg.Any<long>(), Arg.Any<DateTime>(), Arg.Any<CancellationToken>())
-            .Returns(true);
-        _facebookPageClient
-            .PostAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
-            .Returns<Task>(_ => throw new InvalidOperationException("facebook down"));
-
-        var result = await _handler.Handle(new PublishDueChaptersCommand(), CancellationToken.None);
-
-        result.PublishedCount.Should().Be(2);
     }
 }

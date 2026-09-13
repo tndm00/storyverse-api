@@ -10,7 +10,6 @@ public sealed class ApproveChapterCommandHandler : ICommandHandler<ApproveChapte
     private readonly ICurrentAuthorContext _currentUser;
     private readonly INotificationServiceClient _notificationClient;
     private readonly IAuthorDirectoryClient _authorDirectory;
-    private readonly IFacebookPageClient _facebookPageClient;
     private readonly ILogger<ApproveChapterCommandHandler> _logger;
 
     public ApproveChapterCommandHandler(
@@ -22,7 +21,6 @@ public sealed class ApproveChapterCommandHandler : ICommandHandler<ApproveChapte
         ICurrentAuthorContext currentUser,
         INotificationServiceClient notificationClient,
         IAuthorDirectoryClient authorDirectory,
-        IFacebookPageClient facebookPageClient,
         ILogger<ApproveChapterCommandHandler> logger)
     {
         _storyRepository = storyRepository;
@@ -33,7 +31,6 @@ public sealed class ApproveChapterCommandHandler : ICommandHandler<ApproveChapte
         _currentUser = currentUser;
         _notificationClient = notificationClient;
         _authorDirectory = authorDirectory;
-        _facebookPageClient = facebookPageClient;
         _logger = logger;
     }
 
@@ -92,7 +89,6 @@ public sealed class ApproveChapterCommandHandler : ICommandHandler<ApproveChapte
         _logger.LogInformation(ApplicationLogConstants.ChapterApproved, chapter.Id, story.Id);
 
         await NotifyAuthorAsync(chapter, story, cancellationToken);
-        await PostToFacebookAsync(chapter, story, cancellationToken);
 
         var volumePublicId = await ResolveVolumePublicIdAsync(chapter.VolumeId, cancellationToken);
         return ContentDtoMapper.ToDetail(chapter, story.PublicId, volumePublicId);
@@ -140,24 +136,6 @@ public sealed class ApproveChapterCommandHandler : ICommandHandler<ApproveChapte
                 NotificationKind.ChapterApproved,
                 chapter.Id,
                 authorProfileId);
-        }
-    }
-
-    /// <summary>
-    /// Best-effort: announces the newly-published chapter on the Facebook Page.
-    /// Runs after the approve transaction has committed; a failure here is
-    /// logged, never thrown.
-    /// </summary>
-    private async Task PostToFacebookAsync(Chapter chapter, Story story, CancellationToken cancellationToken)
-    {
-        try
-        {
-            var (message, link) = FacebookPostContentBuilder.ForPublishedChapter(story, chapter);
-            await _facebookPageClient.PostAsync(message, link, cancellationToken);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogWarning(ex, ApplicationLogConstants.FacebookPostFailed, chapter.Id, story.Id);
         }
     }
 

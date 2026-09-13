@@ -8,9 +8,6 @@ public static class ApplicationConstants
 {
     public const string DefaultLanguage = "vi";
 
-    /// <summary>Public site origin, used to build links in outbound content (e.g. Facebook posts).</summary>
-    public const string SiteBaseUrl = "https://truyenmacanh3.com";
-
     public const int MinPageSize = 1;
     public const int MaxPageSize = 50;
     public const int DefaultPageSize = 20;
