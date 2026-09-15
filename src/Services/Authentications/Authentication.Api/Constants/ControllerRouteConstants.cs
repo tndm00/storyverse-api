@@ -35,4 +35,13 @@ public static class ControllerRouteConstants
 
     /// <summary>Revoke a role: <c>DELETE v1/auth/admin/users/{userId}/roles/{role}</c>.</summary>
     public const string AdminUserRoleByNameSegment = "{userId:long}/roles/{role}";
+
+    /// <summary>Platform-admin author profile administration base: <c>v1/auth/admin/authors</c>.</summary>
+    public const string AdminAuthorsBase = "v1/auth/admin/authors";
+
+    /// <summary>Update or fetch one author profile: <c>{authorProfileId}</c>.</summary>
+    public const string AdminAuthorByIdSegment = "{authorProfileId:long}";
+
+    /// <summary>Suspend/reactivate an author profile: <c>{authorProfileId}/status</c>.</summary>
+    public const string AdminAuthorStatusSegment = "{authorProfileId:long}/status";
 }

@@ -21,6 +21,9 @@ public static class ApplicationErrorConstants
     public const string AuthorProfileAlreadyExists = "This account already has an author profile.";
     public const string AuthorProfileNotFound = "No author profile exists for this account.";
 
+    /// <summary>Admin author management: the supplied status is neither Active nor Suspended.</summary>
+    public const string InvalidAuthorProfileStatus = "Unknown author profile status. Valid values: Active, Suspended.";
+
     /// <summary>Admin role management: the supplied role name is not a platform role.</summary>
     public const string InvalidRoleName = "Unknown role name. Valid roles: Reader, Author, Moderator, PlatformAdmin.";
 

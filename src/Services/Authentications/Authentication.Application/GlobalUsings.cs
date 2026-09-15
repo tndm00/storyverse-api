@@ -9,6 +9,7 @@ global using Authentication.Application.Dtos.Authentications.AuthorProfiles;
 global using Authentication.Application.Dtos.Authentications.Directory;
 global using Authentication.Application.Dtos.Authentications.Register;
 global using Authentication.Application.Dtos.Authentications.Sessions;
+global using Authentication.Application.Dtos.Common;
 global using Authentication.Application.Interfaces.Repositories;
 global using Authentication.Application.Interfaces.Services;
 global using Authentication.Domain.Entities;

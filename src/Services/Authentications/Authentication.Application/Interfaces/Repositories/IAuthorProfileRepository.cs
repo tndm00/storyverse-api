@@ -13,6 +13,16 @@ public interface IAuthorProfileRepository
 
     Task<bool> ExistsByUserIdAsync(long userId, CancellationToken cancellationToken = default);
 
+    /// <summary>
+    /// Author profiles matching <paramref name="keyword"/> (pen name, case-insensitive
+    /// contains) if given, newest first. Used by the platform-admin author roster.
+    /// </summary>
+    Task<(IReadOnlyList<AuthorProfile> Items, int TotalCount)> GetPagedAsync(
+        string keyword,
+        int pageNumber,
+        int pageSize,
+        CancellationToken cancellationToken = default);
+
     Task AddAsync(AuthorProfile authorProfile, CancellationToken cancellationToken = default);
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);

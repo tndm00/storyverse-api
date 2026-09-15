@@ -34,4 +34,6 @@ public static class ApplicationLogConstants
 
     public const string UserRoleGranted = "Admin granted role {Role} to user {UserId}.";
     public const string UserRoleRevoked = "Admin revoked role {Role} from user {UserId}.";
+
+    public const string AuthorProfileStatusChanged = "Admin set author profile {AuthorProfileId} status to {Status}.";
 }
