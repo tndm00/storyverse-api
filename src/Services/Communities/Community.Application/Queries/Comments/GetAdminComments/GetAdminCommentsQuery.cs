@@ -11,8 +11,10 @@ public sealed class GetAdminCommentsQuery : IQuery<PagedResponseDto<CommentRespo
     /// <summary>ILIKE match against the comment content.</summary>
     public string Keyword { get; init; }
 
+    /// <summary>Optional filter to a single chapter.</summary>
     public Guid? ChapterId { get; init; }
 
+    /// <summary>Optional filter to a single comment author.</summary>
     public long? AuthorUserId { get; init; }
 
     /// <summary>Only <c>CreatedAt</c> is supported; other values fall back to it.</summary>

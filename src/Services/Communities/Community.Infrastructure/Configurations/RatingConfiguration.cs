@@ -6,12 +6,15 @@ namespace Community.Infrastructure.Configurations;
 /// </summary>
 public sealed class RatingConfiguration : IEntityTypeConfiguration<Rating>
 {
+    /// <summary>Maps <see cref="Rating"/> to its table, keys, indexes and column constraints.</summary>
     public void Configure(EntityTypeBuilder<Rating> builder)
     {
+        // Table and primary key.
         builder.ToTable(InfrastructureConstants.RatingsTableName, InfrastructureConstants.CommunitySchemaName);
 
         builder.HasKey(x => x.Id);
 
+        // Unique public id, plus one-rating-per-user-per-story enforcement.
         builder.HasIndex(x => x.PublicId).IsUnique();
         builder.HasIndex(x => new { x.StoryId, x.UserId }).IsUnique();
 
@@ -23,6 +26,7 @@ public sealed class RatingConfiguration : IEntityTypeConfiguration<Rating>
 
         builder.Property(x => x.Score).IsRequired();
 
+        // Optional free-text review.
         builder.Property(x => x.ReviewText)
             .HasColumnType("text");
 

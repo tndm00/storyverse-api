@@ -1,5 +1,6 @@
 namespace Community.Application.Commands.Comments.SetCommentVisibility;
 
+/// <summary>Handles <see cref="SetCommentVisibilityCommand"/>: applies a moderator hide/restore decision to a comment.</summary>
 public sealed class SetCommentVisibilityCommandHandler : ICommandHandler<SetCommentVisibilityCommand, CommentResponseDto>
 {
     private readonly ICommentRepository _commentRepository;
@@ -7,6 +8,7 @@ public sealed class SetCommentVisibilityCommandHandler : ICommandHandler<SetComm
     private readonly IContentCommentCountSyncClient _commentCountSyncClient;
     private readonly ILogger<SetCommentVisibilityCommandHandler> _logger;
 
+    /// <summary>Creates the handler with its repository, user context, sync client and logger dependencies.</summary>
     public SetCommentVisibilityCommandHandler(
         ICommentRepository commentRepository,
         ICurrentUserContext userContext,
@@ -19,12 +21,14 @@ public sealed class SetCommentVisibilityCommandHandler : ICommandHandler<SetComm
         _logger = logger;
     }
 
+    /// <summary>Hides or restores a comment, skipping already soft-deleted comments and no-op state changes.</summary>
     public async Task<CommentResponseDto> Handle(SetCommentVisibilityCommand request, CancellationToken cancellationToken)
     {
         // A trusted service-to-service call (Moderation applying a report decision)
         // carries no user principal; fall back to 0 for the audit log line.
         var moderatorUserId = _userContext.IsAuthenticated ? _userContext.GetUserId() : 0L;
 
+        // Load the comment or fail fast if it doesn't exist.
         var comment = await _commentRepository.GetByPublicIdAsync(request.CommentId, cancellationToken)
             ?? throw new NotFoundException(ApplicationErrorConstants.CommentNotFound);
 

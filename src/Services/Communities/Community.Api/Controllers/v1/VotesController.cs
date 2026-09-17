@@ -10,6 +10,7 @@ public sealed class VotesController : ControllerBase
 {
     private readonly IMediator _mediator;
 
+    /// <summary>Creates the controller with the MediatR dispatcher used by all actions.</summary>
     public VotesController(IMediator mediator)
     {
         _mediator = mediator;
@@ -28,6 +29,7 @@ public sealed class VotesController : ControllerBase
         return Ok(ResponseDto<CastVoteResultDto>.Ok(result));
     }
 
+    /// <summary>Get the current week's public vote tally for a story.</summary>
     [AllowAnonymous]
     [HttpGet(ControllerRouteConstants.VotesCountSegment)]
     [ProducesResponseType(typeof(ResponseDto<VoteCountResponseDto>), StatusCodes.Status200OK)]

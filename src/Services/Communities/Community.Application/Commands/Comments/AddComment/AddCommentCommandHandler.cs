@@ -1,5 +1,6 @@
 namespace Community.Application.Commands.Comments.AddComment;
 
+/// <summary>Handles <see cref="AddCommentCommand"/>: creates a top-level comment and syncs the chapter's visible comment count.</summary>
 public sealed class AddCommentCommandHandler : ICommandHandler<AddCommentCommand, CommentResponseDto>
 {
     private readonly ICommentRepository _commentRepository;
@@ -7,6 +8,7 @@ public sealed class AddCommentCommandHandler : ICommandHandler<AddCommentCommand
     private readonly IContentCommentCountSyncClient _commentCountSyncClient;
     private readonly ILogger<AddCommentCommandHandler> _logger;
 
+    /// <summary>Creates the handler with its repository, user context, sync client and logger dependencies.</summary>
     public AddCommentCommandHandler(
         ICommentRepository commentRepository,
         ICurrentUserContext userContext,
@@ -19,10 +21,12 @@ public sealed class AddCommentCommandHandler : ICommandHandler<AddCommentCommand
         _logger = logger;
     }
 
+    /// <summary>Creates and persists a new top-level comment, then best-effort syncs the chapter's comment count.</summary>
     public async Task<CommentResponseDto> Handle(AddCommentCommand request, CancellationToken cancellationToken)
     {
         var userId = _userContext.GetUserId();
 
+        // Build the comment entity, always attributed to the authenticated caller and visible by default.
         var comment = new Comment
         {
             ChapterId = request.ChapterId,
@@ -32,6 +36,7 @@ public sealed class AddCommentCommandHandler : ICommandHandler<AddCommentCommand
             Status = CommentStatus.Visible
         };
 
+        // Persist the new comment.
         await _commentRepository.AddAsync(comment, cancellationToken);
         await _commentRepository.SaveChangesAsync(cancellationToken);
 

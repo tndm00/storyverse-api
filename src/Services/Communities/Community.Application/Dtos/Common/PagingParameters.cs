@@ -6,6 +6,7 @@ namespace Community.Application.Dtos;
 /// </summary>
 public static class PagingParameters
 {
+    /// <summary>Clamps a raw page number/size pair into safe bounds (page number at least 1, size within the configured min/max).</summary>
     public static (int PageNumber, int PageSize) Normalize(int pageNumber, int pageSize)
     {
         var normalizedNumber = Math.Max(1, pageNumber);

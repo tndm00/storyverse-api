@@ -6,6 +6,7 @@ namespace Community.Api.Extensions;
 /// </summary>
 public static class ServiceRegistration
 {
+    /// <summary>Registers controllers, Swagger, JWT authentication, permission policies and CORS for the API layer.</summary>
     public static IServiceCollection AddApiServices(this IServiceCollection services, IConfiguration configuration)
     {
         services

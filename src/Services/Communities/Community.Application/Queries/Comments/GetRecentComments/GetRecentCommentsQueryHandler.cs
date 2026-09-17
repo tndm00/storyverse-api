@@ -1,5 +1,6 @@
 namespace Community.Application.Queries.Comments.GetRecentComments;
 
+/// <summary>Handles <see cref="GetRecentCommentsQuery"/>: the most recent visible comments platform-wide, enriched with author names and story/chapter context.</summary>
 public sealed class GetRecentCommentsQueryHandler
     : IQueryHandler<GetRecentCommentsQuery, IReadOnlyList<RecentCommentEntryDto>>
 {
@@ -11,6 +12,7 @@ public sealed class GetRecentCommentsQueryHandler
     private readonly IUserDirectoryClient _userDirectory;
     private readonly IContentChapterContextClient _chapterContext;
 
+    /// <summary>Creates the handler with its repository, user directory and chapter context dependencies.</summary>
     public GetRecentCommentsQueryHandler(
         ICommentRepository commentRepository,
         IUserDirectoryClient userDirectory,
@@ -21,9 +23,11 @@ public sealed class GetRecentCommentsQueryHandler
         _chapterContext = chapterContext;
     }
 
+    /// <summary>Fetches the most recent visible comments up to the clamped limit, then enriches them with author names and chapter/story context.</summary>
     public async Task<IReadOnlyList<RecentCommentEntryDto>> Handle(
         GetRecentCommentsQuery request, CancellationToken cancellationToken)
     {
+        // Clamp the requested limit into the supported range.
         var limit = Math.Clamp(request.Limit <= 0 ? DefaultLimit : request.Limit, 1, MaxLimit);
 
         var comments = await _commentRepository.GetRecentVisibleAsync(limit, cancellationToken);
@@ -63,6 +67,7 @@ public sealed class GetRecentCommentsQueryHandler
             .ToArray();
     }
 
+    /// <summary>Trims the content and truncates it to <see cref="MaxExcerptLength"/>, appending an ellipsis when cut short.</summary>
     private static string Excerpt(string content)
     {
         if (string.IsNullOrWhiteSpace(content))

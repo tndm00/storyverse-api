@@ -11,6 +11,7 @@ public sealed class CommentsController : ControllerBase
 {
     private readonly IMediator _mediator;
 
+    /// <summary>Creates the controller with the MediatR dispatcher used by all actions.</summary>
     public CommentsController(IMediator mediator)
     {
         _mediator = mediator;
@@ -91,6 +92,7 @@ public sealed class CommentsController : ControllerBase
         return Ok(ResponseDto<PagedResponseDto<CommentResponseDto>>.Ok(result));
     }
 
+    /// <summary>Add a new top-level comment to a chapter, attributed to the authenticated caller.</summary>
     [Authorize]
     [HttpPost]
     [ProducesResponseType(typeof(ResponseDto<CommentResponseDto>), StatusCodes.Status201Created)]
@@ -105,6 +107,7 @@ public sealed class CommentsController : ControllerBase
         return StatusCode(StatusCodes.Status201Created, ResponseDto<CommentResponseDto>.Ok(result));
     }
 
+    /// <summary>Add a reply underneath an existing comment, attributed to the authenticated caller.</summary>
     [Authorize]
     [HttpPost(ControllerRouteConstants.CommentRepliesSegment)]
     [ProducesResponseType(typeof(ResponseDto<CommentResponseDto>), StatusCodes.Status201Created)]
@@ -120,6 +123,7 @@ public sealed class CommentsController : ControllerBase
         return StatusCode(StatusCodes.Status201Created, ResponseDto<CommentResponseDto>.Ok(result));
     }
 
+    /// <summary>Edit the content of the caller's own comment.</summary>
     [Authorize]
     [HttpPut(ControllerRouteConstants.CommentByIdSegment)]
     [ProducesResponseType(typeof(ResponseDto<CommentResponseDto>), StatusCodes.Status200OK)]
@@ -135,6 +139,7 @@ public sealed class CommentsController : ControllerBase
         return Ok(ResponseDto<CommentResponseDto>.Ok(result));
     }
 
+    /// <summary>Soft-delete the caller's own comment.</summary>
     [Authorize]
     [HttpDelete(ControllerRouteConstants.CommentByIdSegment)]
     [ProducesResponseType(typeof(ResponseDto<CommentResponseDto>), StatusCodes.Status200OK)]
@@ -145,6 +150,7 @@ public sealed class CommentsController : ControllerBase
         return Ok(ResponseDto<CommentResponseDto>.Ok(result));
     }
 
+    /// <summary>Hide a comment from public view. Requires the <c>community.moderate</c> permission.</summary>
     [HasPermission(StoryVersePermissions.Community.Moderate)]
     [HttpPost(ControllerRouteConstants.CommentHideSegment)]
     [ProducesResponseType(typeof(ResponseDto<CommentResponseDto>), StatusCodes.Status200OK)]
@@ -157,6 +163,7 @@ public sealed class CommentsController : ControllerBase
         return Ok(ResponseDto<CommentResponseDto>.Ok(result));
     }
 
+    /// <summary>Restore a previously hidden comment to public view. Requires the <c>community.moderate</c> permission.</summary>
     [HasPermission(StoryVersePermissions.Community.Moderate)]
     [HttpPost(ControllerRouteConstants.CommentUnhideSegment)]
     [ProducesResponseType(typeof(ResponseDto<CommentResponseDto>), StatusCodes.Status200OK)]
@@ -203,6 +210,7 @@ public sealed class CommentsController : ControllerBase
         [FromQuery(Name = "ids")] string ids,
         CancellationToken cancellationToken)
     {
+        // Parse the comma-separated id list, silently dropping anything that isn't a valid GUID.
         var parsed = (ids ?? string.Empty)
             .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
             .Select(part => Guid.TryParse(part, out var id) ? id : Guid.Empty)

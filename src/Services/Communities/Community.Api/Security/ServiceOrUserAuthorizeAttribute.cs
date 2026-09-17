@@ -17,10 +17,12 @@ namespace Community.Api.Security;
 [AttributeUsage(AttributeTargets.Method | AttributeTargets.Class)]
 public sealed class ServiceOrUserAuthorizeAttribute : Attribute, IAsyncActionFilter
 {
+    /// <summary>Allows the request through if it has an authenticated principal or a matching service token; otherwise returns 401.</summary>
     public async Task OnActionExecutionAsync(ActionExecutingContext context, ActionExecutionDelegate next)
     {
         var http = context.HttpContext;
 
+        // Already authenticated via JWT: let it through as-is.
         if (http.User?.Identity?.IsAuthenticated ?? false)
         {
             await next();
@@ -30,6 +32,7 @@ public sealed class ServiceOrUserAuthorizeAttribute : Attribute, IAsyncActionFil
         var configuredToken = http.RequestServices
             .GetRequiredService<IOptions<ServiceAuthOptions>>().Value.Token;
 
+        // Fall back to a matching X-Service-Token header for trusted service-to-service calls.
         if (!string.IsNullOrEmpty(configuredToken)
             && http.Request.Headers.TryGetValue(ServiceAuthConstants.HeaderName, out var provided)
             && FixedTimeEquals(provided.ToString(), configuredToken))
@@ -38,9 +41,11 @@ public sealed class ServiceOrUserAuthorizeAttribute : Attribute, IAsyncActionFil
             return;
         }
 
+        // Neither a valid user nor a valid service token: reject the request.
         context.Result = new UnauthorizedResult();
     }
 
+    /// <summary>Constant-time string comparison to avoid leaking token length/content via timing.</summary>
     private static bool FixedTimeEquals(string a, string b)
     {
         var ba = Encoding.UTF8.GetBytes(a);

@@ -10,15 +10,18 @@ public sealed class CommunityUnitOfWork : ICommunityUnitOfWork
 {
     private readonly CommunityDbContext _dbContext;
 
+    /// <summary>Creates the unit of work over the scoped <see cref="CommunityDbContext"/>.</summary>
     public CommunityUnitOfWork(CommunityDbContext dbContext)
     {
         _dbContext = dbContext;
     }
 
+    /// <summary>Runs <paramref name="operation"/> inside a database transaction, committing on success and rolling back if it throws.</summary>
     public async Task ExecuteInTransactionAsync(
         Func<CancellationToken, Task> operation,
         CancellationToken cancellationToken = default)
     {
+        // Use the provider's execution strategy so this stays correct if connection retry is enabled.
         var strategy = _dbContext.Database.CreateExecutionStrategy();
 
         await strategy.ExecuteAsync(async () =>

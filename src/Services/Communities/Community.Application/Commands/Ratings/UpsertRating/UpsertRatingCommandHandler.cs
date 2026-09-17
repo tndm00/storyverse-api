@@ -1,5 +1,6 @@
 namespace Community.Application.Commands.Ratings.UpsertRating;
 
+/// <summary>Handles <see cref="UpsertRatingCommand"/>: creates or replaces the caller's rating for a story.</summary>
 public sealed class UpsertRatingCommandHandler : ICommandHandler<UpsertRatingCommand, RatingResponseDto>
 {
     private readonly IRatingRepository _ratingRepository;
@@ -8,6 +9,7 @@ public sealed class UpsertRatingCommandHandler : ICommandHandler<UpsertRatingCom
     private readonly IContentRatingSyncClient _contentRatingSyncClient;
     private readonly ILogger<UpsertRatingCommandHandler> _logger;
 
+    /// <summary>Creates the handler with its repository, unit of work, user context, sync client and logger dependencies.</summary>
     public UpsertRatingCommandHandler(
         IRatingRepository ratingRepository,
         ICommunityUnitOfWork unitOfWork,
@@ -22,6 +24,7 @@ public sealed class UpsertRatingCommandHandler : ICommandHandler<UpsertRatingCom
         _logger = logger;
     }
 
+    /// <summary>Creates or updates the caller's rating for a story inside a transaction, then resyncs the story's aggregate.</summary>
     public async Task<RatingResponseDto> Handle(UpsertRatingCommand request, CancellationToken cancellationToken)
     {
         var userId = _userContext.GetUserId();
@@ -35,6 +38,7 @@ public sealed class UpsertRatingCommandHandler : ICommandHandler<UpsertRatingCom
         {
             rating = await _ratingRepository.GetByStoryAndUserAsync(request.StoryId, userId, ct);
 
+            // No existing rating for this (story, user) pair: insert a new one.
             if (rating is null)
             {
                 rating = new Rating
@@ -48,6 +52,7 @@ public sealed class UpsertRatingCommandHandler : ICommandHandler<UpsertRatingCom
             }
             else
             {
+                // Rating already exists: overwrite its score/review in place.
                 rating.Score = request.Score;
                 rating.ReviewText = reviewText;
                 rating.UpdatedAt = DateTime.UtcNow;

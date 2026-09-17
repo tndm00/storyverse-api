@@ -6,6 +6,7 @@ namespace Community.Infrastructure.Context;
 /// </summary>
 public sealed class CommunityDbContext : DbContext
 {
+    /// <summary>Creates the context with the options supplied by DI (connection string, provider, etc.).</summary>
     public CommunityDbContext(DbContextOptions<CommunityDbContext> options) : base(options)
     {
     }
@@ -16,6 +17,7 @@ public sealed class CommunityDbContext : DbContext
 
     public DbSet<Vote> Votes => Set<Vote>();
 
+    /// <summary>Applies all <see cref="Configurations"/> entity configurations from this assembly to the model.</summary>
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);

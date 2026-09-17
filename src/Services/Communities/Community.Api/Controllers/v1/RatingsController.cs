@@ -11,6 +11,7 @@ public sealed class RatingsController : ControllerBase
 {
     private readonly IMediator _mediator;
 
+    /// <summary>Creates the controller with the MediatR dispatcher used by all actions.</summary>
     public RatingsController(IMediator mediator)
     {
         _mediator = mediator;
@@ -36,6 +37,7 @@ public sealed class RatingsController : ControllerBase
         return Ok(ResponseDto<RatingResponseDto>.Ok(result));
     }
 
+    /// <summary>Get the caller's own rating for a story, if one exists.</summary>
     [Authorize]
     [HttpGet(ControllerRouteConstants.RatingsMineSegment)]
     [ProducesResponseType(typeof(ResponseDto<RatingResponseDto>), StatusCodes.Status200OK)]
@@ -48,6 +50,7 @@ public sealed class RatingsController : ControllerBase
         return Ok(ResponseDto<RatingResponseDto>.Ok(result));
     }
 
+    /// <summary>Paged, public list of ratings for a story.</summary>
     [AllowAnonymous]
     [HttpGet]
     [ProducesResponseType(typeof(ResponseDto<PagedResponseDto<RatingResponseDto>>), StatusCodes.Status200OK)]

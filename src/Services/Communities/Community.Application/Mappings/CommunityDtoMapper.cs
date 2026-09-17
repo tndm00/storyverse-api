@@ -7,6 +7,7 @@ namespace Community.Application.Mappings;
 /// </summary>
 public static class CommunityDtoMapper
 {
+    /// <summary>Projects a <see cref="Comment"/> entity into its response DTO, optionally attaching the author's resolved display name.</summary>
     public static CommentResponseDto ToDto(Comment comment, string authorDisplayName = null)
     {
         return new CommentResponseDto
@@ -24,6 +25,7 @@ public static class CommunityDtoMapper
         };
     }
 
+    /// <summary>Projects a <see cref="Rating"/> entity into its response DTO, optionally attaching the rating user's resolved display name.</summary>
     public static RatingResponseDto ToDto(Rating rating, string userDisplayName = null)
     {
         return new RatingResponseDto

@@ -7,6 +7,11 @@ namespace Community.Infrastructure.Extensions;
 /// </summary>
 public static class ServiceRegistration
 {
+    /// <summary>
+    /// Registers the EF Core DbContext, unit of work, repositories, current-user
+    /// context, and the outbound HTTP clients to the Authentication and Content
+    /// services (display-name lookup, rating/comment-count sync, chapter context).
+    /// </summary>
     public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
     {
         var connectionString = configuration.GetConnectionString(InfrastructureConstants.ConnectionStringName);

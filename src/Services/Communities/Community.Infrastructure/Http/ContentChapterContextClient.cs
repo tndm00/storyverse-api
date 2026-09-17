@@ -21,6 +21,7 @@ public sealed class ContentChapterContextClient : IContentChapterContextClient
     private readonly ContentApiOptions _options;
     private readonly ILogger<ContentChapterContextClient> _logger;
 
+    /// <summary>Creates the client with its injected typed <see cref="HttpClient"/>, options, and logger.</summary>
     public ContentChapterContextClient(
         HttpClient httpClient,
         IOptions<ContentApiOptions> options,
@@ -31,15 +32,21 @@ public sealed class ContentChapterContextClient : IContentChapterContextClient
         _logger = logger;
     }
 
+    /// <summary>
+    /// Batch-resolves chapter ids to their story/chapter context. Returns an empty
+    /// dictionary (never throws) when the Content API is unconfigured or the call fails.
+    /// </summary>
     public async Task<IReadOnlyDictionary<Guid, ChapterContextDto>> GetContextAsync(
         IEnumerable<Guid> chapterIds, CancellationToken cancellationToken)
     {
+        // De-duplicate and drop empty ids; nothing to look up means an early return.
         var ids = chapterIds.Where(id => id != Guid.Empty).Distinct().ToArray();
         if (ids.Length == 0)
         {
             return new Dictionary<Guid, ChapterContextDto>();
         }
 
+        // No Content API configured: skip the call rather than fail the caller.
         if (!IsConfigured())
         {
             _logger.LogWarning(
@@ -50,6 +57,7 @@ public sealed class ContentChapterContextClient : IContentChapterContextClient
 
         try
         {
+            // Call the internal batch context endpoint with the service token.
             var query = string.Join(',', ids);
             using var request = new HttpRequestMessage(HttpMethod.Get, $"v1/chapters/internal/context?ids={query}");
             request.Headers.Add(ServiceAuthConstants.HeaderName, _options.ServiceToken);
@@ -57,6 +65,7 @@ public sealed class ContentChapterContextClient : IContentChapterContextClient
             using var response = await _httpClient.SendAsync(request, cancellationToken);
             response.EnsureSuccessStatusCode();
 
+            // Map the response envelope into a lookup keyed by chapter id.
             var envelope = await response.Content.ReadFromJsonAsync<Envelope>(cancellationToken);
             return (envelope?.Data ?? new List<Entry>())
                 .Where(e => e.ChapterId != Guid.Empty)
@@ -73,6 +82,7 @@ public sealed class ContentChapterContextClient : IContentChapterContextClient
         }
         catch (Exception ex)
         {
+            // Network/deserialization failure: log and degrade gracefully.
             _logger.LogWarning(
                 ex, "Chapter context lookup failed for {Count} chapter id(s); story/chapter fields will be null.",
                 ids.Length);
@@ -80,6 +90,7 @@ public sealed class ContentChapterContextClient : IContentChapterContextClient
         }
     }
 
+    /// <summary>Whether both the base URL and service token are set, so the call can be made.</summary>
     private bool IsConfigured() =>
         !string.IsNullOrWhiteSpace(_options.BaseUrl) && !string.IsNullOrWhiteSpace(_options.ServiceToken);
 

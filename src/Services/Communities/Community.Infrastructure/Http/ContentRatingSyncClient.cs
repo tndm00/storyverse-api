@@ -19,6 +19,7 @@ public sealed class ContentRatingSyncClient : IContentRatingSyncClient
     private readonly ContentApiOptions _options;
     private readonly ILogger<ContentRatingSyncClient> _logger;
 
+    /// <summary>Creates the client with its injected typed <see cref="HttpClient"/>, options, and logger.</summary>
     public ContentRatingSyncClient(
         HttpClient httpClient,
         IOptions<ContentApiOptions> options,
@@ -29,9 +30,14 @@ public sealed class ContentRatingSyncClient : IContentRatingSyncClient
         _logger = logger;
     }
 
+    /// <summary>
+    /// Pushes the recomputed rating average/count for a story to the Content
+    /// service. Best-effort: never throws, since the local rating write already committed.
+    /// </summary>
     public async Task SyncRatingSummaryAsync(
         Guid storyId, decimal ratingAvg, int ratingCount, CancellationToken cancellationToken)
     {
+        // No Content API configured: skip the sync silently (logged as a warning).
         if (!IsConfigured())
         {
             _logger.LogWarning(
@@ -42,6 +48,7 @@ public sealed class ContentRatingSyncClient : IContentRatingSyncClient
 
         try
         {
+            // Push the recomputed summary to the internal Content endpoint with the service token.
             using var request = new HttpRequestMessage(HttpMethod.Post, $"v1/stories/{storyId}/rating-summary")
             {
                 Content = JsonContent.Create(new { ratingAvg, ratingCount })
@@ -53,12 +60,14 @@ public sealed class ContentRatingSyncClient : IContentRatingSyncClient
         }
         catch (Exception ex)
         {
+            // Network/response failure: log and swallow, leaving the summary stale.
             _logger.LogWarning(
                 ex, "Rating summary sync to Content failed for story {StoryId}; Story.RatingAvg/RatingCount stay stale.",
                 storyId);
         }
     }
 
+    /// <summary>Whether both the base URL and service token are set, so the call can be made.</summary>
     private bool IsConfigured() =>
         !string.IsNullOrWhiteSpace(_options.BaseUrl) && !string.IsNullOrWhiteSpace(_options.ServiceToken);
 }

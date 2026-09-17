@@ -11,8 +11,10 @@ public sealed class CommunityDbContextFactory : IDesignTimeDbContextFactory<Comm
     private const string FallbackConnectionString =
         "Host=localhost;Port=5432;Database=storyverse_community;Username=postgres;Password=postgres";
 
+    /// <summary>Builds a <see cref="CommunityDbContext"/> for design-time tooling (e.g. <c>dotnet ef</c> migrations).</summary>
     public CommunityDbContext CreateDbContext(string[] args)
     {
+        // Allow overriding the connection string via env var for provider-specific SQL generation.
         var connectionString = Environment.GetEnvironmentVariable("COMMUNITY_DB_CONNECTION") ?? FallbackConnectionString;
 
         var options = new DbContextOptionsBuilder<CommunityDbContext>()
