@@ -1,5 +1,10 @@
 var builder = WebApplication.CreateBuilder(args);
 
+// Structured JSON console logging (Serilog) so log fields — including the
+// CorrelationId set by CorrelationIdMiddleware below — are real, filterable
+// Elasticsearch fields once Filebeat ships them, not just free text.
+builder.UseStoryVerseSerilog();
+
 // Layer registration order follows codebase-architecture-flow.md section 8:
 // Application -> Infrastructure -> Api-only concerns (auth, swagger, controllers).
 builder.Services.AddApplication();
