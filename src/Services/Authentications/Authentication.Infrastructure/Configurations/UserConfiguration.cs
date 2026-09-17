@@ -6,6 +6,9 @@ namespace Authentication.Infrastructure.Configurations;
 /// </summary>
 public sealed class UserConfiguration : IEntityTypeConfiguration<User>
 {
+    /// <summary>
+    /// Applies table, key, index and property mappings for the <see cref="User"/> entity.
+    /// </summary>
     public void Configure(EntityTypeBuilder<User> builder)
     {
         // "identity" matches the business-boundary schema naming convention in

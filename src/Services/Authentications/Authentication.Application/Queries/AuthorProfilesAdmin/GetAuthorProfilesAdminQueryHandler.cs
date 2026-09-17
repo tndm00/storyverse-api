@@ -1,5 +1,6 @@
 namespace Authentication.Application.Queries.AuthorProfilesAdmin;
 
+/// <summary>Handles <see cref="GetAuthorProfilesAdminQuery"/>.</summary>
 public sealed class GetAuthorProfilesAdminQueryHandler
     : IQueryHandler<GetAuthorProfilesAdminQuery, PagedResponseDto<AdminAuthorProfileResponseDto>>
 {
@@ -14,17 +15,24 @@ public sealed class GetAuthorProfilesAdminQueryHandler
         _userRepository = userRepository;
     }
 
+    /// <summary>
+    /// Returns a page of author profiles, optionally filtered by pen-name keyword,
+    /// joined with the owning user's email and display name.
+    /// </summary>
     public async Task<PagedResponseDto<AdminAuthorProfileResponseDto>> Handle(
         GetAuthorProfilesAdminQuery request,
         CancellationToken cancellationToken)
     {
+        // Fetch the requested page of profiles plus the total count for paging.
         var (profiles, totalCount) = await _authorProfileRepository.GetPagedAsync(
             request.Keyword, request.PageNumber, request.PageSize, cancellationToken);
 
+        // Batch-load the owning users so email/display name can be joined in-memory.
         var users = await _userRepository.GetByIdsAsync(
             profiles.Select(x => x.UserId), cancellationToken);
         var usersById = users.ToDictionary(u => u.Id);
 
+        // Map each profile to its admin DTO, filling in user fields when found.
         var items = profiles
             .Select(profile =>
             {
@@ -47,6 +55,7 @@ public sealed class GetAuthorProfilesAdminQueryHandler
             })
             .ToArray();
 
+        // Wrap the mapped items in the standard paging envelope.
         return PagedResponseDto<AdminAuthorProfileResponseDto>.Create(
             items, request.PageNumber, request.PageSize, totalCount);
     }

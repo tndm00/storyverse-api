@@ -6,6 +6,7 @@ namespace Authentication.Api.Extensions;
 /// </summary>
 public static class ServiceRegistration
 {
+    /// <summary>Wires up API-layer concerns: controllers, Swagger, JWT authentication, permission policies, CORS, and the platform-admin seeder.</summary>
     public static IServiceCollection AddApiServices(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddControllers();

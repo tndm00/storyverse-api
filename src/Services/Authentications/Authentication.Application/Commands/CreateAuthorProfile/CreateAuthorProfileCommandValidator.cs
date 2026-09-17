@@ -1,7 +1,9 @@
 namespace Authentication.Application.Commands.CreateAuthorProfile;
 
+/// <summary>Validation rules for <see cref="CreateAuthorProfileCommand"/>.</summary>
 public sealed class CreateAuthorProfileCommandValidator : AbstractValidator<CreateAuthorProfileCommand>
 {
+    /// <summary>Requires a well-formed pen name and bio.</summary>
     public CreateAuthorProfileCommandValidator()
     {
         RuleFor(x => x.PenName)

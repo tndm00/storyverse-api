@@ -13,6 +13,9 @@ public sealed class UserSessionIssuer : IUserSessionIssuer
     private readonly IUserRepository _userRepository;
     private readonly IRefreshTokenRepository _refreshTokenRepository;
 
+    /// <summary>
+    /// Creates the issuer with its token, author profile, user and refresh token dependencies.
+    /// </summary>
     public UserSessionIssuer(
         ITokenService tokenService,
         IAuthorProfileRepository authorProfileRepository,
@@ -25,6 +28,12 @@ public sealed class UserSessionIssuer : IUserSessionIssuer
         _refreshTokenRepository = refreshTokenRepository;
     }
 
+    /// <summary>
+    /// Completes a sign-in: resolves roles/author identity, mints an access +
+    /// refresh token pair, persists the refresh token (hashed), stamps
+    /// <see cref="User.LastLoginAt"/>, and revokes <paramref name="replacedToken"/>
+    /// when this call is a rotation.
+    /// </summary>
     public async Task<LoginResponseDto> IssueAsync(
         User user,
         RefreshToken replacedToken = null,

@@ -8,11 +8,17 @@ namespace Authentication.Infrastructure.Security;
 /// </summary>
 public sealed class PasswordHasher : IPasswordHasher
 {
+    /// <summary>
+    /// Hashes a plaintext password with BCrypt (self-salting, work factor 12).
+    /// </summary>
     public string Hash(string password)
     {
         return BCrypt.Net.BCrypt.HashPassword(password, workFactor: 12);
     }
 
+    /// <summary>
+    /// Verifies a plaintext password against a previously computed BCrypt hash.
+    /// </summary>
     public bool Verify(string password, string passwordHash)
     {
         return BCrypt.Net.BCrypt.Verify(password, passwordHash);

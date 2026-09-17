@@ -1,7 +1,9 @@
 namespace Authentication.Application.Commands.AuthorProfilesAdmin.UpdateAuthorProfileAdmin;
 
+/// <summary>Validation rules for <see cref="UpdateAuthorProfileAdminCommand"/>.</summary>
 public sealed class UpdateAuthorProfileAdminCommandValidator : AbstractValidator<UpdateAuthorProfileAdminCommand>
 {
+    /// <summary>Requires a positive profile id and well-formed pen name / bio.</summary>
     public UpdateAuthorProfileAdminCommandValidator()
     {
         RuleFor(x => x.AuthorProfileId).GreaterThan(0);

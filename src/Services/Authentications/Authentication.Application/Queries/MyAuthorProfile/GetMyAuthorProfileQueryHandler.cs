@@ -1,5 +1,6 @@
 namespace Authentication.Application.Queries.MyAuthorProfile;
 
+/// <summary>Handles <see cref="GetMyAuthorProfileQuery"/>.</summary>
 public sealed class GetMyAuthorProfileQueryHandler
     : IQueryHandler<GetMyAuthorProfileQuery, AuthorProfileResponseDto>
 {
@@ -14,10 +15,12 @@ public sealed class GetMyAuthorProfileQueryHandler
         _currentUserService = currentUserService;
     }
 
+    /// <summary>Resolves the caller's own author profile, or throws if the caller has none.</summary>
     public async Task<AuthorProfileResponseDto> Handle(
         GetMyAuthorProfileQuery request,
         CancellationToken cancellationToken)
     {
+        // Identity comes from the trusted auth context, never from the request.
         var userId = _currentUserService.GetUserId();
 
         var authorProfile = await _authorProfileRepository.GetByUserIdAsync(userId, cancellationToken)

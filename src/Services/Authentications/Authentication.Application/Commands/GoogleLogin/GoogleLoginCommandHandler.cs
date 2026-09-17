@@ -1,5 +1,6 @@
 namespace Authentication.Application.Commands.GoogleLogin;
 
+/// <summary>Handles <see cref="GoogleLoginCommand"/>: validates the Google ID token, resolves or provisions the account, and issues a session.</summary>
 public sealed class GoogleLoginCommandHandler : ICommandHandler<GoogleLoginCommand, LoginResponseDto>
 {
     private readonly IGoogleTokenValidator _googleTokenValidator;
@@ -7,6 +8,7 @@ public sealed class GoogleLoginCommandHandler : ICommandHandler<GoogleLoginComma
     private readonly IUserSessionIssuer _sessionIssuer;
     private readonly ILogger<GoogleLoginCommandHandler> _logger;
 
+    /// <summary>Initializes the handler with the Google token validator, user repository, session issuer, and logger it depends on.</summary>
     public GoogleLoginCommandHandler(
         IGoogleTokenValidator googleTokenValidator,
         IUserRepository userRepository,
@@ -19,10 +21,12 @@ public sealed class GoogleLoginCommandHandler : ICommandHandler<GoogleLoginComma
         _logger = logger;
     }
 
+    /// <summary>Validates the Google ID token, resolves or provisions the matching account, and issues an access + refresh token pair.</summary>
     public async Task<LoginResponseDto> Handle(GoogleLoginCommand request, CancellationToken cancellationToken)
     {
         _logger.LogInformation(ApplicationLogConstants.GoogleLoginAttempt);
 
+        // Verify the ID token with Google and require a verified email.
         var googleUser = await _googleTokenValidator.ValidateAsync(request.IdToken, cancellationToken);
 
         if (!googleUser.EmailVerified || string.IsNullOrWhiteSpace(googleUser.Email))
@@ -31,6 +35,7 @@ public sealed class GoogleLoginCommandHandler : ICommandHandler<GoogleLoginComma
             throw new BadRequestException(ApplicationErrorConstants.GoogleAuthFailed);
         }
 
+        // Match to an existing account (by Google subject or email) or provision a new one.
         var user = await ResolveOrProvisionUserAsync(googleUser, cancellationToken);
 
         if (user.Status != UserStatus.Active)
@@ -39,6 +44,7 @@ public sealed class GoogleLoginCommandHandler : ICommandHandler<GoogleLoginComma
             throw new BadRequestException(ApplicationErrorConstants.AccountNotActive);
         }
 
+        // Issue the session token pair.
         var session = await _sessionIssuer.IssueAsync(user, cancellationToken: cancellationToken);
 
         _logger.LogInformation(ApplicationLogConstants.GoogleLoginSucceeded, user.Id);
@@ -46,6 +52,7 @@ public sealed class GoogleLoginCommandHandler : ICommandHandler<GoogleLoginComma
         return session;
     }
 
+    /// <summary>Resolves the account matching the Google identity by subject, then email, or provisions a new password-less account.</summary>
     private async Task<User> ResolveOrProvisionUserAsync(GoogleUserInfo googleUser, CancellationToken cancellationToken)
     {
         // Match on the stable Google subject first so a re-used email address can

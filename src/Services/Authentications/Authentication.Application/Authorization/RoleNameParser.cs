@@ -7,6 +7,7 @@ namespace Authentication.Application.Authorization;
 /// </summary>
 public static class RoleNameParser
 {
+    /// <summary>Attempts to parse <paramref name="value"/> (case-insensitive) into a defined <see cref="Role"/> value.</summary>
     public static bool TryParse(string value, out Role role)
     {
         role = default;

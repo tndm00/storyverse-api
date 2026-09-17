@@ -6,6 +6,9 @@ namespace Authentication.Infrastructure.Context;
 /// </summary>
 public sealed class AuthenticationDbContext : DbContext
 {
+    /// <summary>
+    /// Creates the context with EF Core options supplied by DI (connection string, provider, etc.).
+    /// </summary>
     public AuthenticationDbContext(DbContextOptions<AuthenticationDbContext> options) : base(options)
     {
     }
@@ -18,6 +21,9 @@ public sealed class AuthenticationDbContext : DbContext
 
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
 
+    /// <summary>
+    /// Applies all <see cref="IEntityTypeConfiguration{TEntity}"/> types found in this assembly.
+    /// </summary>
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);

@@ -1,5 +1,6 @@
 namespace Authentication.Application.Commands.AuthorProfilesAdmin.CreateAuthorProfileAdmin;
 
+/// <summary>Handles <see cref="CreateAuthorProfileAdminCommand"/>: creates a new account plus its author profile in a single admin action.</summary>
 public sealed class CreateAuthorProfileAdminCommandHandler
     : ICommandHandler<CreateAuthorProfileAdminCommand, AdminAuthorProfileResponseDto>
 {
@@ -8,6 +9,7 @@ public sealed class CreateAuthorProfileAdminCommandHandler
     private readonly IPasswordHasher _passwordHasher;
     private readonly ILogger<CreateAuthorProfileAdminCommandHandler> _logger;
 
+    /// <summary>Initializes the handler with the repositories, password hasher, and logger it depends on.</summary>
     public CreateAuthorProfileAdminCommandHandler(
         IUserRepository userRepository,
         IAuthorProfileRepository authorProfileRepository,
@@ -20,15 +22,18 @@ public sealed class CreateAuthorProfileAdminCommandHandler
         _logger = logger;
     }
 
+    /// <summary>Creates the account (with Reader + Author roles) and its author profile, then returns the combined admin view.</summary>
     public async Task<AdminAuthorProfileResponseDto> Handle(
         CreateAuthorProfileAdminCommand request,
         CancellationToken cancellationToken)
     {
+        // Reject duplicate emails.
         if (await _userRepository.ExistsByEmailAsync(request.Email, cancellationToken))
         {
             throw new ConflictException(ApplicationErrorConstants.EmailAlreadyRegistered);
         }
 
+        // Create the account with hashed password and default Reader + Author roles.
         var user = new User
         {
             Email = request.Email,
@@ -41,6 +46,7 @@ public sealed class CreateAuthorProfileAdminCommandHandler
         await _userRepository.AddAsync(user, cancellationToken);
         await _userRepository.SaveChangesAsync(cancellationToken);
 
+        // Create the associated author profile, active by default.
         var authorProfile = new AuthorProfile
         {
             UserId = user.Id,

@@ -1,7 +1,9 @@
 namespace Authentication.Application.Commands.Register;
 
+/// <summary>Validation rules for <see cref="RegisterCommand"/>.</summary>
 public sealed class RegisterCommandValidator : AbstractValidator<RegisterCommand>
 {
+    /// <summary>Requires a valid email, a strong password, and a non-empty display name.</summary>
     public RegisterCommandValidator()
     {
         RuleFor(x => x.Email)

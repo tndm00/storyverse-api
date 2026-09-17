@@ -1,5 +1,6 @@
 namespace Authentication.Application.Commands.Register;
 
+/// <summary>Handles <see cref="RegisterCommand"/>: creates a new Reader account and signs it in.</summary>
 public sealed class RegisterCommandHandler : ICommandHandler<RegisterCommand, RegisterResponseDto>
 {
     private readonly IUserRepository _userRepository;
@@ -7,6 +8,7 @@ public sealed class RegisterCommandHandler : ICommandHandler<RegisterCommand, Re
     private readonly IUserSessionIssuer _sessionIssuer;
     private readonly ILogger<RegisterCommandHandler> _logger;
 
+    /// <summary>Initializes the handler with the user repository, password hasher, session issuer, and logger it depends on.</summary>
     public RegisterCommandHandler(
         IUserRepository userRepository,
         IPasswordHasher passwordHasher,
@@ -19,10 +21,12 @@ public sealed class RegisterCommandHandler : ICommandHandler<RegisterCommand, Re
         _logger = logger;
     }
 
+    /// <summary>Creates the account with a hashed password and Reader role, then issues an access + refresh token pair.</summary>
     public async Task<RegisterResponseDto> Handle(RegisterCommand request, CancellationToken cancellationToken)
     {
         _logger.LogInformation(ApplicationLogConstants.RegisterAttempt, request.Email);
 
+        // Reject duplicate emails.
         if (await _userRepository.ExistsByEmailAsync(request.Email, cancellationToken))
         {
             _logger.LogWarning(ApplicationLogConstants.RegisterFailedEmailExists, request.Email);

@@ -25,6 +25,7 @@ public sealed class PlatformAdminSeeder : IHostedService
     private readonly IConfiguration _configuration;
     private readonly ILogger<PlatformAdminSeeder> _logger;
 
+    /// <summary>Initializes the seeder with the DI scope factory, configuration, and logger it needs to run at startup.</summary>
     public PlatformAdminSeeder(
         IServiceScopeFactory scopeFactory,
         IConfiguration configuration,
@@ -35,8 +36,10 @@ public sealed class PlatformAdminSeeder : IHostedService
         _logger = logger;
     }
 
+    /// <summary>Promotes every configured email that already has an account to <see cref="Role.PlatformAdmin"/>.</summary>
     public async Task StartAsync(CancellationToken cancellationToken)
     {
+        // Nothing to do when the seed list is empty (the default for real environments).
         var emails = _configuration.GetSection(ConfigKey).Get<string[]>() ?? Array.Empty<string>();
         if (emails.Length == 0)
         {
@@ -50,6 +53,7 @@ public sealed class PlatformAdminSeeder : IHostedService
         {
             try
             {
+                // Skip accounts that haven't registered yet; they'll be picked up on a later startup.
                 var user = await users.GetByEmailAsync(email, cancellationToken);
                 if (user is null)
                 {
@@ -58,12 +62,14 @@ public sealed class PlatformAdminSeeder : IHostedService
                     continue;
                 }
 
+                // Skip accounts that already hold the role.
                 var roles = await users.GetRolesAsync(user.Id, cancellationToken);
                 if (roles.Contains(Role.PlatformAdmin))
                 {
                     continue;
                 }
 
+                // Grant the role and persist it.
                 await users.GrantRoleAsync(user.Id, Role.PlatformAdmin, cancellationToken);
                 await users.SaveChangesAsync(cancellationToken);
 
@@ -77,5 +83,6 @@ public sealed class PlatformAdminSeeder : IHostedService
         }
     }
 
+    /// <summary>No-op: this hosted service does not need to release any resources on shutdown.</summary>
     public Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;
 }

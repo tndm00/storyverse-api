@@ -1,5 +1,6 @@
 namespace Authentication.Application.Commands.Login;
 
+/// <summary>Handles <see cref="LoginCommand"/>: verifies email/password credentials and issues a session.</summary>
 public sealed class LoginCommandHandler : ICommandHandler<LoginCommand, LoginResponseDto>
 {
     private readonly IUserRepository _userRepository;
@@ -7,6 +8,7 @@ public sealed class LoginCommandHandler : ICommandHandler<LoginCommand, LoginRes
     private readonly IUserSessionIssuer _sessionIssuer;
     private readonly ILogger<LoginCommandHandler> _logger;
 
+    /// <summary>Initializes the handler with the user repository, password hasher, session issuer, and logger it depends on.</summary>
     public LoginCommandHandler(
         IUserRepository userRepository,
         IPasswordHasher passwordHasher,
@@ -19,6 +21,7 @@ public sealed class LoginCommandHandler : ICommandHandler<LoginCommand, LoginRes
         _logger = logger;
     }
 
+    /// <summary>Verifies the caller's credentials and account status, then issues an access + refresh token pair.</summary>
     public async Task<LoginResponseDto> Handle(LoginCommand request, CancellationToken cancellationToken)
     {
         _logger.LogInformation(ApplicationLogConstants.LoginAttempt, request.Email);
@@ -34,12 +37,14 @@ public sealed class LoginCommandHandler : ICommandHandler<LoginCommand, LoginRes
             throw new BadRequestException(ApplicationErrorConstants.InvalidCredentials);
         }
 
+        // Reject logins for suspended/inactive accounts.
         if (user.Status != UserStatus.Active)
         {
             _logger.LogWarning(ApplicationLogConstants.LoginFailedAccountNotActive, user.Id);
             throw new BadRequestException(ApplicationErrorConstants.AccountNotActive);
         }
 
+        // Issue the session token pair.
         var session = await _sessionIssuer.IssueAsync(user, cancellationToken: cancellationToken);
 
         _logger.LogInformation(ApplicationLogConstants.LoginSucceeded, user.Id);

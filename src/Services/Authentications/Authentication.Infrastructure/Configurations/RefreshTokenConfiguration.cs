@@ -6,8 +6,12 @@ namespace Authentication.Infrastructure.Configurations;
 /// </summary>
 public sealed class RefreshTokenConfiguration : IEntityTypeConfiguration<RefreshToken>
 {
+    /// <summary>
+    /// Applies table, key, index and property mappings for the <see cref="RefreshToken"/> entity.
+    /// </summary>
     public void Configure(EntityTypeBuilder<RefreshToken> builder)
     {
+        // Map to the identity-schema table and set the primary key.
         builder.ToTable(InfrastructureConstants.RefreshTokensTableName, InfrastructureConstants.IdentitySchemaName);
 
         builder.HasKey(x => x.Id);

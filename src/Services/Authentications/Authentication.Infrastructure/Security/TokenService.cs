@@ -11,11 +11,18 @@ public sealed class TokenService : ITokenService
 {
     private readonly JwtOptions _options;
 
+    /// <summary>
+    /// Creates the service bound to the configured <see cref="JwtOptions"/>.
+    /// </summary>
     public TokenService(IOptions<JwtOptions> options)
     {
         _options = options.Value;
     }
 
+    /// <summary>
+    /// Builds and signs a short-lived JWT access token for the given user, with
+    /// minimal claims (subject, jti, iat, roles, and optional author id).
+    /// </summary>
     public GeneratedToken GenerateAccessToken(
         User user,
         long? authorProfileId = null,
@@ -65,6 +72,9 @@ public sealed class TokenService : ITokenService
         return new GeneratedToken(value, expiresAt);
     }
 
+    /// <summary>
+    /// Generates a new opaque, high-entropy refresh token value and its expiry.
+    /// </summary>
     public GeneratedToken GenerateRefreshToken()
     {
         // Opaque, high-entropy refresh token. Only its hash is ever persisted
@@ -77,6 +87,9 @@ public sealed class TokenService : ITokenService
         return new GeneratedToken(value, expiresAt);
     }
 
+    /// <summary>
+    /// Computes the SHA-256 hex hash of a raw refresh token value, for storage/lookup.
+    /// </summary>
     public string HashRefreshToken(string rawRefreshToken)
     {
         // SHA-256 is sufficient here: the token is already 64 bytes of CSPRNG

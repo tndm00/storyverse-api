@@ -6,8 +6,12 @@ namespace Authentication.Infrastructure.Configurations;
 /// </summary>
 public sealed class UserRoleConfiguration : IEntityTypeConfiguration<UserRole>
 {
+    /// <summary>
+    /// Applies table, key, index and property mappings for the <see cref="UserRole"/> entity.
+    /// </summary>
     public void Configure(EntityTypeBuilder<UserRole> builder)
     {
+        // Map to the identity-schema table for user-role grants.
         builder.ToTable(InfrastructureConstants.UserRolesTableName, InfrastructureConstants.IdentitySchemaName);
 
         // One grant per (user, role); the composite key doubles as the uniqueness

@@ -1,7 +1,9 @@
 namespace Authentication.Application.Commands.AuthorProfilesAdmin.CreateAuthorProfileAdmin;
 
+/// <summary>Validation rules for <see cref="CreateAuthorProfileAdminCommand"/>.</summary>
 public sealed class CreateAuthorProfileAdminCommandValidator : AbstractValidator<CreateAuthorProfileAdminCommand>
 {
+    /// <summary>Requires a valid email, a strong password, and well-formed display name / pen name / bio.</summary>
     public CreateAuthorProfileAdminCommandValidator()
     {
         RuleFor(x => x.Email)

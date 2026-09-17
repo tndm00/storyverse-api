@@ -12,6 +12,7 @@ public sealed class AuthController : ControllerBase
 {
     private readonly IMediator _mediator;
 
+    /// <summary>Initializes the controller with the MediatR sender used to dispatch commands/queries.</summary>
     public AuthController(IMediator mediator)
     {
         _mediator = mediator;
@@ -220,6 +221,7 @@ public sealed class AuthController : ControllerBase
         [FromQuery(Name = "ids")] string ids,
         CancellationToken cancellationToken)
     {
+        // Parse the comma-separated id list, discarding blanks and non-numeric/non-positive values.
         var parsed = (ids ?? string.Empty)
             .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
             .Select(part => long.TryParse(part, out var id) ? id : 0L)

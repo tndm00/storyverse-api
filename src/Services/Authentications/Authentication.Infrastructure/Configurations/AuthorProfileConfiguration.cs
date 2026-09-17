@@ -6,8 +6,12 @@ namespace Authentication.Infrastructure.Configurations;
 /// </summary>
 public sealed class AuthorProfileConfiguration : IEntityTypeConfiguration<AuthorProfile>
 {
+    /// <summary>
+    /// Applies table, key, index and property mappings for the <see cref="AuthorProfile"/> entity.
+    /// </summary>
     public void Configure(EntityTypeBuilder<AuthorProfile> builder)
     {
+        // Map to the identity-schema table and set the primary key.
         builder.ToTable(InfrastructureConstants.AuthorProfilesTableName, InfrastructureConstants.IdentitySchemaName);
 
         builder.HasKey(x => x.Id);

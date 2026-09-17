@@ -1,5 +1,6 @@
 namespace Authentication.Application.Commands.CreateAuthorProfile;
 
+/// <summary>Handles <see cref="CreateAuthorProfileCommand"/>: onboards the current caller as an author.</summary>
 public sealed class CreateAuthorProfileCommandHandler
     : ICommandHandler<CreateAuthorProfileCommand, AuthorProfileResponseDto>
 {
@@ -8,6 +9,7 @@ public sealed class CreateAuthorProfileCommandHandler
     private readonly ICurrentUserService _currentUserService;
     private readonly ILogger<CreateAuthorProfileCommandHandler> _logger;
 
+    /// <summary>Initializes the handler with the repositories, current-user accessor, and logger it depends on.</summary>
     public CreateAuthorProfileCommandHandler(
         IAuthorProfileRepository authorProfileRepository,
         IUserRepository userRepository,
@@ -20,6 +22,7 @@ public sealed class CreateAuthorProfileCommandHandler
         _logger = logger;
     }
 
+    /// <summary>Creates the caller's author profile, grants the Author role, and returns the new profile.</summary>
     public async Task<AuthorProfileResponseDto> Handle(
         CreateAuthorProfileCommand request,
         CancellationToken cancellationToken)
@@ -28,6 +31,7 @@ public sealed class CreateAuthorProfileCommandHandler
 
         _logger.LogInformation(ApplicationLogConstants.AuthorProfileCreateAttempt, userId);
 
+        // Ensure the caller's account exists and is active.
         var user = await _userRepository.GetByIdAsync(userId, cancellationToken)
             ?? throw new NotFoundException(ApplicationErrorConstants.UserNotFound);
 

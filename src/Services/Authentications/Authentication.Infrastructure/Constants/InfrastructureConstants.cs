@@ -1,5 +1,9 @@
 namespace Authentication.Infrastructure.Constants;
 
+/// <summary>
+/// Shared literals (connection string name, schema/table names, claim types)
+/// used across the Authentication.Infrastructure project.
+/// </summary>
 public static class InfrastructureConstants
 {
     public const string ConnectionStringName = "AuthenticationDatabase";

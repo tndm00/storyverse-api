@@ -14,6 +14,7 @@ public sealed class AdminAuthorsController : ControllerBase
 {
     private readonly IMediator _mediator;
 
+    /// <summary>Initializes the controller with the MediatR sender used to dispatch commands/queries.</summary>
     public AdminAuthorsController(IMediator mediator)
     {
         _mediator = mediator;
