@@ -19,6 +19,10 @@ public sealed class ElasticsearchStorySearchService : IStorySearchService
     private readonly ElasticsearchOptions _options;
     private readonly ILogger<ElasticsearchStorySearchService> _logger;
 
+    public bool IsEnabled => _options.Enabled;
+
+    public bool IsSearchReadEnabled => _options.SearchReadEnabled;
+
     public ElasticsearchStorySearchService(
         ElasticsearchClient client,
         IOptions<ElasticsearchOptions> options,
@@ -127,6 +131,25 @@ public sealed class ElasticsearchStorySearchService : IStorySearchService
         var totalCount = (int)(response.Total);
 
         return (storyIds, totalCount);
+    }
+
+    public async Task<long> GetDocumentCountAsync(CancellationToken cancellationToken = default)
+    {
+        if (!_options.Enabled)
+        {
+            return 0;
+        }
+
+        try
+        {
+            var response = await _client.CountAsync(c => c.Index(_options.IndexName), cancellationToken);
+            return response.IsValidResponse ? response.Count : 0;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, InfrastructureLogConstants.SearchCountFailed);
+            return 0;
+        }
     }
 
     private static Action<SortOptionsDescriptor<StoryDocument>> BuildSort(StorySearchCriteria criteria)

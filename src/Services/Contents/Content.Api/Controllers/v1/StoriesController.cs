@@ -111,6 +111,21 @@ public sealed class StoriesController : ControllerBase
         return Ok(ResponseDto<ReindexAllStoriesResultDto>.Ok(result));
     }
 
+    /// <summary>
+    /// Elasticsearch sync status for the admin console: how far the background
+    /// sync job has gotten (<c>content.search_sync_cursor</c>) and how many
+    /// documents are actually in the index right now.
+    /// </summary>
+    [HasPermission(StoryVersePermissions.Content.Moderate)]
+    [HttpGet(ControllerRouteConstants.StoryAdminSearchSyncStatusSegment)]
+    [ProducesResponseType(typeof(ResponseDto<SearchSyncStatusResponseDto>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetSearchSyncStatus(CancellationToken cancellationToken)
+    {
+        var result = await _mediator.Send(new GetSearchSyncStatusQuery(), cancellationToken);
+
+        return Ok(ResponseDto<SearchSyncStatusResponseDto>.Ok(result));
+    }
+
     /// <summary>The signed-in author's own stories, Draft included.</summary>
     [Authorize]
     [HttpGet(ControllerRouteConstants.StoryMineSegment)]

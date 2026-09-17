@@ -10,6 +10,12 @@ namespace Content.Application.Interfaces;
 /// </summary>
 public interface IStorySearchService
 {
+    /// <summary>Mirrors <c>Elasticsearch:Enabled</c> — for the admin sync-status view.</summary>
+    bool IsEnabled { get; }
+
+    /// <summary>Mirrors <c>Elasticsearch:SearchReadEnabled</c> — for the admin sync-status view.</summary>
+    bool IsSearchReadEnabled { get; }
+
     /// <summary>
     /// Indexes or re-indexes a story. <paramref name="publishedChapterContent"/>
     /// is the story's Published chapters' text, already concatenated in
@@ -29,4 +35,12 @@ public interface IStorySearchService
     /// </summary>
     Task<(IReadOnlyList<long> StoryIds, int TotalCount)> SearchAsync(
         StorySearchCriteria criteria, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Number of documents currently in the index — for the admin sync-status
+    /// view (compare against the eligible Postgres story count to see sync
+    /// coverage). Returns 0 (not an error) when <see cref="IStorySearchService"/>
+    /// is disabled or the index doesn't exist yet.
+    /// </summary>
+    Task<long> GetDocumentCountAsync(CancellationToken cancellationToken = default);
 }

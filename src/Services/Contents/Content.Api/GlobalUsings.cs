@@ -36,6 +36,7 @@ global using Content.Application.Commands.Stories.DeleteStory;
 global using Content.Application.Commands.Stories.GuestPublishStory;
 global using Content.Application.Commands.Stories.QuickPublishStory;
 global using Content.Application.Commands.Stories.ReindexAllStories;
+global using Content.Application.Queries.Stories.GetSearchSyncStatus;
 global using Content.Application.Commands.Stories.UpdateStory;
 global using Content.Application.Commands.Volumes.CreateVolume;
 global using Content.Application.Commands.Volumes.ReorderVolumes;
