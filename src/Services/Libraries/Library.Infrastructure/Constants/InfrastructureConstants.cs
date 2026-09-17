@@ -1,5 +1,6 @@
 namespace Library.Infrastructure.Constants;
 
+/// <summary>Infrastructure-layer constants: connection string name, schema/table names, and column limits.</summary>
 public static class InfrastructureConstants
 {
     public const string ConnectionStringName = "LibraryDatabase";

@@ -7,6 +7,7 @@ namespace Library.Application.Extensions;
 /// </summary>
 public static class ServiceRegistration
 {
+    /// <summary>Registers MediatR handlers, the validation pipeline behavior, FluentValidation validators, and Mapster mappings.</summary>
     public static IServiceCollection AddApplication(this IServiceCollection services)
     {
         var assembly = Assembly.GetExecutingAssembly();

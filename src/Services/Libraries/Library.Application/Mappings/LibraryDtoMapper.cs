@@ -7,6 +7,7 @@ namespace Library.Application.Mappings;
 /// </summary>
 public static class LibraryDtoMapper
 {
+    /// <summary>Maps a <see cref="LibraryEntry"/> entity to its API response DTO.</summary>
     public static LibraryEntryResponseDto ToDto(LibraryEntry entry)
     {
         return new LibraryEntryResponseDto
@@ -19,6 +20,7 @@ public static class LibraryDtoMapper
         };
     }
 
+    /// <summary>Maps a <see cref="ReadingProgress"/> entity to its API response DTO.</summary>
     public static ReadingProgressResponseDto ToDto(ReadingProgress progress)
     {
         return new ReadingProgressResponseDto

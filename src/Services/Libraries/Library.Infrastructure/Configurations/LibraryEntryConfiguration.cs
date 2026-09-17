@@ -1,7 +1,9 @@
 namespace Library.Infrastructure.Configurations;
 
+/// <summary>EF Core mapping for <see cref="LibraryEntry"/>: table, keys, indexes and column constraints.</summary>
 public sealed class LibraryEntryConfiguration : IEntityTypeConfiguration<LibraryEntry>
 {
+    /// <summary>Configures the table mapping, indexes and column constraints for <see cref="LibraryEntry"/>.</summary>
     public void Configure(EntityTypeBuilder<LibraryEntry> builder)
     {
         builder.ToTable(InfrastructureConstants.LibraryEntriesTableName, InfrastructureConstants.LibrarySchemaName);

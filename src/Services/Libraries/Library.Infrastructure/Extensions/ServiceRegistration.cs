@@ -7,8 +7,10 @@ namespace Library.Infrastructure.Extensions;
 /// </summary>
 public static class ServiceRegistration
 {
+    /// <summary>Wires up the Library service's DbContext, unit of work, repositories and current-user context.</summary>
     public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
     {
+        // DbContext bound to the Library database via Npgsql.
         var connectionString = configuration.GetConnectionString(InfrastructureConstants.ConnectionStringName);
 
         services.AddDbContext<LibraryDbContext>(options =>
@@ -18,6 +20,7 @@ public static class ServiceRegistration
 
         services.AddScoped<ILibraryUnitOfWork, LibraryUnitOfWork>();
 
+        // Repository and current-user implementations of Application-layer interfaces.
         services.AddScoped<ILibraryEntryRepository, LibraryEntryRepository>();
         services.AddScoped<IReadingProgressRepository, ReadingProgressRepository>();
         services.AddScoped<ICurrentUserContext, CurrentUserContext>();

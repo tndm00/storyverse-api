@@ -39,6 +39,7 @@ public static class ShelfStatusParser
         return Parse(value);
     }
 
+    /// <summary>Attempts to parse a shelf value, matching case-insensitively against defined enum names.</summary>
     public static bool TryParse(string value, out ShelfStatus status)
     {
         return Enum.TryParse(value, ignoreCase: true, out status) && Enum.IsDefined(status);

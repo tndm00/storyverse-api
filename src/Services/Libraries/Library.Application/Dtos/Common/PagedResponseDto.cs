@@ -16,6 +16,7 @@ public sealed class PagedResponseDto<T>
 
     public int TotalPages => PageSize <= 0 ? 0 : (int)Math.Ceiling(TotalCount / (double)PageSize);
 
+    /// <summary>Builds a paged envelope from an already-fetched page of items and the total count.</summary>
     public static PagedResponseDto<T> Create(IReadOnlyList<T> items, int pageNumber, int pageSize, int totalCount)
     {
         return new PagedResponseDto<T>

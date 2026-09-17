@@ -1,7 +1,9 @@
 namespace Library.Infrastructure.Configurations;
 
+/// <summary>EF Core mapping for <see cref="ReadingProgress"/>: table, keys, indexes and column constraints.</summary>
 public sealed class ReadingProgressConfiguration : IEntityTypeConfiguration<ReadingProgress>
 {
+    /// <summary>Configures the table mapping, indexes and column constraints for <see cref="ReadingProgress"/>.</summary>
     public void Configure(EntityTypeBuilder<ReadingProgress> builder)
     {
         builder.ToTable(InfrastructureConstants.ReadingProgressTableName, InfrastructureConstants.LibrarySchemaName);

@@ -1,5 +1,9 @@
 namespace Library.Application.Commands.LibraryEntries.RemoveLibraryEntry;
 
+/// <summary>
+/// Handles <see cref="RemoveLibraryEntryCommand"/> by deleting the authenticated
+/// caller's library entry for a story.
+/// </summary>
 public sealed class RemoveLibraryEntryCommandHandler : ICommandHandler<RemoveLibraryEntryCommand, Unit>
 {
     private readonly ILibraryEntryRepository _libraryEntryRepository;
@@ -16,13 +20,16 @@ public sealed class RemoveLibraryEntryCommandHandler : ICommandHandler<RemoveLib
         _logger = logger;
     }
 
+    /// <summary>Deletes the caller's library entry for the given story.</summary>
     public async Task<Unit> Handle(RemoveLibraryEntryCommand request, CancellationToken cancellationToken)
     {
         var userId = _currentUser.GetUserId();
 
+        // The entry must already exist for this user/story.
         var entry = await _libraryEntryRepository.GetAsync(userId, request.StoryId, cancellationToken)
             ?? throw new NotFoundException(ApplicationErrorConstants.LibraryEntryNotFound);
 
+        // Remove and persist.
         _libraryEntryRepository.Remove(entry);
         await _libraryEntryRepository.SaveChangesAsync(cancellationToken);
 

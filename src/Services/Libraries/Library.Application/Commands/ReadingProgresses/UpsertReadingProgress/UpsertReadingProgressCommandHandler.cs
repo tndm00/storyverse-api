@@ -1,5 +1,9 @@
 namespace Library.Application.Commands.ReadingProgresses.UpsertReadingProgress;
 
+/// <summary>
+/// Handles <see cref="UpsertReadingProgressCommand"/> by creating or advancing
+/// the authenticated caller's reading progress for a story.
+/// </summary>
 public sealed class UpsertReadingProgressCommandHandler
     : ICommandHandler<UpsertReadingProgressCommand, ReadingProgressResponseDto>
 {
@@ -17,6 +21,7 @@ public sealed class UpsertReadingProgressCommandHandler
         _logger = logger;
     }
 
+    /// <summary>Creates the progress row on first read, or advances the existing one otherwise.</summary>
     public async Task<ReadingProgressResponseDto> Handle(
         UpsertReadingProgressCommand request,
         CancellationToken cancellationToken)
@@ -26,6 +31,7 @@ public sealed class UpsertReadingProgressCommandHandler
 
         var progress = await _readingProgressRepository.GetAsync(userId, request.StoryId, cancellationToken);
 
+        // No existing progress for this user/story: create a new row.
         if (progress is null)
         {
             progress = new ReadingProgress
@@ -41,6 +47,7 @@ public sealed class UpsertReadingProgressCommandHandler
         }
         else
         {
+            // Advance the existing progress to the new position.
             progress.LastChapterId = request.LastChapterId;
             progress.ScrollPercent = request.ScrollPercent;
             progress.LastReadAt = now;

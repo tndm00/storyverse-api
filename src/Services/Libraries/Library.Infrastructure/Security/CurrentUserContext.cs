@@ -18,11 +18,14 @@ public sealed class CurrentUserContext : ICurrentUserContext
     public bool IsAuthenticated =>
         _httpContextAccessor.HttpContext?.User?.Identity?.IsAuthenticated ?? false;
 
+    /// <summary>Extracts and parses the caller's user id from the JWT <c>sub</c> claim, or throws if missing/invalid.</summary>
     public long GetUserId()
     {
+        // Standard claim name first, falling back to the raw "sub" claim if it was not remapped.
         var subClaim = _httpContextAccessor.HttpContext?.User?.FindFirst(JwtRegisteredClaimNames.Sub)
             ?? _httpContextAccessor.HttpContext?.User?.FindFirst(InfrastructureConstants.SubClaimType);
 
+        // No unauthenticated or malformed callers get past this point.
         if (subClaim is null || !long.TryParse(subClaim.Value, out var userId))
         {
             throw new ForbiddenException(ApplicationErrorConstants.CallerNotAuthenticated);

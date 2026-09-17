@@ -14,6 +14,7 @@ public sealed class LibraryDbContext : DbContext
 
     public DbSet<ReadingProgress> ReadingProgress => Set<ReadingProgress>();
 
+    /// <summary>Applies all <see cref="IEntityTypeConfiguration{TEntity}"/> mappings found in this assembly.</summary>
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);

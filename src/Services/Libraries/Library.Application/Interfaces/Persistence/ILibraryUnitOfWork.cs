@@ -8,6 +8,7 @@ namespace Library.Application.Interfaces.Persistence;
 /// </summary>
 public interface ILibraryUnitOfWork
 {
+    /// <summary>Runs <paramref name="operation"/> inside a single database transaction, committing only if it completes without error.</summary>
     Task ExecuteInTransactionAsync(
         Func<CancellationToken, Task> operation,
         CancellationToken cancellationToken = default);

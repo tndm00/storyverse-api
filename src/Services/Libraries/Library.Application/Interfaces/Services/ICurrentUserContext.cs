@@ -8,6 +8,7 @@ namespace Library.Application.Interfaces.Services;
 /// </summary>
 public interface ICurrentUserContext
 {
+    /// <summary>Whether the current request carries a validated, authenticated caller.</summary>
     bool IsAuthenticated { get; }
 
     /// <summary>

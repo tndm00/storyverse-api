@@ -11,8 +11,10 @@ public sealed class LibraryDbContextFactory : IDesignTimeDbContextFactory<Librar
     private const string FallbackConnectionString =
         "Host=localhost;Port=5432;Database=storyverse_library;Username=postgres;Password=postgres";
 
+    /// <summary>Builds a <see cref="LibraryDbContext"/> for design-time tooling (e.g. <c>dotnet ef</c>).</summary>
     public LibraryDbContext CreateDbContext(string[] args)
     {
+        // Prefer an explicit override so migration SQL can target the right provider/environment.
         var connectionString = Environment.GetEnvironmentVariable("LIBRARY_DB_CONNECTION") ?? FallbackConnectionString;
 
         var options = new DbContextOptionsBuilder<LibraryDbContext>()
