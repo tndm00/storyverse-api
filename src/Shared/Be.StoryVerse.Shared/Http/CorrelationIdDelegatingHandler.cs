@@ -9,15 +9,13 @@ namespace Be.StoryVerse.Shared.Http;
 /// </summary>
 public sealed class CorrelationIdDelegatingHandler : DelegatingHandler
 {
-    public const string HeaderName = "X-Correlation-ID";
-
     protected override Task<HttpResponseMessage> SendAsync(
         HttpRequestMessage request, CancellationToken cancellationToken)
     {
         var correlationId = CorrelationContext.CorrelationId;
-        if (!string.IsNullOrEmpty(correlationId) && !request.Headers.Contains(HeaderName))
+        if (!string.IsNullOrEmpty(correlationId) && !request.Headers.Contains(CorrelationConstants.HeaderName))
         {
-            request.Headers.Add(HeaderName, correlationId);
+            request.Headers.Add(CorrelationConstants.HeaderName, correlationId);
         }
 
         return base.SendAsync(request, cancellationToken);

@@ -11,8 +11,6 @@ namespace Be.StoryVerse.ApiCommon.Middlewares;
 /// </summary>
 public sealed class CorrelationIdMiddleware
 {
-    private const string HeaderName = "X-Correlation-ID";
-
     private readonly RequestDelegate _next;
     private readonly ILogger<CorrelationIdMiddleware> _logger;
 
@@ -24,14 +22,14 @@ public sealed class CorrelationIdMiddleware
 
     public async Task InvokeAsync(HttpContext context)
     {
-        var correlationId = context.Request.Headers.TryGetValue(HeaderName, out var existing)
+        var correlationId = context.Request.Headers.TryGetValue(CorrelationConstants.HeaderName, out var existing)
             && !string.IsNullOrWhiteSpace(existing)
             ? existing.ToString()
             : Guid.NewGuid().ToString();
 
         CorrelationContext.CorrelationId = correlationId;
-        context.Items[HeaderName] = correlationId;
-        context.Response.Headers[HeaderName] = correlationId;
+        context.Items[CorrelationConstants.HeaderName] = correlationId;
+        context.Response.Headers[CorrelationConstants.HeaderName] = correlationId;
 
         using (_logger.BeginScope(new Dictionary<string, object>
         {

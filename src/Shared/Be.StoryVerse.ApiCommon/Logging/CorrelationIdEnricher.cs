@@ -16,6 +16,7 @@ public sealed class CorrelationIdEnricher : ILogEventEnricher
             return;
         }
 
-        logEvent.AddOrUpdateProperty(propertyFactory.CreateProperty("CorrelationId", correlationId));
+        logEvent.AddOrUpdateProperty(
+            propertyFactory.CreateProperty(nameof(ResponseMetaDto.CorrelationId), correlationId));
     }
 }
