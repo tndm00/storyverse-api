@@ -10,10 +10,13 @@ public sealed class ModerationDbContext : DbContext
     {
     }
 
+    /// <summary>The moderation reports table.</summary>
     public DbSet<Report> Reports => Set<Report>();
 
+    /// <summary>The moderation action audit trail table.</summary>
     public DbSet<ModerationAction> ModerationActions => Set<ModerationAction>();
 
+    /// <summary>Applies all <see cref="IEntityTypeConfiguration{TEntity}"/> found in this assembly.</summary>
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);

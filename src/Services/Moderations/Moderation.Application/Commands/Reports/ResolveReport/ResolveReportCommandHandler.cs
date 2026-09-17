@@ -1,5 +1,6 @@
 namespace Moderation.Application.Commands.Reports.ResolveReport;
 
+/// <summary>Handles <see cref="ResolveReportCommand"/>: applies a moderation decision and closes the report.</summary>
 public sealed class ResolveReportCommandHandler : ICommandHandler<ResolveReportCommand, ReportDetailResponseDto>
 {
     private readonly IReportRepository _reportRepository;
@@ -10,6 +11,7 @@ public sealed class ResolveReportCommandHandler : ICommandHandler<ResolveReportC
     private readonly ICommunityModerationClient _communityClient;
     private readonly ILogger<ResolveReportCommandHandler> _logger;
 
+    /// <summary>Creates the handler with the repositories, downstream clients, unit of work, current-user context, and logger it needs.</summary>
     public ResolveReportCommandHandler(
         IReportRepository reportRepository,
         IModerationActionRepository actionRepository,
@@ -28,13 +30,16 @@ public sealed class ResolveReportCommandHandler : ICommandHandler<ResolveReportC
         _logger = logger;
     }
 
+    /// <summary>Resolves a report by applying the moderator's decision and marking the report closed.</summary>
     public async Task<ReportDetailResponseDto> Handle(ResolveReportCommand request, CancellationToken cancellationToken)
     {
         var moderatorUserId = _currentUser.GetUserId();
 
+        // Load the report; fail fast if it doesn't exist.
         var report = await _reportRepository.GetByPublicIdAsync(request.ReportId, cancellationToken)
             ?? throw new NotFoundException(ApplicationErrorConstants.ReportNotFound);
 
+        // A report already closed (resolved/dismissed) cannot be resolved again.
         if (!ReportStatusPolicy.CanClose(report.Status))
         {
             throw new BusinessRuleException(ApplicationErrorConstants.ReportAlreadyClosed);
@@ -57,6 +62,7 @@ public sealed class ResolveReportCommandHandler : ICommandHandler<ResolveReportC
             await ApplyHideDecisionAsync(report, note, cancellationToken);
         }
 
+        // Build the moderation action record documenting the decision.
         var action = new ModerationAction
         {
             ReportId = report.Id,
@@ -68,10 +74,12 @@ public sealed class ResolveReportCommandHandler : ICommandHandler<ResolveReportC
             CreatedAt = now
         };
 
+        // Close the report.
         report.Status = ReportStatus.Resolved;
         report.ResolvedAt = now;
         report.UpdatedAt = now;
 
+        // Persist the new action and the updated report status atomically.
         await _unitOfWork.ExecuteInTransactionAsync(async ct =>
         {
             await _actionRepository.AddAsync(action, ct);
@@ -82,14 +90,17 @@ public sealed class ResolveReportCommandHandler : ICommandHandler<ResolveReportC
         _logger.LogInformation(
             ApplicationLogConstants.ReportResolved, report.Id, action.Action, moderatorUserId, action.Id);
 
+        // Re-fetch the full action history to build the detail response.
         var actions = await _actionRepository.GetByReportIdAsync(report.Id, cancellationToken);
         return ModerationDtoMapper.ToDetail(report, actions);
     }
 
+    /// <summary>Calls the owning service (Content or Community) to hide the reported target before the report is closed.</summary>
     private async Task ApplyHideDecisionAsync(Report report, string reason, CancellationToken cancellationToken)
     {
         try
         {
+            // Route to the correct downstream client based on what kind of content was reported.
             switch (report.TargetType)
             {
                 case ModerationTargetType.Story:
@@ -109,6 +120,7 @@ public sealed class ResolveReportCommandHandler : ICommandHandler<ResolveReportC
         }
         catch (Exception ex)
         {
+            // Downstream call failed: surface as a business error and do not close the report.
             _logger.LogError(
                 ex,
                 ApplicationLogConstants.ReportModerationApplyFailed,

@@ -7,14 +7,17 @@ namespace Moderation.Infrastructure.Configurations;
 /// </summary>
 public sealed class ModerationActionConfiguration : IEntityTypeConfiguration<ModerationAction>
 {
+    /// <summary>Maps <see cref="ModerationAction"/> to its table, indexes, columns, and the restrict-delete FK to <see cref="Report"/>.</summary>
     public void Configure(EntityTypeBuilder<ModerationAction> builder)
     {
+        // Table name/schema and primary key.
         builder.ToTable(
             InfrastructureConstants.ModerationActionsTableName,
             InfrastructureConstants.ModerationSchemaName);
 
         builder.HasKey(x => x.Id);
 
+        // Lookup indexes: public id lookup, by report, by target, by moderator.
         builder.HasIndex(x => x.PublicId).IsUnique();
         builder.HasIndex(x => x.ReportId);
         builder.HasIndex(x => new { x.TargetType, x.TargetId });
@@ -24,6 +27,7 @@ public sealed class ModerationActionConfiguration : IEntityTypeConfiguration<Mod
 
         builder.Property(x => x.ModeratorUserId).IsRequired();
 
+        // Enums are persisted as strings for readability in the database.
         builder.Property(x => x.TargetType)
             .HasConversion<string>()
             .HasMaxLength(InfrastructureConstants.EnumColumnLength)
@@ -41,6 +45,7 @@ public sealed class ModerationActionConfiguration : IEntityTypeConfiguration<Mod
 
         builder.Property(x => x.CreatedAt).IsRequired();
 
+        // Restrict delete: the audit trail must not be removed when a report is deleted.
         builder.HasOne<Report>()
             .WithMany()
             .HasForeignKey(x => x.ReportId)

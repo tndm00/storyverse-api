@@ -43,12 +43,15 @@ public sealed class ContentModerationClient : IContentModerationClient
         _logger = logger;
     }
 
+    /// <summary>Applies a moderation Hide/Show decision to a story via the Content service.</summary>
     public Task SetStoryVisibilityAsync(Guid storyId, bool hidden, string reason, CancellationToken cancellationToken) =>
         PostVisibilityAsync($"v1/stories/{storyId}/moderation-visibility", hidden, reason, cancellationToken);
 
+    /// <summary>Applies a moderation Hide/Show decision to a chapter via the Content service.</summary>
     public Task SetChapterVisibilityAsync(Guid chapterId, bool hidden, string reason, CancellationToken cancellationToken) =>
         PostVisibilityAsync($"v1/chapters/{chapterId}/moderation-visibility", hidden, reason, cancellationToken);
 
+    /// <summary>Posts the visibility change to the given Content service endpoint, tagged with the service token.</summary>
     private async Task PostVisibilityAsync(string path, bool hidden, string reason, CancellationToken cancellationToken)
     {
         if (!_options.IsConfigured)
@@ -68,9 +71,11 @@ public sealed class ContentModerationClient : IContentModerationClient
         response.EnsureSuccessStatusCode();
     }
 
+    /// <summary>Batch-looks-up story/chapter titles by id from the Content service; swallows failures and returns an empty map.</summary>
     public async Task<IReadOnlyDictionary<Guid, string>> GetTitlesAsync(
         ModerationTargetType targetType, IEnumerable<Guid> ids, CancellationToken cancellationToken)
     {
+        // Nothing to look up, or the downstream client isn't configured.
         var idList = ids.Where(id => id != Guid.Empty).Distinct().ToArray();
         if (idList.Length == 0 || !_options.IsConfigured)
         {
@@ -117,6 +122,7 @@ public sealed class CommunityModerationClient : ICommunityModerationClient
         _logger = logger;
     }
 
+    /// <summary>Applies a moderation Hide/Show decision to a comment via the Community service.</summary>
     public async Task SetCommentVisibilityAsync(
         Guid commentId, bool hidden, string reason, CancellationToken cancellationToken)
     {
@@ -137,6 +143,7 @@ public sealed class CommunityModerationClient : ICommunityModerationClient
         response.EnsureSuccessStatusCode();
     }
 
+    /// <summary>Batch-looks-up comment excerpts by id from the Community service; swallows failures and returns an empty map.</summary>
     public async Task<IReadOnlyDictionary<Guid, string>> GetCommentExcerptsAsync(
         IEnumerable<Guid> ids, CancellationToken cancellationToken)
     {
@@ -184,6 +191,7 @@ public sealed class UserDirectoryClient : IUserDirectoryClient
         _logger = logger;
     }
 
+    /// <summary>Batch-looks-up user display names by id from the Authentication service; swallows failures and returns an empty map.</summary>
     public async Task<IReadOnlyDictionary<long, string>> GetDisplayNamesAsync(
         IEnumerable<long> userIds, CancellationToken cancellationToken)
     {

@@ -14,6 +14,7 @@ public sealed class ReportsController : ControllerBase
 {
     private readonly IMediator _mediator;
 
+    /// <summary>Creates the controller with the MediatR dispatcher used to send commands/queries.</summary>
     public ReportsController(IMediator mediator)
     {
         _mediator = mediator;
@@ -66,6 +67,7 @@ public sealed class ReportsController : ControllerBase
         return Ok(ResponseDto<PagedResponseDto<ReportSummaryResponseDto>>.Ok(result));
     }
 
+    /// <summary>Fetches a single report's full detail by id.</summary>
     [HasPermission(StoryVersePermissions.Reports.Review)]
     [HttpGet(ControllerRouteConstants.ReportByIdSegment)]
     [ProducesResponseType(typeof(ResponseDto<ReportDetailResponseDto>), StatusCodes.Status200OK)]

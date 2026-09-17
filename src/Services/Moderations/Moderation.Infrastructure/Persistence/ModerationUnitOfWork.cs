@@ -15,6 +15,7 @@ public sealed class ModerationUnitOfWork : IModerationUnitOfWork
         _dbContext = dbContext;
     }
 
+    /// <summary>Runs <paramref name="operation"/> inside a database transaction via the provider's execution strategy, committing on success.</summary>
     public async Task ExecuteInTransactionAsync(
         Func<CancellationToken, Task> operation,
         CancellationToken cancellationToken = default)
@@ -23,6 +24,7 @@ public sealed class ModerationUnitOfWork : IModerationUnitOfWork
 
         await strategy.ExecuteAsync(async () =>
         {
+            // Transaction is disposed without commit (i.e. rolled back) if operation throws.
             await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
 
             await operation(cancellationToken);

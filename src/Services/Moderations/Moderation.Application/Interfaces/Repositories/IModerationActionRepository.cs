@@ -7,9 +7,12 @@ namespace Moderation.Application.Interfaces.Repositories;
 /// </summary>
 public interface IModerationActionRepository
 {
+    /// <summary>Returns all moderation actions recorded against a report, for its audit trail.</summary>
     Task<IReadOnlyList<ModerationAction>> GetByReportIdAsync(long reportId, CancellationToken cancellationToken = default);
 
+    /// <summary>Queues a new moderation action for insertion.</summary>
     Task AddAsync(ModerationAction action, CancellationToken cancellationToken = default);
 
+    /// <summary>Persists queued changes to the database.</summary>
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

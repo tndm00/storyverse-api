@@ -7,6 +7,7 @@ namespace Moderation.Application.Interfaces.Http;
 /// </summary>
 public interface IUserDirectoryClient
 {
+    /// <summary>Looks up display names for a batch of user ids. Returns an empty map on failure.</summary>
     Task<IReadOnlyDictionary<long, string>> GetDisplayNamesAsync(
         IEnumerable<long> userIds, CancellationToken cancellationToken);
 }

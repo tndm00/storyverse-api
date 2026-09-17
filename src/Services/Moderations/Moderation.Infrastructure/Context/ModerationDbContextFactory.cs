@@ -11,8 +11,10 @@ public sealed class ModerationDbContextFactory : IDesignTimeDbContextFactory<Mod
     private const string FallbackConnectionString =
         "Host=localhost;Port=5432;Database=storyverse_moderation;Username=postgres;Password=postgres";
 
+    /// <summary>Builds a <see cref="ModerationDbContext"/> for design-time tooling (e.g. <c>dotnet ef</c>).</summary>
     public ModerationDbContext CreateDbContext(string[] args)
     {
+        // Prefer the env var override; fall back to the local-dev connection string.
         var connectionString =
             Environment.GetEnvironmentVariable("MODERATION_DB_CONNECTION") ?? FallbackConnectionString;
 

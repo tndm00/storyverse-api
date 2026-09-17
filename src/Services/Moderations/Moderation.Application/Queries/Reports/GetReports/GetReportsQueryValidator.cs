@@ -6,6 +6,7 @@ namespace Moderation.Application.Queries.Reports.GetReports;
 /// </summary>
 public sealed class GetReportsQueryValidator : AbstractValidator<GetReportsQuery>
 {
+    /// <summary>Requires the page number to be positive.</summary>
     public GetReportsQueryValidator()
     {
         RuleFor(x => x.PageNumber)

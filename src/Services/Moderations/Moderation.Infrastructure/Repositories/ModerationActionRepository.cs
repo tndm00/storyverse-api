@@ -1,5 +1,6 @@
 namespace Moderation.Infrastructure.Repositories;
 
+/// <summary>EF Core-backed implementation of <see cref="IModerationActionRepository"/>.</summary>
 public sealed class ModerationActionRepository : IModerationActionRepository
 {
     private readonly ModerationDbContext _dbContext;
@@ -9,6 +10,7 @@ public sealed class ModerationActionRepository : IModerationActionRepository
         _dbContext = dbContext;
     }
 
+    /// <summary>Reads the full action history for a report, oldest first, without change tracking.</summary>
     public async Task<IReadOnlyList<ModerationAction>> GetByReportIdAsync(
         long reportId,
         CancellationToken cancellationToken = default)
@@ -21,11 +23,13 @@ public sealed class ModerationActionRepository : IModerationActionRepository
             .ToListAsync(cancellationToken);
     }
 
+    /// <summary>Stages a new moderation action for insert; not persisted until <see cref="SaveChangesAsync"/> runs.</summary>
     public async Task AddAsync(ModerationAction action, CancellationToken cancellationToken = default)
     {
         await _dbContext.ModerationActions.AddAsync(action, cancellationToken);
     }
 
+    /// <summary>Persists all pending changes tracked by the context.</summary>
     public Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
         return _dbContext.SaveChangesAsync(cancellationToken);

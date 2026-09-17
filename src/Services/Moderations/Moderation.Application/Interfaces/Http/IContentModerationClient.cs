@@ -9,8 +9,10 @@ namespace Moderation.Application.Interfaces.Http;
 /// </summary>
 public interface IContentModerationClient
 {
+    /// <summary>Hides or unhides a story in the Content service. Must succeed or throw before a resolve is committed.</summary>
     Task SetStoryVisibilityAsync(Guid storyId, bool hidden, string reason, CancellationToken cancellationToken);
 
+    /// <summary>Hides or unhides a chapter in the Content service. Must succeed or throw before a resolve is committed.</summary>
     Task SetChapterVisibilityAsync(Guid chapterId, bool hidden, string reason, CancellationToken cancellationToken);
 
     /// <summary>Public id -&gt; title. <paramref name="targetType"/> selects the story or chapter endpoint.</summary>

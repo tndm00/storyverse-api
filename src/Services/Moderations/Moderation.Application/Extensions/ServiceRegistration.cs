@@ -7,6 +7,7 @@ namespace Moderation.Application.Extensions;
 /// </summary>
 public static class ServiceRegistration
 {
+    /// <summary>Registers MediatR, FluentValidation, the validation pipeline behavior, Mapster mappings, and the report enricher.</summary>
     public static IServiceCollection AddApplication(this IServiceCollection services)
     {
         var assembly = Assembly.GetExecutingAssembly();

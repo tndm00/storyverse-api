@@ -7,6 +7,7 @@ namespace Moderation.Application.Mappings;
 /// </summary>
 public static class ModerationDtoMapper
 {
+    /// <summary>Projects a report entity into a queue-listing summary DTO.</summary>
     public static ReportSummaryResponseDto ToSummary(
         Report report, string reporterDisplayName = null, string targetTitle = null)
     {
@@ -25,6 +26,7 @@ public static class ModerationDtoMapper
         };
     }
 
+    /// <summary>Projects a report entity, along with its recorded moderation actions, into a full detail DTO.</summary>
     public static ReportDetailResponseDto ToDetail(
         Report report,
         IReadOnlyList<ModerationAction> actions,
@@ -49,6 +51,7 @@ public static class ModerationDtoMapper
         };
     }
 
+    /// <summary>Projects a single moderation action entity into its response DTO.</summary>
     public static ModerationActionResponseDto ToDto(ModerationAction action)
     {
         return new ModerationActionResponseDto

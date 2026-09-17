@@ -7,6 +7,7 @@ namespace Moderation.Application.Interfaces.Http;
 /// </summary>
 public interface ICommunityModerationClient
 {
+    /// <summary>Hides or unhides a comment in the Community service. Must succeed or throw before a resolve is committed.</summary>
     Task SetCommentVisibilityAsync(Guid commentId, bool hidden, string reason, CancellationToken cancellationToken);
 
     /// <summary>Comment public id -&gt; short content excerpt, for the reports queue summary.</summary>

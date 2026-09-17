@@ -1,5 +1,6 @@
 namespace Moderation.Application.Commands.Reports.DismissReport;
 
+/// <summary>Handles <see cref="DismissReportCommand"/>: closes a report with no action taken against the content.</summary>
 public sealed class DismissReportCommandHandler : ICommandHandler<DismissReportCommand, ReportDetailResponseDto>
 {
     private readonly IReportRepository _reportRepository;
@@ -8,6 +9,7 @@ public sealed class DismissReportCommandHandler : ICommandHandler<DismissReportC
     private readonly ICurrentUserContext _currentUser;
     private readonly ILogger<DismissReportCommandHandler> _logger;
 
+    /// <summary>Creates the handler with the repositories, unit of work, current-user context, and logger it needs.</summary>
     public DismissReportCommandHandler(
         IReportRepository reportRepository,
         IModerationActionRepository actionRepository,
@@ -22,13 +24,16 @@ public sealed class DismissReportCommandHandler : ICommandHandler<DismissReportC
         _logger = logger;
     }
 
+    /// <summary>Dismisses a report: records a <c>Dismiss</c> action and marks the report closed.</summary>
     public async Task<ReportDetailResponseDto> Handle(DismissReportCommand request, CancellationToken cancellationToken)
     {
         var moderatorUserId = _currentUser.GetUserId();
 
+        // Load the report; fail fast if it doesn't exist.
         var report = await _reportRepository.GetByPublicIdAsync(request.ReportId, cancellationToken)
             ?? throw new NotFoundException(ApplicationErrorConstants.ReportNotFound);
 
+        // A report already closed (resolved/dismissed) cannot be dismissed again.
         if (!ReportStatusPolicy.CanClose(report.Status))
         {
             throw new BusinessRuleException(ApplicationErrorConstants.ReportAlreadyClosed);
@@ -36,6 +41,7 @@ public sealed class DismissReportCommandHandler : ICommandHandler<DismissReportC
 
         var now = DateTime.UtcNow;
 
+        // Build the moderation action record documenting the dismissal.
         var action = new ModerationAction
         {
             ReportId = report.Id,
@@ -47,10 +53,12 @@ public sealed class DismissReportCommandHandler : ICommandHandler<DismissReportC
             CreatedAt = now
         };
 
+        // Close the report.
         report.Status = ReportStatus.Dismissed;
         report.ResolvedAt = now;
         report.UpdatedAt = now;
 
+        // Persist the new action and the updated report status atomically.
         await _unitOfWork.ExecuteInTransactionAsync(async ct =>
         {
             await _actionRepository.AddAsync(action, ct);
@@ -61,6 +69,7 @@ public sealed class DismissReportCommandHandler : ICommandHandler<DismissReportC
         _logger.LogInformation(
             ApplicationLogConstants.ReportDismissed, report.Id, moderatorUserId, action.Id);
 
+        // Re-fetch the full action history to build the detail response.
         var actions = await _actionRepository.GetByReportIdAsync(report.Id, cancellationToken);
         return ModerationDtoMapper.ToDetail(report, actions);
     }
