@@ -1,15 +1,21 @@
-# Ships logs from all StoryVerse containers (Docker's default json-file
-# driver) into Elasticsearch. Autodiscovers containers via Docker labels, so
-# no per-service config is needed here or in the services themselves.
+# Ships logs from all containers on this VPS (Docker's default json-file
+# driver) into Elasticsearch. No per-service config needed.
+#
+# Deliberately NOT filtered by com.docker.compose.project — that label is
+# derived from the checkout directory name at deploy time (currently
+# "storyverse-api" on the VPS, since it's cloned into
+# /opt/storyverse/storyverse-api — NOT "story-be-prj", the repo name), so a
+# literal match here would silently break again on any re-clone under a
+# different folder name (this exact bug: filebeat ran for hours with zero
+# harvested files because the project name didn't match). This VPS is
+# dedicated to this project (only extra container is `portainer`), so
+# capturing everything is simpler and never depends on directory naming.
 filebeat.autodiscover:
   providers:
     - type: docker
       hints.enabled: true
       templates:
-        - condition:
-            contains:
-              docker.container.labels.com.docker.compose.project: "story-be-prj"
-          config:
+        - config:
             - type: container
               paths:
                 - "/var/lib/docker/containers/${data.docker.container.id}/*.log"
