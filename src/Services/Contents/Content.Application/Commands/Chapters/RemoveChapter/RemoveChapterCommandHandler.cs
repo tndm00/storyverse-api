@@ -22,10 +22,15 @@ public sealed class RemoveChapterCommandHandler : ICommandHandler<RemoveChapterC
         _logger = logger;
     }
 
+    /// <summary>
+    /// Removes a chapter from public view by its owning author. Requires the
+    /// chapter to be in a removable status.
+    /// </summary>
     public async Task<ChapterDetailResponseDto> Handle(RemoveChapterCommand request, CancellationToken cancellationToken)
     {
         var authorProfileId = _authorContext.GetAuthorProfileId();
 
+        // Look up the chapter and verify the caller owns its story.
         var chapter = await _chapterRepository.GetByPublicIdAsync(request.ChapterId, cancellationToken)
             ?? throw new NotFoundException(ApplicationErrorConstants.ChapterNotFound);
 
@@ -39,6 +44,7 @@ public sealed class RemoveChapterCommandHandler : ICommandHandler<RemoveChapterC
             throw new BusinessRuleException(ApplicationErrorConstants.InvalidChapterStatusTransition);
         }
 
+        // Mark the chapter as removed.
         chapter.Status = ChapterStatus.Removed;
         chapter.UpdatedAt = DateTime.UtcNow;
 
@@ -47,6 +53,7 @@ public sealed class RemoveChapterCommandHandler : ICommandHandler<RemoveChapterC
 
         _logger.LogInformation(ApplicationLogConstants.ChapterRemoved, chapter.Id);
 
+        // Map to the response DTO, resolving the volume's public id if any.
         var volumePublicId = chapter.VolumeId is { } id
             ? (await _volumeRepository.GetByIdAsync(id, cancellationToken))?.PublicId
             : null;

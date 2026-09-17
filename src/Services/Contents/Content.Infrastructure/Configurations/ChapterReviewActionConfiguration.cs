@@ -14,6 +14,10 @@ namespace Content.Infrastructure.Configurations;
 /// </summary>
 public sealed class ChapterReviewActionConfiguration : IEntityTypeConfiguration<ChapterReviewAction>
 {
+    /// <summary>
+    /// Configures the EF Core mapping for <see cref="ChapterReviewAction"/>: table/schema,
+    /// keys, indexes, column constraints and its cascade relationship to <see cref="Chapter"/>.
+    /// </summary>
     public void Configure(EntityTypeBuilder<ChapterReviewAction> builder)
     {
         builder.ToTable(
@@ -22,6 +26,7 @@ public sealed class ChapterReviewActionConfiguration : IEntityTypeConfiguration<
 
         builder.HasKey(x => x.Id);
 
+        // Public id must be unique; chapter/moderator indexes speed up audit-trail lookups.
         builder.HasIndex(x => x.PublicId).IsUnique();
         builder.HasIndex(x => x.ChapterId);
         builder.HasIndex(x => x.ModeratorUserId);
@@ -42,6 +47,7 @@ public sealed class ChapterReviewActionConfiguration : IEntityTypeConfiguration<
 
         builder.Property(x => x.CreatedAt).IsRequired();
 
+        // See class summary for why Cascade is required (and safe) here.
         builder.HasOne<Chapter>()
             .WithMany()
             .HasForeignKey(x => x.ChapterId)

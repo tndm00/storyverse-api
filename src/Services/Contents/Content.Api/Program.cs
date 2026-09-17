@@ -28,13 +28,18 @@ if (app.Environment.IsDevelopment())
     app.UseStoryVerseSwagger();
 }
 
+// Enforce HTTPS for all requests.
 app.UseHttpsRedirection();
 
+// Apply the configured CORS policy.
 app.UseStoryVerseCors();
 
+// Authenticate the caller (JWT) then evaluate authorization policies/permissions.
 app.UseAuthentication();
 app.UseAuthorization();
 
+// Route requests to the versioned API controllers.
 app.MapControllers();
 
+// Start the host and block until shutdown.
 app.Run();

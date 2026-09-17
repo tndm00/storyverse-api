@@ -35,8 +35,14 @@ public sealed class ScheduledChapterPublisher : BackgroundService
         _logger = logger;
     }
 
+    /// <summary>
+    /// Runs the timer loop for the lifetime of the host: on each tick, resolves a
+    /// scoped <see cref="IMediator"/> and sends <see cref="PublishDueChaptersCommand"/>.
+    /// No-op when disabled via config.
+    /// </summary>
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
+        // Feature flag: skip the whole loop when publishing is turned off.
         if (!_options.Enabled)
         {
             _logger.LogInformation(ApplicationLogConstants.ScheduledChapterPublisherDisabled);
@@ -53,6 +59,8 @@ public sealed class ScheduledChapterPublisher : BackgroundService
         {
             try
             {
+                // Each tick gets its own DI scope so the mediator/handler use fresh,
+                // short-lived scoped services (e.g. DbContext) rather than reusing state.
                 using var scope = _scopeFactory.CreateScope();
                 var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
                 await mediator.Send(
@@ -71,6 +79,7 @@ public sealed class ScheduledChapterPublisher : BackgroundService
         while (await SafeWaitAsync(timer, stoppingToken));
     }
 
+    /// <summary>Waits for the next tick, swallowing cancellation so the caller's loop can exit cleanly.</summary>
     private static async Task<bool> SafeWaitAsync(PeriodicTimer timer, CancellationToken stoppingToken)
     {
         try

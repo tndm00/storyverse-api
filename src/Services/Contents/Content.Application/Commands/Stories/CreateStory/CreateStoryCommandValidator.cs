@@ -2,6 +2,7 @@ namespace Content.Application.Commands.Stories.CreateStory;
 
 public sealed class CreateStoryCommandValidator : AbstractValidator<CreateStoryCommand>
 {
+    /// <summary>Validates required story fields and enforces the original-source requirement for translated content.</summary>
     public CreateStoryCommandValidator()
     {
         RuleFor(x => x.Title)

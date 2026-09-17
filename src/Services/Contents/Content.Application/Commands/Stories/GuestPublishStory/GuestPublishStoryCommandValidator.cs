@@ -2,6 +2,7 @@ namespace Content.Application.Commands.Stories.GuestPublishStory;
 
 public sealed class GuestPublishStoryCommandValidator : AbstractValidator<GuestPublishStoryCommand>
 {
+    /// <summary>Validates the guest pen name, title, description, chapter content, and genre selections (exactly one primary, no duplicates).</summary>
     public GuestPublishStoryCommandValidator()
     {
         RuleFor(x => x.GuestPenName)

@@ -2,6 +2,7 @@ namespace Content.Application.Commands.Genres.CreateGenre;
 
 public sealed class CreateGenreCommandValidator : AbstractValidator<CreateGenreCommand>
 {
+    /// <summary>Validates genre name is present and within length limits.</summary>
     public CreateGenreCommandValidator()
     {
         RuleFor(x => x.Name)

@@ -12,6 +12,7 @@ public sealed class VolumesController : ControllerBase
         _mediator = mediator;
     }
 
+    /// <summary>Author edits a volume's title or order index.</summary>
     [Authorize]
     [HttpPut(ControllerRouteConstants.VolumeByIdSegment)]
     [ProducesResponseType(typeof(ResponseDto<VolumeResponseDto>), StatusCodes.Status200OK)]

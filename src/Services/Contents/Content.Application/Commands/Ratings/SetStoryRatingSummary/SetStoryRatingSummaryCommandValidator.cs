@@ -2,6 +2,7 @@ namespace Content.Application.Commands.Ratings.SetStoryRatingSummary;
 
 public sealed class SetStoryRatingSummaryCommandValidator : AbstractValidator<SetStoryRatingSummaryCommand>
 {
+    /// <summary>Validates the story id and that the rating aggregate values are within range.</summary>
     public SetStoryRatingSummaryCommandValidator()
     {
         RuleFor(x => x.StoryId).NotEmpty();

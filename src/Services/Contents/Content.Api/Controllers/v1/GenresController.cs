@@ -16,6 +16,7 @@ public sealed class GenresController : ControllerBase
         _mediator = mediator;
     }
 
+    /// <summary>Lists genres. Inactive (hidden) genres are excluded unless requested.</summary>
     [AllowAnonymous]
     [HttpGet]
     [ProducesResponseType(typeof(ResponseDto<IReadOnlyList<GenreResponseDto>>), StatusCodes.Status200OK)]
@@ -30,6 +31,7 @@ public sealed class GenresController : ControllerBase
         return Ok(ResponseDto<IReadOnlyList<GenreResponseDto>>.Ok(result));
     }
 
+    /// <summary>Creates a new genre.</summary>
     [HasPermission(StoryVersePermissions.Genres.Manage)]
     [HttpPost]
     [ProducesResponseType(typeof(ResponseDto<GenreResponseDto>), StatusCodes.Status201Created)]
@@ -47,6 +49,7 @@ public sealed class GenresController : ControllerBase
         return StatusCode(StatusCodes.Status201Created, ResponseDto<GenreResponseDto>.Ok(result));
     }
 
+    /// <summary>Updates a genre's name, description, display order, or active state.</summary>
     [HasPermission(StoryVersePermissions.Genres.Manage)]
     [HttpPut(ControllerRouteConstants.GenreBySlugSegment)]
     [ProducesResponseType(typeof(ResponseDto<GenreResponseDto>), StatusCodes.Status200OK)]
@@ -69,6 +72,7 @@ public sealed class GenresController : ControllerBase
         return Ok(ResponseDto<GenreResponseDto>.Ok(result));
     }
 
+    /// <summary>Toggles a genre's active/hidden state (soft-hide, no deletion).</summary>
     [HasPermission(StoryVersePermissions.Genres.Manage)]
     [HttpPost(ControllerRouteConstants.GenreHideSegment)]
     [ProducesResponseType(typeof(ResponseDto<GenreResponseDto>), StatusCodes.Status200OK)]

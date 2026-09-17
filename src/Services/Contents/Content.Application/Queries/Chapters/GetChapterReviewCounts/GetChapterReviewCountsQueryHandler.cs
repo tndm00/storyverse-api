@@ -10,6 +10,7 @@ public sealed class GetChapterReviewCountsQueryHandler
         _chapterRepository = chapterRepository;
     }
 
+    /// <summary>Returns the aggregate chapter counts per review status for the moderation dashboard.</summary>
     public async Task<ChapterReviewCountsResponseDto> Handle(
         GetChapterReviewCountsQuery request,
         CancellationToken cancellationToken)

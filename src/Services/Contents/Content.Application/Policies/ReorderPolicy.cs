@@ -7,15 +7,21 @@ namespace Content.Application.Policies;
 /// </summary>
 public static class ReorderPolicy
 {
+    /// <summary>
+    /// Validates that <paramref name="requested"/> contains no duplicates and
+    /// matches <paramref name="actual"/> exactly (no missing or extra ids).
+    /// </summary>
     public static void EnsureExactMatch(IReadOnlyList<Guid> requested, IReadOnlyCollection<Guid> actual)
     {
         var requestedSet = new HashSet<Guid>(requested);
 
+        // Deduping via the set reveals whether the caller sent the same id twice.
         if (requestedSet.Count != requested.Count)
         {
             throw new BusinessRuleException(ApplicationErrorConstants.ReorderDuplicateIds);
         }
 
+        // The requested ids must be exactly the set being reordered - no omissions, no extras.
         if (!requestedSet.SetEquals(actual))
         {
             throw new BusinessRuleException(ApplicationErrorConstants.ReorderSetMismatch);

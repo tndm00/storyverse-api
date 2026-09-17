@@ -7,12 +7,17 @@ namespace Content.Infrastructure.Configurations;
 /// </summary>
 public sealed class StoryConfiguration : IEntityTypeConfiguration<Story>
 {
+    /// <summary>
+    /// Configures the EF Core mapping for <see cref="Story"/>: table/schema, keys, indexes,
+    /// column constraints and the owned Genres/Tags relationships.
+    /// </summary>
     public void Configure(EntityTypeBuilder<Story> builder)
     {
         builder.ToTable(InfrastructureConstants.StoriesTableName, InfrastructureConstants.ContentSchemaName);
 
         builder.HasKey(x => x.Id);
 
+        // Public id and slug must be unique; author/status indexes speed up common listing queries.
         builder.HasIndex(x => x.PublicId).IsUnique();
         builder.HasIndex(x => x.Slug).IsUnique();
         builder.HasIndex(x => x.AuthorProfileId);
@@ -64,6 +69,7 @@ public sealed class StoryConfiguration : IEntityTypeConfiguration<Story>
 
         builder.Property(x => x.CreatedAt).IsRequired();
 
+        // Genre/tag links are owned by the story and removed along with it.
         builder.HasMany(x => x.Genres)
             .WithOne()
             .HasForeignKey(x => x.StoryId)

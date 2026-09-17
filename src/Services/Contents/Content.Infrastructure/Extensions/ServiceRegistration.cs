@@ -7,8 +7,14 @@ namespace Content.Infrastructure.Extensions;
 /// </summary>
 public static class ServiceRegistration
 {
+    /// <summary>
+    /// Registers the Content service's Infrastructure-layer dependencies: the EF Core
+    /// DbContext, repositories/unit of work, the Elasticsearch search service, and the
+    /// outbound HTTP clients to the Notification and Authentication services.
+    /// </summary>
     public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
     {
+        // Wire up the Content database via Npgsql.
         var connectionString = configuration.GetConnectionString(InfrastructureConstants.ConnectionStringName);
 
         services.AddDbContext<ContentDbContext>(options =>
@@ -72,6 +78,10 @@ public static class ServiceRegistration
         return services;
     }
 
+    /// <summary>
+    /// Sets the HTTP client's base address, ensuring a trailing slash so relative
+    /// request URIs resolve correctly. No-ops when no base URL is configured.
+    /// </summary>
     private static void SetBaseAddress(System.Net.Http.HttpClient client, string baseUrl)
     {
         if (string.IsNullOrWhiteSpace(baseUrl))
@@ -82,9 +92,14 @@ public static class ServiceRegistration
         client.BaseAddress = new Uri(baseUrl.EndsWith('/') ? baseUrl : baseUrl + "/");
     }
 
+    /// <summary>
+    /// Builds the primary HTTP message handler for an inter-service client, optionally
+    /// bypassing server certificate validation for local/dev environments.
+    /// </summary>
     private static System.Net.Http.HttpMessageHandler BuildHandler(bool acceptAnyServerCertificate)
     {
         var handler = new System.Net.Http.HttpClientHandler();
+        // Only meant for local/dev setups with self-signed certificates.
         if (acceptAnyServerCertificate)
         {
             handler.ServerCertificateCustomValidationCallback =

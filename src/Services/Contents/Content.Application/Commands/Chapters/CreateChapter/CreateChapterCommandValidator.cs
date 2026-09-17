@@ -2,6 +2,10 @@ namespace Content.Application.Commands.Chapters.CreateChapter;
 
 public sealed class CreateChapterCommandValidator : AbstractValidator<CreateChapterCommand>
 {
+    /// <summary>
+    /// Requires a story id, a non-empty title within the max length, non-empty
+    /// content, and a non-negative order index.
+    /// </summary>
     public CreateChapterCommandValidator()
     {
         RuleFor(x => x.StoryId).NotEmpty();

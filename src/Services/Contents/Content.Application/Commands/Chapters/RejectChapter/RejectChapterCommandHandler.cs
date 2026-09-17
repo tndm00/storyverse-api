@@ -34,10 +34,14 @@ public sealed class RejectChapterCommandHandler : ICommandHandler<RejectChapterC
         _logger = logger;
     }
 
+    /// <summary>
+    /// Rejects a chapter in review, recording the reason and notifying the author.
+    /// </summary>
     public async Task<ChapterDetailResponseDto> Handle(RejectChapterCommand request, CancellationToken cancellationToken)
     {
         var moderatorUserId = _currentUser.GetUserId();
 
+        // Look up the chapter and ensure it is currently eligible for rejection.
         var chapter = await _chapterRepository.GetByPublicIdAsync(request.ChapterId, cancellationToken)
             ?? throw new NotFoundException(ApplicationErrorConstants.ChapterNotFound);
 
@@ -126,6 +130,9 @@ public sealed class RejectChapterCommandHandler : ICommandHandler<RejectChapterC
         }
     }
 
+    /// <summary>
+    /// Resolves a volume's public id from its internal id, if the chapter belongs to one.
+    /// </summary>
     private async Task<Guid?> ResolveVolumePublicIdAsync(long? volumeId, CancellationToken cancellationToken)
     {
         if (volumeId is not { } id)

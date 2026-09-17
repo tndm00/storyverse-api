@@ -29,6 +29,10 @@ public sealed class QuickPublishStoryCommandHandler
         _logger = logger;
     }
 
+    /// <summary>
+    /// Creates a story with its genres/tags and its first chapter in a single transaction, guarding against
+    /// duplicate quick-publish submissions of the same title by the same author.
+    /// </summary>
     public async Task<QuickPublishStoryResultDto> Handle(
         QuickPublishStoryCommand request,
         CancellationToken cancellationToken)
@@ -67,12 +71,14 @@ public sealed class QuickPublishStoryCommandHandler
 
             await _storyRepository.AddAsync(story, ct);
 
+            // Validate and attach the requested genres and tags to the new story.
             ApplyGenres(story, await ResolveGenresAsync(request.Genres, ct), request.Genres);
             ApplyTags(story, await ResolveTagsAsync(request.Tags, ct));
 
             // Save #1: persist the story + its genre/tag rows so the chapter FK resolves.
             await _storyRepository.SaveChangesAsync(ct);
 
+            // Place the first chapter after any existing ones (none, in practice, for a brand-new story).
             var orderIndex = (await _chapterRepository.GetMaxOrderIndexAsync(story.Id, ct) ?? 0m)
                 + ApplicationConstants.ChapterOrderIndexGap;
 
@@ -112,14 +118,17 @@ public sealed class QuickPublishStoryCommandHandler
         };
     }
 
+    /// <summary>Generates a URL-safe slug from the title and appends a numeric suffix until it no longer collides with an existing story.</summary>
     private async Task<string> BuildUniqueSlugAsync(string title, CancellationToken cancellationToken)
     {
+        // Fall back to a random slug if the title yields nothing usable.
         var baseSlug = SlugGenerator.Generate(title);
         if (string.IsNullOrEmpty(baseSlug))
         {
             baseSlug = Guid.NewGuid().ToString("n")[..8];
         }
 
+        // Keep incrementing the suffix until a non-colliding slug is found.
         var candidate = baseSlug;
         var suffix = 2;
         while (await _storyRepository.SlugExistsAsync(candidate, cancellationToken))
@@ -131,6 +140,7 @@ public sealed class QuickPublishStoryCommandHandler
         return candidate;
     }
 
+    /// <summary>Looks up the requested genres by slug and ensures every one of them exists and is active.</summary>
     private async Task<IReadOnlyDictionary<string, Genre>> ResolveGenresAsync(
         IReadOnlyList<StoryGenreSelection> selections,
         CancellationToken cancellationToken)
@@ -139,6 +149,7 @@ public sealed class QuickPublishStoryCommandHandler
             .Select(g => g.GenreSlug.Trim().ToLowerInvariant())
             .ToArray();
 
+        // All requested genres must exist and be active.
         var activeGenres = await _genreRepository.GetActiveBySlugsAsync(slugs, cancellationToken);
         if (activeGenres.Count != slugs.Length)
         {
@@ -148,6 +159,7 @@ public sealed class QuickPublishStoryCommandHandler
         return activeGenres.ToDictionary(g => g.Slug, StringComparer.OrdinalIgnoreCase);
     }
 
+    /// <summary>Attaches the resolved genres to the story, preserving each selection's primary flag.</summary>
     private static void ApplyGenres(
         Story story,
         IReadOnlyDictionary<string, Genre> genreBySlug,
@@ -166,6 +178,7 @@ public sealed class QuickPublishStoryCommandHandler
         }
     }
 
+    /// <summary>Normalizes the requested tag names into unique slugs and resolves them to existing or newly created tags.</summary>
     private async Task<IReadOnlyList<Tag>> ResolveTagsAsync(
         IReadOnlyList<string> tagNames,
         CancellationToken cancellationToken)
@@ -182,6 +195,7 @@ public sealed class QuickPublishStoryCommandHandler
             : (await _tagRepository.GetOrCreateBySlugAsync(normalized, cancellationToken)).ToArray();
     }
 
+    /// <summary>Attaches the resolved tags to the story and bumps each tag's usage counter.</summary>
     private static void ApplyTags(Story story, IReadOnlyList<Tag> tags)
     {
         foreach (var tag in tags)

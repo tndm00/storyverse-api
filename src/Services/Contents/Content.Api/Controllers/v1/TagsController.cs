@@ -12,6 +12,7 @@ public sealed class TagsController : ControllerBase
         _mediator = mediator;
     }
 
+    /// <summary>Lists the most-used tags, up to an optional count (defaults applied by the query).</summary>
     [AllowAnonymous]
     [HttpGet]
     [ProducesResponseType(typeof(ResponseDto<IReadOnlyList<TagResponseDto>>), StatusCodes.Status200OK)]

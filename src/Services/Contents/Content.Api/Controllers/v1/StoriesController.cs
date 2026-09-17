@@ -152,6 +152,7 @@ public sealed class StoriesController : ControllerBase
         return Ok(ResponseDto<PagedResponseDto<StorySummaryResponseDto>>.Ok(result));
     }
 
+    /// <summary>Public story detail, looked up by its slug.</summary>
     [AllowAnonymous]
     [HttpGet(ControllerRouteConstants.StoryBySlugSegment)]
     [ProducesResponseType(typeof(ResponseDto<StoryDetailResponseDto>), StatusCodes.Status200OK)]
@@ -162,6 +163,7 @@ public sealed class StoriesController : ControllerBase
         return Ok(ResponseDto<StoryDetailResponseDto>.Ok(result));
     }
 
+    /// <summary>Public story detail, looked up by its id.</summary>
     [AllowAnonymous]
     [HttpGet(ControllerRouteConstants.StoryByIdSegment)]
     [ProducesResponseType(typeof(ResponseDto<StoryDetailResponseDto>), StatusCodes.Status200OK)]
@@ -233,6 +235,7 @@ public sealed class StoriesController : ControllerBase
         return StatusCode(StatusCodes.Status201Created, ResponseDto<StoryDetailResponseDto>.Ok(result));
     }
 
+    /// <summary>Creates a new Draft story, without any chapter yet.</summary>
     [Authorize]
     [HttpPost]
     [ProducesResponseType(typeof(ResponseDto<StoryDetailResponseDto>), StatusCodes.Status201Created)]
@@ -254,6 +257,7 @@ public sealed class StoriesController : ControllerBase
         return StatusCode(StatusCodes.Status201Created, ResponseDto<StoryDetailResponseDto>.Ok(result));
     }
 
+    /// <summary>Author edits a story's metadata (title, description, cover, etc.).</summary>
     [Authorize]
     [HttpPut(ControllerRouteConstants.StoryByIdSegment)]
     [ProducesResponseType(typeof(ResponseDto<StoryDetailResponseDto>), StatusCodes.Status200OK)]
@@ -295,6 +299,7 @@ public sealed class StoriesController : ControllerBase
         return NoContent();
     }
 
+    /// <summary>Replaces the full set of genres assigned to a story.</summary>
     [Authorize]
     [HttpPut(ControllerRouteConstants.StoryGenresSegment)]
     [ProducesResponseType(typeof(ResponseDto<StoryDetailResponseDto>), StatusCodes.Status200OK)]
@@ -316,6 +321,7 @@ public sealed class StoriesController : ControllerBase
         return Ok(ResponseDto<StoryDetailResponseDto>.Ok(result));
     }
 
+    /// <summary>Replaces the full set of free-form tags assigned to a story.</summary>
     [Authorize]
     [HttpPut(ControllerRouteConstants.StoryTagsSegment)]
     [ProducesResponseType(typeof(ResponseDto<StoryDetailResponseDto>), StatusCodes.Status200OK)]
@@ -331,6 +337,7 @@ public sealed class StoriesController : ControllerBase
         return Ok(ResponseDto<StoryDetailResponseDto>.Ok(result));
     }
 
+    /// <summary>Transitions a story to a new lifecycle status (e.g. Draft -&gt; Ongoing).</summary>
     [Authorize]
     [HttpPost(ControllerRouteConstants.StoryStatusSegment)]
     [ProducesResponseType(typeof(ResponseDto<StoryDetailResponseDto>), StatusCodes.Status200OK)]
@@ -346,6 +353,7 @@ public sealed class StoriesController : ControllerBase
         return Ok(ResponseDto<StoryDetailResponseDto>.Ok(result));
     }
 
+    /// <summary>Lists a story's volumes.</summary>
     [AllowAnonymous]
     [HttpGet(ControllerRouteConstants.StoryVolumesSegment)]
     [ProducesResponseType(typeof(ResponseDto<IReadOnlyList<VolumeResponseDto>>), StatusCodes.Status200OK)]
@@ -356,6 +364,7 @@ public sealed class StoriesController : ControllerBase
         return Ok(ResponseDto<IReadOnlyList<VolumeResponseDto>>.Ok(result));
     }
 
+    /// <summary>Adds a new volume to a story.</summary>
     [Authorize]
     [HttpPost(ControllerRouteConstants.StoryVolumesSegment)]
     [ProducesResponseType(typeof(ResponseDto<VolumeResponseDto>), StatusCodes.Status201Created)]
@@ -419,6 +428,7 @@ public sealed class StoriesController : ControllerBase
         return Ok(ResponseDto<IReadOnlyList<ChapterSummaryResponseDto>>.Ok(result));
     }
 
+    /// <summary>Lists a story's chapters (published visibility rules applied by the handler).</summary>
     [AllowAnonymous]
     [HttpGet(ControllerRouteConstants.StoryChaptersSegment)]
     [ProducesResponseType(typeof(ResponseDto<IReadOnlyList<ChapterSummaryResponseDto>>), StatusCodes.Status200OK)]
@@ -429,6 +439,7 @@ public sealed class StoriesController : ControllerBase
         return Ok(ResponseDto<IReadOnlyList<ChapterSummaryResponseDto>>.Ok(result));
     }
 
+    /// <summary>Adds a new chapter to a story, optionally publishing it immediately.</summary>
     [Authorize]
     [HttpPost(ControllerRouteConstants.StoryChaptersSegment)]
     [ProducesResponseType(typeof(ResponseDto<ChapterDetailResponseDto>), StatusCodes.Status201Created)]

@@ -20,10 +20,16 @@ namespace Content.Api.Security;
 [AttributeUsage(AttributeTargets.Method | AttributeTargets.Class)]
 public sealed class ServiceOrUserAuthorizeAttribute : Attribute, IAsyncActionFilter
 {
+    /// <summary>
+    /// Allows the request through when the caller is either an authenticated
+    /// user (valid JWT) or presents the correct <c>X-Service-Token</c> header;
+    /// otherwise short-circuits the pipeline with 401.
+    /// </summary>
     public async Task OnActionExecutionAsync(ActionExecutingContext context, ActionExecutionDelegate next)
     {
         var http = context.HttpContext;
 
+        // Already-authenticated user (valid JWT) is let through as-is.
         if (http.User?.Identity?.IsAuthenticated ?? false)
         {
             await next();
@@ -33,6 +39,8 @@ public sealed class ServiceOrUserAuthorizeAttribute : Attribute, IAsyncActionFil
         var configuredToken = http.RequestServices
             .GetRequiredService<IOptions<ServiceAuthOptions>>().Value.Token;
 
+        // Otherwise fall back to the shared service token header, compared in
+        // fixed time to avoid leaking its value via a timing side channel.
         if (!string.IsNullOrEmpty(configuredToken)
             && http.Request.Headers.TryGetValue(ServiceAuthConstants.HeaderName, out var provided)
             && FixedTimeEquals(provided.ToString(), configuredToken))
@@ -41,9 +49,11 @@ public sealed class ServiceOrUserAuthorizeAttribute : Attribute, IAsyncActionFil
             return;
         }
 
+        // Neither check passed: reject the request.
         context.Result = new UnauthorizedResult();
     }
 
+    /// <summary>Constant-time string equality check, to prevent timing attacks on the service token.</summary>
     private static bool FixedTimeEquals(string a, string b)
     {
         var ba = Encoding.UTF8.GetBytes(a);

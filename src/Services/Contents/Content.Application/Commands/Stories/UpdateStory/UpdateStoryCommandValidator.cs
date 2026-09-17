@@ -2,6 +2,7 @@ namespace Content.Application.Commands.Stories.UpdateStory;
 
 public sealed class UpdateStoryCommandValidator : AbstractValidator<UpdateStoryCommand>
 {
+    /// <summary>Validates required story fields and enforces the original-source requirement for translated content.</summary>
     public UpdateStoryCommandValidator()
     {
         RuleFor(x => x.StoryId).NotEmpty();

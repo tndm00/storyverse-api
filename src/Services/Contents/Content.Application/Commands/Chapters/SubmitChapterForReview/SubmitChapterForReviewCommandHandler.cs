@@ -23,12 +23,17 @@ public sealed class SubmitChapterForReviewCommandHandler
         _logger = logger;
     }
 
+    /// <summary>
+    /// Submits a draft or rejected chapter to the moderation queue. Requires the
+    /// caller to own the parent story and the story to have exactly one primary genre.
+    /// </summary>
     public async Task<ChapterDetailResponseDto> Handle(
         SubmitChapterForReviewCommand request,
         CancellationToken cancellationToken)
     {
         var authorProfileId = _authorContext.GetAuthorProfileId();
 
+        // Look up the chapter and verify the caller owns its story.
         var chapter = await _chapterRepository.GetByPublicIdAsync(request.ChapterId, cancellationToken)
             ?? throw new NotFoundException(ApplicationErrorConstants.ChapterNotFound);
 
@@ -42,11 +47,13 @@ public sealed class SubmitChapterForReviewCommandHandler
             throw new BusinessRuleException(ApplicationErrorConstants.InvalidChapterStatusTransition);
         }
 
+        // A story must carry exactly one primary genre before it can go public.
         if (!await _storyRepository.HasExactlyOnePrimaryGenreAsync(story.Id, cancellationToken))
         {
             throw new BusinessRuleException(ApplicationErrorConstants.PrimaryGenreRequired);
         }
 
+        // Move the chapter into the moderation queue, clearing stale rejection/schedule state.
         chapter.Status = ChapterStatus.PendingReview;
         chapter.RejectionReason = null;
         chapter.ScheduledAt = null;
@@ -61,6 +68,9 @@ public sealed class SubmitChapterForReviewCommandHandler
         return ContentDtoMapper.ToDetail(chapter, story.PublicId, volumePublicId);
     }
 
+    /// <summary>
+    /// Resolves a volume's public id from its internal id, if the chapter belongs to one.
+    /// </summary>
     private async Task<Guid?> ResolveVolumePublicIdAsync(long? volumeId, CancellationToken cancellationToken)
     {
         if (volumeId is not { } id)

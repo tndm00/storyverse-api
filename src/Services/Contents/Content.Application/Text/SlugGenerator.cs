@@ -9,6 +9,7 @@ public static class SlugGenerator
     private static readonly Regex NonSlugChars = new("[^a-z0-9]+", RegexOptions.Compiled);
     private static readonly Regex EdgeSeparators = new("^-+|-+$", RegexOptions.Compiled);
 
+    /// <summary>Converts a title into a lowercase, hyphenated, ASCII-only slug.</summary>
     public static string Generate(string value)
     {
         if (string.IsNullOrWhiteSpace(value))
@@ -23,6 +24,7 @@ public static class SlugGenerator
             .Replace('Đ', 'd')
             .Normalize(NormalizationForm.FormD);
 
+        // Strip diacritical marks left over after Unicode decomposition.
         var builder = new StringBuilder(normalized.Length);
         foreach (var ch in normalized)
         {
@@ -32,6 +34,8 @@ public static class SlugGenerator
             }
         }
 
+        // Recompose, lowercase, then collapse any remaining non-alphanumeric runs
+        // into single hyphens and trim leading/trailing hyphens.
         var ascii = builder.ToString().Normalize(NormalizationForm.FormC).ToLowerInvariant();
         var slug = NonSlugChars.Replace(ascii, "-");
         return EdgeSeparators.Replace(slug, string.Empty);

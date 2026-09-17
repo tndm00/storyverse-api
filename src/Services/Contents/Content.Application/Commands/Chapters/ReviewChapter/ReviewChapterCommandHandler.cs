@@ -28,10 +28,15 @@ public sealed class ReviewChapterCommandHandler : ICommandHandler<ReviewChapterC
         _logger = logger;
     }
 
+    /// <summary>
+    /// Moves a chapter from the pending-review queue into active review by a
+    /// moderator, recording the action alongside the status change.
+    /// </summary>
     public async Task<ChapterDetailResponseDto> Handle(ReviewChapterCommand request, CancellationToken cancellationToken)
     {
         var moderatorUserId = _currentUser.GetUserId();
 
+        // Look up the chapter and ensure it is currently eligible to start review.
         var chapter = await _chapterRepository.GetByPublicIdAsync(request.ChapterId, cancellationToken)
             ?? throw new NotFoundException(ApplicationErrorConstants.ChapterNotFound);
 
@@ -42,6 +47,7 @@ public sealed class ReviewChapterCommandHandler : ICommandHandler<ReviewChapterC
 
         var now = DateTime.UtcNow;
 
+        // Move the chapter into active review.
         chapter.Status = ChapterStatus.InReview;
         chapter.UpdatedAt = now;
         _chapterRepository.Update(chapter);
@@ -64,11 +70,15 @@ public sealed class ReviewChapterCommandHandler : ICommandHandler<ReviewChapterC
 
         _logger.LogInformation(ApplicationLogConstants.ChapterReviewStarted, chapter.Id, moderatorUserId);
 
+        // Map to the response DTO, resolving the volume's public id if any.
         var story = await _storyRepository.GetByIdAsync(chapter.StoryId, cancellationToken);
         var volumePublicId = await ResolveVolumePublicIdAsync(chapter.VolumeId, cancellationToken);
         return ContentDtoMapper.ToDetail(chapter, story.PublicId, volumePublicId);
     }
 
+    /// <summary>
+    /// Resolves a volume's public id from its internal id, if the chapter belongs to one.
+    /// </summary>
     private async Task<Guid?> ResolveVolumePublicIdAsync(long? volumeId, CancellationToken cancellationToken)
     {
         if (volumeId is not { } id)

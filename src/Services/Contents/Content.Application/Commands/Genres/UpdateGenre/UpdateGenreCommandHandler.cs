@@ -6,17 +6,21 @@ public sealed class UpdateGenreCommandHandler : ICommandHandler<UpdateGenreComma
     private readonly IGenreRepository _genreRepository;
     private readonly ILogger<UpdateGenreCommandHandler> _logger;
 
+    /// <summary>Initializes the handler with the genre repository and logger it depends on.</summary>
     public UpdateGenreCommandHandler(IGenreRepository genreRepository, ILogger<UpdateGenreCommandHandler> logger)
     {
         _genreRepository = genreRepository;
         _logger = logger;
     }
 
+    /// <summary>Updates a genre's editable fields by slug; the slug itself never changes.</summary>
     public async Task<GenreResponseDto> Handle(UpdateGenreCommand request, CancellationToken cancellationToken)
     {
+        // Look up the genre by its immutable slug.
         var genre = await _genreRepository.GetBySlugAsync(request.Slug, cancellationToken)
             ?? throw new NotFoundException(ApplicationErrorConstants.GenreNotFound);
 
+        // Re-check name uniqueness only when the name actually changed.
         var name = request.Name.Trim();
         if (!string.Equals(name, genre.Name, StringComparison.Ordinal)
             && await _genreRepository.NameExistsAsync(name, cancellationToken))
@@ -30,6 +34,7 @@ public sealed class UpdateGenreCommandHandler : ICommandHandler<UpdateGenreComma
         genre.IsActive = request.IsActive;
         genre.UpdatedAt = DateTime.UtcNow;
 
+        // Persist the changes.
         _genreRepository.Update(genre);
         await _genreRepository.SaveChangesAsync(cancellationToken);
 

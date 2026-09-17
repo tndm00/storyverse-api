@@ -28,6 +28,10 @@ public sealed class ContentDbContext : DbContext
 
     public DbSet<SearchSyncCursor> SearchSyncCursors => Set<SearchSyncCursor>();
 
+    /// <summary>
+    /// Applies all <see cref="IEntityTypeConfiguration{TEntity}"/> classes found in this
+    /// assembly to the model, so table/column/index mapping stays out of this context.
+    /// </summary>
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);

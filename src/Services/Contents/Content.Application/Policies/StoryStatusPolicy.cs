@@ -16,6 +16,7 @@ public static class StoryStatusPolicy
         (StoryStatus.Hiatus, StoryStatus.Dropped)
     };
 
+    /// <summary>Whether a manual status change from <paramref name="from"/> to <paramref name="to"/> is allowed.</summary>
     public static bool CanTransitionManually(StoryStatus from, StoryStatus to)
     {
         return from != to && AllowedManualTransitions.Contains((from, to));

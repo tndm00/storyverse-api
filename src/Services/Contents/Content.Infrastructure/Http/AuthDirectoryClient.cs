@@ -29,8 +29,14 @@ public sealed class AuthDirectoryClient : IAuthorDirectoryClient
         _logger = logger;
     }
 
+    /// <summary>
+    /// Resolves an AuthorProfile id to its owning user id via the Authentication service's
+    /// internal lookup endpoint. Returns <c>null</c> when the Auth API is not configured,
+    /// the profile is not found, or the lookup response has no data.
+    /// </summary>
     public async Task<long?> GetAuthorUserIdAsync(long authorProfileId, CancellationToken cancellationToken)
     {
+        // Auth API not configured: short-circuit rather than fail approve/reject flows.
         if (string.IsNullOrWhiteSpace(_options.BaseUrl) || string.IsNullOrWhiteSpace(_options.ServiceToken))
         {
             _logger.LogWarning(
@@ -39,12 +45,14 @@ public sealed class AuthDirectoryClient : IAuthorDirectoryClient
             return null;
         }
 
+        // Call the internal lookup endpoint, authenticating with the shared service token.
         using var request = new HttpRequestMessage(
             HttpMethod.Get, $"v1/auth/internal/author-profiles/{authorProfileId}");
         request.Headers.Add(ServiceAuthConstants.HeaderName, _options.ServiceToken);
 
         using var response = await _httpClient.SendAsync(request, cancellationToken);
 
+        // No matching author profile.
         if (response.StatusCode == HttpStatusCode.NotFound)
         {
             return null;
@@ -52,6 +60,7 @@ public sealed class AuthDirectoryClient : IAuthorDirectoryClient
 
         response.EnsureSuccessStatusCode();
 
+        // Unwrap the envelope to get the resolved user id.
         var envelope = await response.Content.ReadFromJsonAsync<LookupEnvelope>(cancellationToken);
         return envelope?.Data?.UserId;
     }

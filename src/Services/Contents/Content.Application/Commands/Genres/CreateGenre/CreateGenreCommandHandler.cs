@@ -6,16 +6,19 @@ public sealed class CreateGenreCommandHandler : ICommandHandler<CreateGenreComma
     private readonly IGenreRepository _genreRepository;
     private readonly ILogger<CreateGenreCommandHandler> _logger;
 
+    /// <summary>Initializes the handler with the genre repository and logger it depends on.</summary>
     public CreateGenreCommandHandler(IGenreRepository genreRepository, ILogger<CreateGenreCommandHandler> logger)
     {
         _genreRepository = genreRepository;
         _logger = logger;
     }
 
+    /// <summary>Creates a new genre with a unique name and a slug derived from it.</summary>
     public async Task<GenreResponseDto> Handle(CreateGenreCommand request, CancellationToken cancellationToken)
     {
         var name = request.Name.Trim();
 
+        // Enforce name uniqueness across the taxonomy.
         if (await _genreRepository.NameExistsAsync(name, cancellationToken))
         {
             throw new ConflictException(ApplicationErrorConstants.GenreNameAlreadyUsed);
@@ -30,6 +33,7 @@ public sealed class CreateGenreCommandHandler : ICommandHandler<CreateGenreComma
             IsActive = true
         };
 
+        // Persist the new genre.
         await _genreRepository.AddAsync(genre, cancellationToken);
         await _genreRepository.SaveChangesAsync(cancellationToken);
 

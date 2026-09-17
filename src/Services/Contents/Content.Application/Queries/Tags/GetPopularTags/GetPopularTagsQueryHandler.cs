@@ -9,10 +9,12 @@ public sealed class GetPopularTagsQueryHandler : IQueryHandler<GetPopularTagsQue
         _tagRepository = tagRepository;
     }
 
+    /// <summary>Returns the most-used tags, clamped to a safe count, for tag-cloud/suggestion UIs.</summary>
     public async Task<IReadOnlyList<TagResponseDto>> Handle(
         GetPopularTagsQuery request,
         CancellationToken cancellationToken)
     {
+        // Normalize the requested count to a safe bound.
         var count = Math.Clamp(
             request.Count <= 0 ? ApplicationConstants.PopularTagsCount : request.Count,
             1,

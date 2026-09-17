@@ -6,13 +6,16 @@ namespace Content.Application.Policies;
 /// </summary>
 public static class StoryOwnership
 {
+    /// <summary>Returns the story unchanged if it exists and belongs to <paramref name="authorProfileId"/>; otherwise throws not-found or forbidden.</summary>
     public static Story EnsureOwned(Story story, long authorProfileId, ILogger logger)
     {
+        // No such story at all.
         if (story is null)
         {
             throw new NotFoundException(ApplicationErrorConstants.StoryNotFound);
         }
 
+        // Story exists but belongs to a different author profile - log and deny.
         if (story.AuthorProfileId != authorProfileId)
         {
             logger.LogWarning(ApplicationLogConstants.OwnershipCheckFailed, authorProfileId, story.Id);

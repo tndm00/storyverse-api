@@ -29,6 +29,10 @@ public sealed class SyncStorySearchIndexCommandHandler
         _logger = logger;
     }
 
+    /// <summary>
+    /// Advances the search-sync cursor and (re)indexes every story changed since the last run: drafts are
+    /// removed from the index, everything else is indexed with its currently published chapter content.
+    /// </summary>
     public async Task<SyncStorySearchIndexResultDto> Handle(SyncStorySearchIndexCommand request, CancellationToken cancellationToken)
     {
         // Captured before querying: everything up to this instant is covered by
@@ -37,6 +41,7 @@ public sealed class SyncStorySearchIndexCommandHandler
         var runStartedAt = DateTime.UtcNow;
         var lastSyncedAt = await _cursorRepository.GetLastSyncedAtAsync(cancellationToken);
 
+        // Find every story that changed since the previous sync run.
         var changedStoryIds = await _storyRepository.GetStoryIdsChangedBetweenAsync(
             lastSyncedAt, runStartedAt, _options.BatchSize, cancellationToken);
 
@@ -46,6 +51,7 @@ public sealed class SyncStorySearchIndexCommandHandler
 
             foreach (var story in stories)
             {
+                // Drafts are never searchable, so remove them from the index instead of indexing them.
                 if (story.Status == StoryStatus.Draft)
                 {
                     await _storySearchService.DeleteAsync(story.Id, cancellationToken);
@@ -57,6 +63,7 @@ public sealed class SyncStorySearchIndexCommandHandler
             }
         }
 
+        // Advance the cursor so the next run only looks at changes after this point.
         await _cursorRepository.SetLastSyncedAtAsync(runStartedAt, cancellationToken);
 
         if (changedStoryIds.Count > 0)

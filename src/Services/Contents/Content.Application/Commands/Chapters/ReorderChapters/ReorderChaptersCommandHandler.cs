@@ -23,6 +23,10 @@ public sealed class ReorderChaptersCommandHandler
         _logger = logger;
     }
 
+    /// <summary>
+    /// Reorders chapters within a single scope (a volume, or a story's
+    /// volume-less chapters) to match the given sequence.
+    /// </summary>
     public async Task<IReadOnlyList<ChapterSummaryResponseDto>> Handle(
         ReorderChaptersCommand request,
         CancellationToken cancellationToken)
@@ -31,6 +35,8 @@ public sealed class ReorderChaptersCommandHandler
         Story story;
         IReadOnlyList<Chapter> chapters;
 
+        // Resolve the scope (volume or volume-less story chapters) and ensure
+        // the caller may mutate the parent story.
         if (request.VolumeId is { } volumePublicId)
         {
             volume = await _volumeRepository.GetByPublicIdAsync(volumePublicId, cancellationToken)
@@ -54,12 +60,14 @@ public sealed class ReorderChaptersCommandHandler
                 story.Id, cancellationToken);
         }
 
+        // The requested sequence must contain exactly the chapters in scope.
         ReorderPolicy.EnsureExactMatch(
             request.OrderedChapterIds, chapters.Select(c => c.PublicId).ToArray());
 
         var byPublicId = chapters.ToDictionary(c => c.PublicId);
         var now = DateTime.UtcNow;
 
+        // Assign order index by position in the requested sequence.
         for (var position = 0; position < request.OrderedChapterIds.Count; position++)
         {
             var chapter = byPublicId[request.OrderedChapterIds[position]];

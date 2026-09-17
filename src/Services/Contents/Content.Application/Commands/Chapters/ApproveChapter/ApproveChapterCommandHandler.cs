@@ -34,10 +34,15 @@ public sealed class ApproveChapterCommandHandler : ICommandHandler<ApproveChapte
         _logger = logger;
     }
 
+    /// <summary>
+    /// Approves a chapter in review, publishing it and, if this is the story's
+    /// first approved chapter, flipping the story from Draft to Ongoing.
+    /// </summary>
     public async Task<ChapterDetailResponseDto> Handle(ApproveChapterCommand request, CancellationToken cancellationToken)
     {
         var moderatorUserId = _currentUser.GetUserId();
 
+        // Look up the chapter and ensure it is currently eligible for approval.
         var chapter = await _chapterRepository.GetByPublicIdAsync(request.ChapterId, cancellationToken)
             ?? throw new NotFoundException(ApplicationErrorConstants.ChapterNotFound);
 
@@ -49,12 +54,14 @@ public sealed class ApproveChapterCommandHandler : ICommandHandler<ApproveChapte
         var story = await _storyRepository.GetByIdAsync(chapter.StoryId, cancellationToken);
         var now = DateTime.UtcNow;
 
+        // Publish the chapter.
         chapter.Status = ChapterStatus.Published;
         chapter.PublishedAt ??= now;
         chapter.RejectionReason = null;
         chapter.UpdatedAt = now;
         _chapterRepository.Update(chapter);
 
+        // First approved chapter takes the story out of Draft.
         var storyChanged = false;
         if (story.Status == StoryStatus.Draft)
         {
@@ -139,6 +146,9 @@ public sealed class ApproveChapterCommandHandler : ICommandHandler<ApproveChapte
         }
     }
 
+    /// <summary>
+    /// Resolves a volume's public id from its internal id, if the chapter belongs to one.
+    /// </summary>
     private async Task<Guid?> ResolveVolumePublicIdAsync(long? volumeId, CancellationToken cancellationToken)
     {
         if (volumeId is not { } id)

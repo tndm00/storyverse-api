@@ -2,6 +2,10 @@ namespace Content.Application.Commands.Chapters.ReorderChapters;
 
 public sealed class ReorderChaptersCommandValidator : AbstractValidator<ReorderChaptersCommand>
 {
+    /// <summary>
+    /// Requires exactly one of volume id or story id, and a non-empty list of
+    /// non-empty ordered chapter ids.
+    /// </summary>
     public ReorderChaptersCommandValidator()
     {
         RuleFor(x => x)

@@ -10,6 +10,7 @@ public sealed class GetStoryStatusCountsQueryHandler
         _storyRepository = storyRepository;
     }
 
+    /// <summary>Returns the total story count plus a per-status breakdown for the admin dashboard.</summary>
     public async Task<StoryStatusCountsResponseDto> Handle(
         GetStoryStatusCountsQuery request,
         CancellationToken cancellationToken)

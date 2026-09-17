@@ -22,10 +22,15 @@ public sealed class UpdateChapterCommandHandler : ICommandHandler<UpdateChapterC
         _logger = logger;
     }
 
+    /// <summary>
+    /// Updates a chapter's title, order, content and volume assignment. Requires
+    /// the caller to own the parent story.
+    /// </summary>
     public async Task<ChapterDetailResponseDto> Handle(UpdateChapterCommand request, CancellationToken cancellationToken)
     {
         var authorProfileId = _authorContext.GetAuthorProfileId();
 
+        // Look up the chapter and verify the caller owns its story.
         var chapter = await _chapterRepository.GetByPublicIdAsync(request.ChapterId, cancellationToken)
             ?? throw new NotFoundException(ApplicationErrorConstants.ChapterNotFound);
 
@@ -34,6 +39,7 @@ public sealed class UpdateChapterCommandHandler : ICommandHandler<UpdateChapterC
             authorProfileId,
             _logger);
 
+        // If a volume was specified, ensure it exists and belongs to this story.
         Guid? volumePublicId = null;
         long? volumeId = null;
         if (request.VolumeId is { } requestedVolume)
@@ -57,6 +63,7 @@ public sealed class UpdateChapterCommandHandler : ICommandHandler<UpdateChapterC
             _logger.LogWarning(ApplicationLogConstants.ChapterEditedAfterPublish, chapter.Id);
         }
 
+        // Apply the requested changes.
         chapter.Title = request.Title.Trim();
         chapter.OrderIndex = request.OrderIndex;
         chapter.Content = request.Content;

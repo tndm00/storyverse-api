@@ -51,8 +51,14 @@ public sealed class GenreSeeder : IHostedService
         _logger = logger;
     }
 
+    /// <summary>
+    /// Runs once at host startup, Development only: inserts any of the standard
+    /// genres that are missing by slug. Existing rows are left untouched, and
+    /// any failure is logged but never rethrown (must not block app startup).
+    /// </summary>
     public async Task StartAsync(CancellationToken cancellationToken)
     {
+        // Only ever seed in Development.
         if (!_environment.IsDevelopment())
         {
             return;
@@ -63,6 +69,7 @@ public sealed class GenreSeeder : IHostedService
 
         try
         {
+            // Look up which slugs already exist, to skip re-inserting them.
             var existing = await db.Genres
                 .Select(g => g.Slug)
                 .ToListAsync(cancellationToken);
@@ -87,6 +94,7 @@ public sealed class GenreSeeder : IHostedService
                 added++;
             }
 
+            // Only touch the database if there's actually something new to insert.
             if (added > 0)
             {
                 await db.SaveChangesAsync(cancellationToken);
@@ -99,5 +107,6 @@ public sealed class GenreSeeder : IHostedService
         }
     }
 
+    /// <summary>No cleanup needed on shutdown.</summary>
     public Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;
 }

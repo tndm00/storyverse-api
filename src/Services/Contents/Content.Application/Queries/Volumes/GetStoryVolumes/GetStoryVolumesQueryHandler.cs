@@ -12,15 +12,18 @@ public sealed class GetStoryVolumesQueryHandler
         _volumeRepository = volumeRepository;
     }
 
+    /// <summary>Returns a story's volumes ordered for display.</summary>
     public async Task<IReadOnlyList<VolumeResponseDto>> Handle(
         GetStoryVolumesQuery request,
         CancellationToken cancellationToken)
     {
+        // Resolve the story; it must exist.
         var story = await _storyRepository.GetByPublicIdAsync(request.StoryId, cancellationToken)
             ?? throw new NotFoundException(ApplicationErrorConstants.StoryNotFound);
 
         var volumes = await _volumeRepository.GetByStoryAsync(story.Id, cancellationToken);
 
+        // Order volumes for display and map to DTOs.
         return volumes
             .OrderBy(v => v.OrderIndex)
             .Select(ContentDtoMapper.ToDto)

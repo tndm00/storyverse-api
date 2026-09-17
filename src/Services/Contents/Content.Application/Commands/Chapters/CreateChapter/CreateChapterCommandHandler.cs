@@ -22,15 +22,21 @@ public sealed class CreateChapterCommandHandler : ICommandHandler<CreateChapterC
         _logger = logger;
     }
 
+    /// <summary>
+    /// Creates a new chapter under an owned story, optionally in a specific volume,
+    /// and optionally submits it for moderation review immediately.
+    /// </summary>
     public async Task<ChapterDetailResponseDto> Handle(CreateChapterCommand request, CancellationToken cancellationToken)
     {
         var authorProfileId = _authorContext.GetAuthorProfileId();
 
+        // Verify the caller owns the story.
         var story = StoryOwnership.EnsureOwned(
             await _storyRepository.GetByPublicIdAsync(request.StoryId, cancellationToken),
             authorProfileId,
             _logger);
 
+        // If a volume was specified, ensure it exists and belongs to this story.
         long? volumeId = null;
         if (request.VolumeId is { } volumePublicId)
         {
@@ -45,6 +51,7 @@ public sealed class CreateChapterCommandHandler : ICommandHandler<CreateChapterC
             volumeId = volume.Id;
         }
 
+        // Auto-assign order index (append) when none was supplied.
         var autoAssignedOrder = request.OrderIndex <= 0;
         var orderIndex = autoAssignedOrder
             ? (await _chapterRepository.GetMaxOrderIndexAsync(story.Id, cancellationToken) ?? 0m)

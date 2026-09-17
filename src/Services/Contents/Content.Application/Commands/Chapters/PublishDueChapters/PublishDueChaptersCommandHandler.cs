@@ -38,6 +38,10 @@ public sealed class PublishDueChaptersCommandHandler
         _logger = logger;
     }
 
+    /// <summary>
+    /// Scans for due scheduled chapters, claims and publishes each one in its
+    /// own transaction, and flips the parent story out of Draft on first publish.
+    /// </summary>
     public async Task<PublishDueChaptersResultDto> Handle(
         PublishDueChaptersCommand request, CancellationToken cancellationToken)
     {
@@ -51,6 +55,8 @@ public sealed class PublishDueChaptersCommandHandler
 
         var published = 0;
 
+        // Claim and publish each due chapter independently so one failure/race
+        // doesn't block the rest of the batch.
         foreach (var chapter in due)
         {
             var didPublish = false;

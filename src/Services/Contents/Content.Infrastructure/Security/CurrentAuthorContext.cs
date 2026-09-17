@@ -14,13 +14,21 @@ public sealed class CurrentAuthorContext : ICurrentAuthorContext
         _httpContextAccessor = httpContextAccessor;
     }
 
+    /// <summary>Whether the current request has an authenticated user.</summary>
     public bool IsAuthenticated =>
         _httpContextAccessor.HttpContext?.User?.Identity?.IsAuthenticated ?? false;
 
+    /// <summary>Whether the current user carries a valid author profile id claim.</summary>
     public bool IsAuthor => TryGetAuthorProfileId(out _);
 
+    /// <summary>
+    /// Resolves the caller's user id from the JWT subject claim. Throws
+    /// <see cref="ForbiddenException"/> if the claim is missing or not a valid id.
+    /// </summary>
     public long GetUserId()
     {
+        // Prefer the standard JWT sub claim; fall back to the raw claim name if it
+        // wasn't remapped during token validation.
         var subClaim = _httpContextAccessor.HttpContext?.User?.FindFirst(JwtRegisteredClaimNames.Sub)
             ?? _httpContextAccessor.HttpContext?.User?.FindFirst(InfrastructureConstants.SubClaimType);
 
@@ -32,6 +40,10 @@ public sealed class CurrentAuthorContext : ICurrentAuthorContext
         return userId;
     }
 
+    /// <summary>
+    /// Resolves the caller's author profile id. Throws <see cref="ForbiddenException"/>
+    /// if the caller does not have a valid author profile claim.
+    /// </summary>
     public long GetAuthorProfileId()
     {
         if (!TryGetAuthorProfileId(out var authorProfileId))
@@ -42,6 +54,10 @@ public sealed class CurrentAuthorContext : ICurrentAuthorContext
         return authorProfileId;
     }
 
+    /// <summary>
+    /// Checks whether the caller's roles (from the JWT) grant the given permission,
+    /// via the shared role-to-permission map.
+    /// </summary>
     public bool HasPermission(string permission)
     {
         var user = _httpContextAccessor.HttpContext?.User;
@@ -54,6 +70,7 @@ public sealed class CurrentAuthorContext : ICurrentAuthorContext
         return Be.StoryVerse.Shared.Authorization.RolePermissionMap.PermissionsFor(roles).Contains(permission);
     }
 
+    /// <summary>Attempts to read and parse the author profile id claim from the current user.</summary>
     private bool TryGetAuthorProfileId(out long authorProfileId)
     {
         authorProfileId = 0;

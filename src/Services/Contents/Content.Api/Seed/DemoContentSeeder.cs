@@ -40,8 +40,14 @@ public sealed class DemoContentSeeder : IHostedService
         _logger = logger;
     }
 
+    /// <summary>
+    /// Runs once at host startup: if enabled and the Stories table is empty,
+    /// inserts the demo stories and their chapters. No-op otherwise, and any
+    /// failure is logged but never rethrown (must not block app startup).
+    /// </summary>
     public async Task StartAsync(CancellationToken cancellationToken)
     {
+        // Feature flag: skip entirely unless demo content seeding is enabled.
         if (!_configuration.GetValue<bool>(EnabledKey))
         {
             return;
@@ -52,6 +58,7 @@ public sealed class DemoContentSeeder : IHostedService
 
         try
         {
+            // Idempotency guard: only seed on a truly empty Stories table.
             if (await db.Stories.AnyAsync(cancellationToken))
             {
                 return;
@@ -63,6 +70,7 @@ public sealed class DemoContentSeeder : IHostedService
 
             foreach (var spec in StorySpecs)
             {
+                // Skip a story whose genre wasn't seeded (GenreSeeder runs first).
                 if (!bySlug.TryGetValue(spec.GenreSlug, out var genre))
                 {
                     _logger.LogWarning(
@@ -94,6 +102,7 @@ public sealed class DemoContentSeeder : IHostedService
                     },
                 };
 
+                // Persist the story first so its generated Id is available for chapters.
                 db.Stories.Add(story);
                 await db.SaveChangesAsync(cancellationToken);
 
@@ -127,6 +136,7 @@ public sealed class DemoContentSeeder : IHostedService
         }
     }
 
+    /// <summary>No cleanup needed on shutdown.</summary>
     public Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;
 
     private sealed record ChapterSpec(string Title, string Content);

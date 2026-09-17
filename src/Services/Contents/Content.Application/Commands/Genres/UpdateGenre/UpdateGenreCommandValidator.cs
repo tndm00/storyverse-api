@@ -2,6 +2,7 @@ namespace Content.Application.Commands.Genres.UpdateGenre;
 
 public sealed class UpdateGenreCommandValidator : AbstractValidator<UpdateGenreCommand>
 {
+    /// <summary>Validates slug presence and name constraints for genre updates.</summary>
     public UpdateGenreCommandValidator()
     {
         RuleFor(x => x.Slug).NotEmpty();

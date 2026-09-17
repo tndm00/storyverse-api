@@ -19,13 +19,16 @@ public sealed class AssignStoryGenresCommandHandler : ICommandHandler<AssignStor
         _logger = logger;
     }
 
+    /// <summary>Replaces a story's genre assignments after verifying ownership and that all requested genres are active.</summary>
     public async Task<StoryDetailResponseDto> Handle(AssignStoryGenresCommand request, CancellationToken cancellationToken)
     {
         var authorProfileId = _authorContext.GetAuthorProfileId();
 
+        // Load the story with its classification data (genres/tags) included.
         var story = await _storyRepository.GetWithClassificationByPublicIdAsync(request.StoryId, cancellationToken)
             ?? throw new NotFoundException(ApplicationErrorConstants.StoryNotFound);
 
+        // Only the owning author may reassign genres.
         if (story.AuthorProfileId != authorProfileId)
         {
             _logger.LogWarning(ApplicationLogConstants.OwnershipCheckFailed, authorProfileId, story.Id);
@@ -36,6 +39,7 @@ public sealed class AssignStoryGenresCommandHandler : ICommandHandler<AssignStor
             .Select(g => g.GenreSlug.Trim().ToLowerInvariant())
             .ToArray();
 
+        // All requested genres must exist and be active.
         var activeGenres = await _genreRepository.GetActiveBySlugsAsync(requestedSlugs, cancellationToken);
         if (activeGenres.Count != requestedSlugs.Length)
         {
@@ -44,6 +48,7 @@ public sealed class AssignStoryGenresCommandHandler : ICommandHandler<AssignStor
 
         var genreBySlug = activeGenres.ToDictionary(g => g.Slug, StringComparer.OrdinalIgnoreCase);
 
+        // Replace the story's entire genre set with the requested selections.
         story.Genres.Clear();
         foreach (var selection in request.Genres)
         {
@@ -57,6 +62,7 @@ public sealed class AssignStoryGenresCommandHandler : ICommandHandler<AssignStor
             });
         }
 
+        // Persist the change.
         story.UpdatedAt = DateTime.UtcNow;
         _storyRepository.Update(story);
         await _storyRepository.SaveChangesAsync(cancellationToken);

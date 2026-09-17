@@ -34,8 +34,14 @@ public sealed class StorySearchIndexSyncBackgroundService : BackgroundService
         _logger = logger;
     }
 
+    /// <summary>
+    /// Runs the timer loop for the lifetime of the host: on each tick, resolves a
+    /// scoped <see cref="IMediator"/> and sends <see cref="SyncStorySearchIndexCommand"/>.
+    /// No-op when disabled via config.
+    /// </summary>
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
+        // Feature flag: skip the whole loop when search sync is turned off.
         if (!_options.Enabled)
         {
             _logger.LogInformation(ApplicationLogConstants.StorySearchSyncDisabled);
@@ -51,6 +57,8 @@ public sealed class StorySearchIndexSyncBackgroundService : BackgroundService
         {
             try
             {
+                // Each tick gets its own DI scope so the mediator/handler use fresh,
+                // short-lived scoped services (e.g. DbContext) rather than reusing state.
                 using var scope = _scopeFactory.CreateScope();
                 var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
                 await mediator.Send(new SyncStorySearchIndexCommand(), stoppingToken);
@@ -68,6 +76,7 @@ public sealed class StorySearchIndexSyncBackgroundService : BackgroundService
         while (await SafeWaitAsync(timer, stoppingToken));
     }
 
+    /// <summary>Waits for the next tick, swallowing cancellation so the caller's loop can exit cleanly.</summary>
     private static async Task<bool> SafeWaitAsync(PeriodicTimer timer, CancellationToken stoppingToken)
     {
         try

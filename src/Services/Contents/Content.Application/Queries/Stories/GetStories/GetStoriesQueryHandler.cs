@@ -17,10 +17,15 @@ public sealed class GetStoriesQueryHandler
         _logger = logger;
     }
 
+    /// <summary>
+    /// Returns a paged listing of published stories matching the given filters, enriched with
+    /// comment and chapter counts. Search is delegated to <see cref="SearchAsync"/>.
+    /// </summary>
     public async Task<PagedResponseDto<StorySummaryResponseDto>> Handle(
         GetStoriesQuery request,
         CancellationToken cancellationToken)
     {
+        // Normalize paging inputs to safe bounds.
         var pageNumber = Math.Max(1, request.PageNumber);
         var pageSize = Math.Clamp(
             request.PageSize <= 0 ? ApplicationConstants.DefaultPageSize : request.PageSize,
@@ -43,11 +48,13 @@ public sealed class GetStoriesQueryHandler
 
         var (items, totalCount) = await SearchAsync(criteria, cancellationToken);
 
+        // Fetch comment/chapter counts in bulk for the returned page of stories.
         var commentCounts = await _storyRepository.GetCommentCountsAsync(
             items.Select(x => x.Id), cancellationToken) ?? new Dictionary<long, int>();
         var chapterCounts = await _storyRepository.GetPublishedChapterCountsAsync(
             items.Select(x => x.Id), cancellationToken) ?? new Dictionary<long, int>();
 
+        // Map domain entities to summary DTOs.
         var summaries = items
             .Select(story => ContentDtoMapper.ToSummary(
                 story,
@@ -88,11 +95,13 @@ public sealed class GetStoriesQueryHandler
         return await _storyRepository.SearchPublishedAsync(criteria, cancellationToken);
     }
 
+    /// <summary>Trims and lowercases a slug filter value, or returns null when blank.</summary>
     private static string NormalizeSlug(string value)
     {
         return string.IsNullOrWhiteSpace(value) ? null : value.Trim().ToLowerInvariant();
     }
 
+    /// <summary>Parses a status filter, rejecting Draft since drafts are never publicly listed.</summary>
     private static StoryStatus? ParseStatus(string value)
     {
         if (Enum.TryParse<StoryStatus>(value, ignoreCase: true, out var status) && status != StoryStatus.Draft)
@@ -103,6 +112,7 @@ public sealed class GetStoriesQueryHandler
         return null;
     }
 
+    /// <summary>Parses the chapter-length filter, returning null when the value is not recognized.</summary>
     private static ChapterLengthFilter? ParseChapterLength(string value)
     {
         return Enum.TryParse<ChapterLengthFilter>(value, ignoreCase: true, out var length)
@@ -110,6 +120,7 @@ public sealed class GetStoriesQueryHandler
             : null;
     }
 
+    /// <summary>Parses the sort field, defaulting to PublishedAt when the value is not recognized.</summary>
     private static StorySortField ParseSortField(string value)
     {
         return Enum.TryParse<StorySortField>(value, ignoreCase: true, out var field)

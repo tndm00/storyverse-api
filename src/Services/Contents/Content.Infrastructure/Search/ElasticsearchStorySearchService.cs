@@ -23,6 +23,9 @@ public sealed class ElasticsearchStorySearchService : IStorySearchService
 
     public bool IsSearchReadEnabled => _options.SearchReadEnabled;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="ElasticsearchStorySearchService"/> class.
+    /// </summary>
     public ElasticsearchStorySearchService(
         ElasticsearchClient client,
         IOptions<ElasticsearchOptions> options,
@@ -33,6 +36,11 @@ public sealed class ElasticsearchStorySearchService : IStorySearchService
         _logger = logger;
     }
 
+    /// <summary>
+    /// Maps <paramref name="story"/> to a search document and upserts it into the index.
+    /// No-op when Elasticsearch is disabled or the story is a draft; indexing failures are
+    /// logged and swallowed rather than surfaced to the caller.
+    /// </summary>
     public async Task IndexAsync(Story story, string publishedChapterContent, CancellationToken cancellationToken = default)
     {
         if (!_options.Enabled)
@@ -59,6 +67,10 @@ public sealed class ElasticsearchStorySearchService : IStorySearchService
         }
     }
 
+    /// <summary>
+    /// Removes a story's document from the index. No-op when Elasticsearch is disabled;
+    /// failures are logged and swallowed rather than surfaced to the caller.
+    /// </summary>
     public async Task DeleteAsync(long storyId, CancellationToken cancellationToken = default)
     {
         if (!_options.Enabled)
@@ -76,6 +88,11 @@ public sealed class ElasticsearchStorySearchService : IStorySearchService
         }
     }
 
+    /// <summary>
+    /// Runs a keyword/filter/sort search against the story index and returns the matching
+    /// story ids plus total hit count. Returns an empty result when search reads are
+    /// disabled; failures propagate so the caller can fall back to Postgres.
+    /// </summary>
     public async Task<(IReadOnlyList<long> StoryIds, int TotalCount)> SearchAsync(
         StorySearchCriteria criteria, CancellationToken cancellationToken = default)
     {
@@ -84,6 +101,8 @@ public sealed class ElasticsearchStorySearchService : IStorySearchService
             return (Array.Empty<long>(), 0);
         }
 
+        // Keyword match across title (boosted), description and chapter content, with
+        // fuzzy matching to tolerate minor typos.
         var must = new List<Query>
         {
             new MultiMatchQuery
@@ -94,6 +113,8 @@ public sealed class ElasticsearchStorySearchService : IStorySearchService
             }
         };
 
+        // Status filter always applies; genre/tag/author filters are added only when
+        // the caller actually supplied them.
         var filter = new List<Query> { new TermQuery("status") { Value = (criteria.Status ?? StoryStatus.Ongoing).ToString() } };
 
         if (!string.IsNullOrEmpty(criteria.GenreSlug))
@@ -113,6 +134,7 @@ public sealed class ElasticsearchStorySearchService : IStorySearchService
 
         var query = new BoolQuery { Must = must, Filter = filter };
 
+        // Execute the paged search with the combined query and requested sort order.
         var response = await _client.SearchAsync<StoryDocument>(s => s
             .Index(_options.IndexName)
             .Query(query)
@@ -127,12 +149,18 @@ public sealed class ElasticsearchStorySearchService : IStorySearchService
                 $"Elasticsearch search failed: {response.DebugInformation}");
         }
 
+        // Only story ids and the total count are returned — callers hydrate full
+        // story data from Postgres.
         var storyIds = response.Documents.Select(d => d.StoryId).ToArray();
         var totalCount = (int)(response.Total);
 
         return (storyIds, totalCount);
     }
 
+    /// <summary>
+    /// Returns the number of documents currently in the index, or 0 when Elasticsearch is
+    /// disabled or the count request fails.
+    /// </summary>
     public async Task<long> GetDocumentCountAsync(CancellationToken cancellationToken = default)
     {
         if (!_options.Enabled)
@@ -152,6 +180,10 @@ public sealed class ElasticsearchStorySearchService : IStorySearchService
         }
     }
 
+    /// <summary>
+    /// Builds the Elasticsearch sort clause matching the requested <see cref="StorySearchCriteria.SortBy"/>
+    /// field and direction, defaulting to <c>publishedAt</c> for unrecognized values.
+    /// </summary>
     private static Action<SortOptionsDescriptor<StoryDocument>> BuildSort(StorySearchCriteria criteria)
     {
         return sort =>

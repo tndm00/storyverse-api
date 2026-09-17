@@ -30,6 +30,10 @@ public sealed class NotificationServiceClient : INotificationServiceClient
         _logger = logger;
     }
 
+    /// <summary>
+    /// Sends a best-effort request to create a notification on the Notification service.
+    /// No-ops (with a warning log) when the Notification API is not configured.
+    /// </summary>
     public async Task SendAsync(
         long userId,
         NotificationKind kind,
@@ -39,6 +43,7 @@ public sealed class NotificationServiceClient : INotificationServiceClient
         Guid? refId,
         CancellationToken cancellationToken)
     {
+        // Notification API not configured: short-circuit rather than fail the caller's flow.
         if (string.IsNullOrWhiteSpace(_options.BaseUrl) || string.IsNullOrWhiteSpace(_options.ServiceToken))
         {
             _logger.LogWarning(
@@ -57,6 +62,7 @@ public sealed class NotificationServiceClient : INotificationServiceClient
             refId
         };
 
+        // Post the notification, authenticating with the shared service token.
         using var request = new HttpRequestMessage(HttpMethod.Post, CreateNotificationPath)
         {
             Content = JsonContent.Create(payload)

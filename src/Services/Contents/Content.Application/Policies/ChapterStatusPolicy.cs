@@ -35,16 +35,19 @@ public static class ChapterStatusPolicy
         return from is ChapterStatus.InReview;
     }
 
+    /// <summary>Author schedules a draft chapter to auto-publish at a future time.</summary>
     public static bool CanSchedule(ChapterStatus from)
     {
         return from is ChapterStatus.Draft;
     }
 
+    /// <summary>Author cancels a pending schedule, returning the chapter to Draft.</summary>
     public static bool CanCancelSchedule(ChapterStatus from)
     {
         return from is ChapterStatus.Scheduled;
     }
 
+    /// <summary>Author removes a chapter that is already Published.</summary>
     public static bool CanRemove(ChapterStatus from)
     {
         return from is ChapterStatus.Published;

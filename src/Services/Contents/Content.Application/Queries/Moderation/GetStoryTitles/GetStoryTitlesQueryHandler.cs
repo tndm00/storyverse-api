@@ -10,9 +10,11 @@ public sealed class GetStoryTitlesQueryHandler
         _storyRepository = storyRepository;
     }
 
+    /// <summary>Batch-resolves story titles for the given public ids.</summary>
     public async Task<IReadOnlyList<ContentTitleEntryDto>> Handle(
         GetStoryTitlesQuery request, CancellationToken cancellationToken)
     {
+        // Skip the round-trip entirely when there is nothing to look up.
         if (request.Ids.Count == 0)
         {
             return Array.Empty<ContentTitleEntryDto>();

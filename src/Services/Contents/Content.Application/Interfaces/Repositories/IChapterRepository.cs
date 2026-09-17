@@ -5,6 +5,7 @@ namespace Content.Application.Interfaces.Repositories;
 /// </summary>
 public interface IChapterRepository
 {
+    /// <summary>Loads a single chapter by its public-facing id.</summary>
     Task<Chapter> GetByPublicIdAsync(Guid publicId, CancellationToken cancellationToken = default);
 
     /// <summary>Public id -&gt; title for a set of chapters, for internal cross-service lookups. Unknown ids are omitted.</summary>
@@ -19,11 +20,13 @@ public interface IChapterRepository
     Task<IReadOnlyList<ChapterContextEntryDto>> GetContextByPublicIdsAsync(
         IEnumerable<Guid> publicIds, CancellationToken cancellationToken = default);
 
+    /// <summary>Lists a story's chapters, optionally restricted to Published ones only.</summary>
     Task<IReadOnlyList<Chapter>> GetByStoryAsync(
         long storyId,
         bool publishedOnly,
         CancellationToken cancellationToken = default);
 
+    /// <summary>Whether a story has at least one Published chapter.</summary>
     Task<bool> StoryHasPublishedChapterAsync(long storyId, CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -94,12 +97,15 @@ public interface IChapterRepository
     /// <summary>Highest order index among a story's non-removed chapters, or null when it has none.</summary>
     Task<decimal?> GetMaxOrderIndexAsync(long storyId, CancellationToken cancellationToken = default);
 
+    /// <summary>Registers a new chapter to be inserted on the next <see cref="SaveChangesAsync"/>.</summary>
     Task AddAsync(Chapter chapter, CancellationToken cancellationToken = default);
 
+    /// <summary>Marks a tracked chapter as modified for the next <see cref="SaveChangesAsync"/>.</summary>
     void Update(Chapter chapter);
 
     /// <summary>Atomic counter bump for a chapter read; also bumps the parent story's view count.</summary>
     Task IncrementViewCountAsync(long chapterId, long storyId, CancellationToken cancellationToken = default);
 
+    /// <summary>Persists all pending changes tracked by this repository's unit of work.</summary>
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

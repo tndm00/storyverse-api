@@ -11,8 +11,13 @@ public sealed class ContentDbContextFactory : IDesignTimeDbContextFactory<Conten
     private const string FallbackConnectionString =
         "Host=localhost;Port=5432;Database=storyverse_content;Username=postgres;Password=postgres";
 
+    /// <summary>
+    /// Builds a <see cref="ContentDbContext"/> for design-time tooling (e.g. <c>dotnet ef</c>),
+    /// using the <c>CONTENT_DB_CONNECTION</c> environment variable or a local fallback connection string.
+    /// </summary>
     public ContentDbContext CreateDbContext(string[] args)
     {
+        // Prefer the env-provided connection string; fall back to a local dev default.
         var connectionString = Environment.GetEnvironmentVariable("CONTENT_DB_CONNECTION") ?? FallbackConnectionString;
 
         var options = new DbContextOptionsBuilder<ContentDbContext>()

@@ -2,6 +2,7 @@ namespace Content.Application.Commands.Stories.QuickPublishStory;
 
 public sealed class QuickPublishStoryCommandValidator : AbstractValidator<QuickPublishStoryCommand>
 {
+    /// <summary>Validates story and chapter fields together with genre (exactly one primary, no duplicates) and tag limits.</summary>
     public QuickPublishStoryCommandValidator()
     {
         RuleFor(x => x.Title)

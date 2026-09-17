@@ -26,6 +26,7 @@ public interface IStorySearchService
     /// </summary>
     Task IndexAsync(Story story, string publishedChapterContent, CancellationToken cancellationToken = default);
 
+    /// <summary>Removes a story's document from the index, e.g. when the story is hard-deleted.</summary>
     Task DeleteAsync(long storyId, CancellationToken cancellationToken = default);
 
     /// <summary>

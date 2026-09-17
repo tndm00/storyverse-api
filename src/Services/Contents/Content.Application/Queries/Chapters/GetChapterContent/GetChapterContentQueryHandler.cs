@@ -19,14 +19,20 @@ public sealed class GetChapterContentQueryHandler : IQueryHandler<GetChapterCont
         _authorContext = authorContext;
     }
 
+    /// <summary>
+    /// Loads a chapter for reading, enforcing that unpublished chapters are visible only
+    /// to their owning author, and increments the view count on non-owner published reads.
+    /// </summary>
     public async Task<ChapterDetailResponseDto> Handle(GetChapterContentQuery request, CancellationToken cancellationToken)
     {
+        // Resolve the chapter and its parent story; both must exist.
         var chapter = await _chapterRepository.GetByPublicIdAsync(request.ChapterId, cancellationToken)
             ?? throw new NotFoundException(ApplicationErrorConstants.ChapterNotFound);
 
         var story = await _storyRepository.GetByIdAsync(chapter.StoryId, cancellationToken)
             ?? throw new NotFoundException(ApplicationErrorConstants.ChapterNotFound);
 
+        // Determine whether the caller is the story's owning author.
         var callerAuthorId = _authorContext.IsAuthor ? _authorContext.GetAuthorProfileId() : (long?)null;
         var isOwner = callerAuthorId == story.AuthorProfileId;
 
@@ -48,6 +54,7 @@ public sealed class GetChapterContentQueryHandler : IQueryHandler<GetChapterCont
             chapter.ViewCount += 1;
         }
 
+        // Resolve the volume's public id, if the chapter belongs to one.
         var volumePublicId = chapter.VolumeId is { } volumeId
             ? (await _volumeRepository.GetByIdAsync(volumeId, cancellationToken))?.PublicId
             : null;

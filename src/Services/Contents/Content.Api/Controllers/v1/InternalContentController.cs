@@ -164,6 +164,7 @@ public sealed class InternalContentController : ControllerBase
         return Ok(ResponseDto<IReadOnlyList<ChapterContextEntryDto>>.Ok(result));
     }
 
+    /// <summary>Parses a comma-separated id list into distinct valid GUIDs, silently dropping anything unparsable.</summary>
     private static IReadOnlyCollection<Guid> ParseGuidCsv(string ids)
     {
         return (ids ?? string.Empty)

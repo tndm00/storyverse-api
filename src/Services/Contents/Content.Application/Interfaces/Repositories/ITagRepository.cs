@@ -13,7 +13,9 @@ public interface ITagRepository
         IReadOnlyCollection<(string Name, string Slug)> tags,
         CancellationToken cancellationToken = default);
 
+    /// <summary>Most-used tags, ordered by <see cref="Tag.UsageCount"/> descending, capped at <paramref name="count"/>.</summary>
     Task<IReadOnlyList<Tag>> GetPopularAsync(int count, CancellationToken cancellationToken = default);
 
+    /// <summary>Persists all pending changes tracked by this repository's unit of work.</summary>
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

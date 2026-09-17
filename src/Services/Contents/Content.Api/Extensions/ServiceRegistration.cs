@@ -9,6 +9,11 @@ namespace Content.Api.Extensions;
 /// </summary>
 public static class ServiceRegistration
 {
+    /// <summary>
+    /// Registers API-only concerns: MVC/controllers with enum-as-string JSON,
+    /// Swagger, JWT bearer auth, permission policies, CORS, and the background
+    /// hosted services (chapter publisher, search index sync, dev seeders).
+    /// </summary>
     public static IServiceCollection AddApiServices(this IServiceCollection services, IConfiguration configuration)
     {
         services

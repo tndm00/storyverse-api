@@ -2,12 +2,18 @@ namespace Content.Infrastructure.Configurations;
 
 public sealed class ChapterConfiguration : IEntityTypeConfiguration<Chapter>
 {
+    /// <summary>
+    /// Configures the EF Core mapping for <see cref="Chapter"/>: table/schema, keys,
+    /// indexes, column constraints and foreign key relationships.
+    /// </summary>
     public void Configure(EntityTypeBuilder<Chapter> builder)
     {
         builder.ToTable(InfrastructureConstants.ChaptersTableName, InfrastructureConstants.ContentSchemaName);
 
         builder.HasKey(x => x.Id);
 
+        // Public id must be unique; the composite indexes speed up ordered chapter
+        // listing per story and scheduled-publish lookups by status.
         builder.HasIndex(x => x.PublicId).IsUnique();
         builder.HasIndex(x => new { x.StoryId, x.OrderIndex });
         builder.HasIndex(x => new { x.Status, x.ScheduledAt });
@@ -26,6 +32,7 @@ public sealed class ChapterConfiguration : IEntityTypeConfiguration<Chapter>
             .HasColumnType("text")
             .IsRequired();
 
+        // Enums are persisted as strings for readability/portability.
         builder.Property(x => x.Status)
             .HasConversion<string>()
             .HasMaxLength(InfrastructureConstants.EnumColumnLength)
@@ -41,6 +48,8 @@ public sealed class ChapterConfiguration : IEntityTypeConfiguration<Chapter>
 
         builder.Property(x => x.CreatedAt).IsRequired();
 
+        // A chapter is removed when its owning story is hard-deleted, but only
+        // detached (not deleted) from a volume when that volume is removed.
         builder.HasOne<Story>()
             .WithMany()
             .HasForeignKey(x => x.StoryId)

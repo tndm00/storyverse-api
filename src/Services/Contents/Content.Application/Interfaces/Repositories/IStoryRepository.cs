@@ -6,10 +6,13 @@ namespace Content.Application.Interfaces.Repositories;
 /// </summary>
 public interface IStoryRepository
 {
+    /// <summary>Loads a single story by its internal id.</summary>
     Task<Story> GetByIdAsync(long id, CancellationToken cancellationToken = default);
 
+    /// <summary>Loads a single story by its public-facing id.</summary>
     Task<Story> GetByPublicIdAsync(Guid publicId, CancellationToken cancellationToken = default);
 
+    /// <summary>Loads a single story by its slug.</summary>
     Task<Story> GetBySlugAsync(string slug, CancellationToken cancellationToken = default);
 
     /// <summary>Public id -&gt; title for a set of stories, for internal cross-service lookups. Unknown ids are omitted.</summary>
@@ -19,11 +22,13 @@ public interface IStoryRepository
     /// <summary>Loads the story with its <see cref="Story.Genres"/> and <see cref="Story.Tags"/> tracked for update.</summary>
     Task<Story> GetWithClassificationByPublicIdAsync(Guid publicId, CancellationToken cancellationToken = default);
 
+    /// <summary>Whether a story with this slug already exists.</summary>
     Task<bool> SlugExistsAsync(string slug, CancellationToken cancellationToken = default);
 
     /// <summary>True when the author already owns a story with this exact title; guards quick-publish double-submit.</summary>
     Task<bool> AuthorHasStoryWithTitleAsync(long authorProfileId, string title, CancellationToken cancellationToken = default);
 
+    /// <summary>Whether the story has exactly one genre flagged as primary; required before publishing.</summary>
     Task<bool> HasExactlyOnePrimaryGenreAsync(long storyId, CancellationToken cancellationToken = default);
 
     /// <summary>Discovery listing: excludes <see cref="StoryStatus.Draft"/> stories. Returns the page plus the total count.</summary>
@@ -83,8 +88,10 @@ public interface IStoryRepository
     Task TryStartOngoingOnFirstChapterAsync(
         long storyId, DateTime nowUtc, CancellationToken cancellationToken = default);
 
+    /// <summary>Registers a new story to be inserted on the next <see cref="SaveChangesAsync"/>.</summary>
     Task AddAsync(Story story, CancellationToken cancellationToken = default);
 
+    /// <summary>Marks a tracked story as modified for the next <see cref="SaveChangesAsync"/>.</summary>
     void Update(Story story);
 
     /// <summary>
@@ -106,5 +113,6 @@ public interface IStoryRepository
     Task<IReadOnlyDictionary<long, int>> GetPublishedChapterCountsAsync(
         IEnumerable<long> storyIds, CancellationToken cancellationToken = default);
 
+    /// <summary>Persists all pending changes tracked by this repository's unit of work.</summary>
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

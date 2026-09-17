@@ -15,12 +15,17 @@ public sealed class GenreConfiguration : IEntityTypeConfiguration<Genre>
         "Khoa Huyễn", "Quân Sự", "Lịch Sử", "Đồng Nhân", "Light Novel"
     };
 
+    /// <summary>
+    /// Configures the EF Core mapping for <see cref="Genre"/>: table/schema, keys,
+    /// unique indexes, column constraints and the seeded reference taxonomy.
+    /// </summary>
     public void Configure(EntityTypeBuilder<Genre> builder)
     {
         builder.ToTable(InfrastructureConstants.GenresTableName, InfrastructureConstants.ContentSchemaName);
 
         builder.HasKey(x => x.Id);
 
+        // Name and slug must both be unique for lookup and URL routing.
         builder.HasIndex(x => x.Name).IsUnique();
         builder.HasIndex(x => x.Slug).IsUnique();
 
@@ -37,9 +42,14 @@ public sealed class GenreConfiguration : IEntityTypeConfiguration<Genre>
 
         builder.Property(x => x.CreatedAt).IsRequired();
 
+        // Seed the fixed reference taxonomy on migration.
         builder.HasData(BuildSeed());
     }
 
+    /// <summary>
+    /// Builds the deterministic seed rows for the genre reference taxonomy, one per entry
+    /// in <see cref="SeedNames"/>, with slugs generated from the display name.
+    /// </summary>
     private static IEnumerable<Genre> BuildSeed()
     {
         // Fixed timestamp so migrations stay deterministic across regenerations.

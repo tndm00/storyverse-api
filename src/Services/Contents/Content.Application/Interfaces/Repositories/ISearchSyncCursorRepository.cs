@@ -13,5 +13,6 @@ public interface ISearchSyncCursorRepository
     /// </summary>
     Task<DateTime> GetLastSyncedAtAsync(CancellationToken cancellationToken = default);
 
+    /// <summary>Advances the high-water mark after a sync pass completes.</summary>
     Task SetLastSyncedAtAsync(DateTime value, CancellationToken cancellationToken = default);
 }

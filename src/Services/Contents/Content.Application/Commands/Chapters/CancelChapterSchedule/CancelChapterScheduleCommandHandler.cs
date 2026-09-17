@@ -23,12 +23,17 @@ public sealed class CancelChapterScheduleCommandHandler
         _logger = logger;
     }
 
+    /// <summary>
+    /// Cancels a chapter's pending schedule and returns it to Draft. Requires
+    /// the caller to own the parent story.
+    /// </summary>
     public async Task<ChapterDetailResponseDto> Handle(
         CancelChapterScheduleCommand request,
         CancellationToken cancellationToken)
     {
         var authorProfileId = _authorContext.GetAuthorProfileId();
 
+        // Look up the chapter and verify the caller owns its story.
         var chapter = await _chapterRepository.GetByPublicIdAsync(request.ChapterId, cancellationToken)
             ?? throw new NotFoundException(ApplicationErrorConstants.ChapterNotFound);
 
@@ -42,6 +47,7 @@ public sealed class CancelChapterScheduleCommandHandler
             throw new BusinessRuleException(ApplicationErrorConstants.InvalidChapterStatusTransition);
         }
 
+        // Revert to Draft and clear the schedule.
         chapter.Status = ChapterStatus.Draft;
         chapter.ScheduledAt = null;
         chapter.UpdatedAt = DateTime.UtcNow;
@@ -51,6 +57,7 @@ public sealed class CancelChapterScheduleCommandHandler
 
         _logger.LogInformation(ApplicationLogConstants.ChapterScheduleCancelled, chapter.Id);
 
+        // Map to the response DTO, resolving the volume's public id if any.
         var volumePublicId = chapter.VolumeId is { } id
             ? (await _volumeRepository.GetByIdAsync(id, cancellationToken))?.PublicId
             : null;

@@ -11,11 +11,17 @@ public sealed class GetStoryDetailQueryHandler : IQueryHandler<GetStoryDetailQue
         _authorContext = authorContext;
     }
 
+    /// <summary>
+    /// Loads a story's page header by slug, enforcing that a draft story is visible only
+    /// to its owner, and increments the view count on non-owner published reads.
+    /// </summary>
     public async Task<StoryDetailResponseDto> Handle(GetStoryDetailQuery request, CancellationToken cancellationToken)
     {
+        // Resolve the story by its normalized slug; it must exist.
         var story = await _storyRepository.GetBySlugAsync(request.Slug.Trim().ToLowerInvariant(), cancellationToken)
             ?? throw new NotFoundException(ApplicationErrorConstants.StoryNotFound);
 
+        // Determine whether the caller is the story's owning author.
         var callerAuthorId = _authorContext.IsAuthor ? _authorContext.GetAuthorProfileId() : (long?)null;
         var isOwner = callerAuthorId == story.AuthorProfileId;
 
@@ -25,6 +31,7 @@ public sealed class GetStoryDetailQueryHandler : IQueryHandler<GetStoryDetailQue
             throw new NotFoundException(ApplicationErrorConstants.StoryNotFound);
         }
 
+        // Load the full detail including classification data.
         var full = await _storyRepository.GetWithClassificationByPublicIdAsync(story.PublicId, cancellationToken)
             ?? throw new NotFoundException(ApplicationErrorConstants.StoryNotFound);
 

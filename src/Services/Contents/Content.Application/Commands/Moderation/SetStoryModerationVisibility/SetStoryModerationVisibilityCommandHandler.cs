@@ -6,6 +6,7 @@ public sealed class SetStoryModerationVisibilityCommandHandler
     private readonly IStoryRepository _storyRepository;
     private readonly ILogger<SetStoryModerationVisibilityCommandHandler> _logger;
 
+    /// <summary>Initializes the handler with the story repository and logger it depends on.</summary>
     public SetStoryModerationVisibilityCommandHandler(
         IStoryRepository storyRepository,
         ILogger<SetStoryModerationVisibilityCommandHandler> logger)
@@ -14,10 +15,15 @@ public sealed class SetStoryModerationVisibilityCommandHandler
         _logger = logger;
     }
 
+    /// <summary>
+    /// Applies a moderation Hide/Remove or restore decision to a story. Restoring returns the
+    /// story to Ongoing if it has published content, otherwise back to Draft.
+    /// </summary>
     public async Task<ModerationVisibilityResponseDto> Handle(
         SetStoryModerationVisibilityCommand request,
         CancellationToken cancellationToken)
     {
+        // Look up the story by its public id.
         var story = await _storyRepository.GetByPublicIdAsync(request.StoryId, cancellationToken)
             ?? throw new NotFoundException(ApplicationErrorConstants.StoryNotFound);
 
@@ -27,6 +33,7 @@ public sealed class SetStoryModerationVisibilityCommandHandler
         {
             if (story.Status != StoryStatus.Removed)
             {
+                // Persist the moderator's takedown.
                 story.Status = StoryStatus.Removed;
                 story.UpdatedAt = DateTime.UtcNow;
                 _storyRepository.Update(story);
@@ -35,6 +42,7 @@ public sealed class SetStoryModerationVisibilityCommandHandler
         }
         else if (story.Status == StoryStatus.Removed)
         {
+            // Persist the restore, choosing the correct pre-removal-equivalent status.
             story.Status = story.PublishedAt is null ? StoryStatus.Draft : StoryStatus.Ongoing;
             story.UpdatedAt = DateTime.UtcNow;
             _storyRepository.Update(story);

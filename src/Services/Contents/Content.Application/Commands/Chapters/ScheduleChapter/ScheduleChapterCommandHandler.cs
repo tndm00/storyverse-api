@@ -22,10 +22,15 @@ public sealed class ScheduleChapterCommandHandler : ICommandHandler<ScheduleChap
         _logger = logger;
     }
 
+    /// <summary>
+    /// Schedules a draft chapter to publish automatically at a future time.
+    /// Requires the caller to own the parent story.
+    /// </summary>
     public async Task<ChapterDetailResponseDto> Handle(ScheduleChapterCommand request, CancellationToken cancellationToken)
     {
         var authorProfileId = _authorContext.GetAuthorProfileId();
 
+        // Look up the chapter and verify the caller owns its story.
         var chapter = await _chapterRepository.GetByPublicIdAsync(request.ChapterId, cancellationToken)
             ?? throw new NotFoundException(ApplicationErrorConstants.ChapterNotFound);
 
@@ -39,6 +44,7 @@ public sealed class ScheduleChapterCommandHandler : ICommandHandler<ScheduleChap
             throw new BusinessRuleException(ApplicationErrorConstants.InvalidChapterStatusTransition);
         }
 
+        // Move the chapter to Scheduled with the requested publish time.
         chapter.Status = ChapterStatus.Scheduled;
         chapter.ScheduledAt = request.ScheduledAt;
         chapter.UpdatedAt = DateTime.UtcNow;
@@ -48,6 +54,7 @@ public sealed class ScheduleChapterCommandHandler : ICommandHandler<ScheduleChap
 
         _logger.LogInformation(ApplicationLogConstants.ChapterScheduled, chapter.Id, request.ScheduledAt);
 
+        // Map to the response DTO, resolving the volume's public id if any.
         var volumePublicId = chapter.VolumeId is { } id
             ? (await _volumeRepository.GetByIdAsync(id, cancellationToken))?.PublicId
             : null;

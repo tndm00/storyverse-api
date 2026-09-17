@@ -11,10 +11,12 @@ namespace Content.Application.Interfaces.Repositories;
 /// </summary>
 public interface IChapterReviewActionRepository
 {
+    /// <summary>Appends a new moderator decision to the audit trail.</summary>
     Task AddAsync(ChapterReviewAction action, CancellationToken cancellationToken = default);
 
     /// <summary>Review timeline for a chapter, oldest first.</summary>
     Task<IReadOnlyList<ChapterReviewAction>> GetByChapterIdAsync(long chapterId, CancellationToken cancellationToken = default);
 
+    /// <summary>Persists all pending changes tracked by this repository's unit of work.</summary>
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

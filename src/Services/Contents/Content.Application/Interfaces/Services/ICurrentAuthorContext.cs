@@ -8,11 +8,13 @@ namespace Content.Application.Interfaces.Services;
 /// </summary>
 public interface ICurrentAuthorContext
 {
+    /// <summary>True when the current request carries a validated JWT.</summary>
     bool IsAuthenticated { get; }
 
     /// <summary>True when the validated token carries an author profile claim.</summary>
     bool IsAuthor { get; }
 
+    /// <summary>Returns the caller's user id from the validated JWT.</summary>
     long GetUserId();
 
     /// <summary>

@@ -9,6 +9,8 @@ namespace Content.Application.Interfaces.Persistence;
 /// </summary>
 public interface IContentUnitOfWork
 {
+    /// <summary>Runs <paramref name="operation"/> inside a single database transaction, committing only if it completes without throwing.</summary>
+    /// <param name="operation">The multi-step write to execute atomically.</param>
     Task ExecuteInTransactionAsync(
         Func<CancellationToken, Task> operation,
         CancellationToken cancellationToken = default);

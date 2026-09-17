@@ -9,6 +9,7 @@ public static class WordCounter
 {
     private static readonly Regex Whitespace = new(@"\s+", RegexOptions.Compiled);
 
+    /// <summary>Counts whitespace-delimited words in <paramref name="content"/>, returning 0 for blank input.</summary>
     public static int Count(string content)
     {
         if (string.IsNullOrWhiteSpace(content))

@@ -12,6 +12,7 @@ public sealed class ChaptersController : ControllerBase
         _mediator = mediator;
     }
 
+    /// <summary>Public chapter content, for anyone to read.</summary>
     [AllowAnonymous]
     [HttpGet(ControllerRouteConstants.ChapterByIdSegment)]
     [ProducesResponseType(typeof(ResponseDto<ChapterDetailResponseDto>), StatusCodes.Status200OK)]
@@ -22,6 +23,7 @@ public sealed class ChaptersController : ControllerBase
         return Ok(ResponseDto<ChapterDetailResponseDto>.Ok(result));
     }
 
+    /// <summary>Author edits a chapter's title, order, content, or volume assignment.</summary>
     [Authorize]
     [HttpPut(ControllerRouteConstants.ChapterByIdSegment)]
     [ProducesResponseType(typeof(ResponseDto<ChapterDetailResponseDto>), StatusCodes.Status200OK)]
@@ -169,6 +171,7 @@ public sealed class ChaptersController : ControllerBase
         return Ok(ResponseDto<ChapterDetailResponseDto>.Ok(result));
     }
 
+    /// <summary>Schedules a chapter to auto-publish at a future time.</summary>
     [Authorize]
     [HttpPost(ControllerRouteConstants.ChapterScheduleSegment)]
     [ProducesResponseType(typeof(ResponseDto<ChapterDetailResponseDto>), StatusCodes.Status200OK)]
@@ -184,6 +187,7 @@ public sealed class ChaptersController : ControllerBase
         return Ok(ResponseDto<ChapterDetailResponseDto>.Ok(result));
     }
 
+    /// <summary>Cancels a chapter's pending auto-publish schedule.</summary>
     [Authorize]
     [HttpPost(ControllerRouteConstants.ChapterCancelScheduleSegment)]
     [ProducesResponseType(typeof(ResponseDto<ChapterDetailResponseDto>), StatusCodes.Status200OK)]
@@ -194,6 +198,7 @@ public sealed class ChaptersController : ControllerBase
         return Ok(ResponseDto<ChapterDetailResponseDto>.Ok(result));
     }
 
+    /// <summary>Author removes (soft-deletes) their own chapter.</summary>
     [Authorize]
     [HttpPost(ControllerRouteConstants.ChapterRemoveSegment)]
     [ProducesResponseType(typeof(ResponseDto<ChapterDetailResponseDto>), StatusCodes.Status200OK)]

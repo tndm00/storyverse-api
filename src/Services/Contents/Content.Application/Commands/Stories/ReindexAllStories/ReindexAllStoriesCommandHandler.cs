@@ -22,11 +22,13 @@ public sealed class ReindexAllStoriesCommandHandler
         _logger = logger;
     }
 
+    /// <summary>Pages through every non-draft story and (re)indexes it into Elasticsearch along with its published chapter content.</summary>
     public async Task<ReindexAllStoriesResultDto> Handle(ReindexAllStoriesCommand request, CancellationToken cancellationToken)
     {
         var storyCount = 0;
         var afterId = 0L;
 
+        // Keyset-paginate through all public stories until no more pages remain.
         while (true)
         {
             var page = await _storyRepository.GetAllPublicPagedAsync(afterId, PageSize, cancellationToken);
@@ -35,6 +37,7 @@ public sealed class ReindexAllStoriesCommandHandler
                 break;
             }
 
+            // Index each story together with its currently published chapter content.
             foreach (var story in page)
             {
                 var publishedContent = await _chapterRepository.GetPublishedContentByStoryIdAsync(story.Id, cancellationToken);

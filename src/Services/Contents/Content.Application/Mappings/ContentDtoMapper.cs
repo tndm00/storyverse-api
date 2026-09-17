@@ -7,6 +7,7 @@ namespace Content.Application.Mappings;
 /// </summary>
 public static class ContentDtoMapper
 {
+    /// <summary>Projects a story entity to its discovery/browse listing card, taking the pre-resolved primary genre name and (optionally) comment/chapter counts from the caller.</summary>
     public static StorySummaryResponseDto ToSummary(
         Story story, string primaryGenre, int commentCount = 0, int chapterCount = 0)
     {
@@ -28,6 +29,7 @@ public static class ContentDtoMapper
         };
     }
 
+    /// <summary>Projects a story entity to its full detail DTO using caller-supplied genre and tag lists.</summary>
     public static StoryDetailResponseDto ToDetail(
         Story story,
         IReadOnlyList<StoryGenreDto> genres,
@@ -86,11 +88,13 @@ public static class ContentDtoMapper
         return ToDetail(story, genres, tags);
     }
 
+    /// <summary>Returns the name of the story's primary genre, or null when none is assigned or loaded.</summary>
     public static string PrimaryGenreName(Story story)
     {
         return story.Genres.FirstOrDefault(sg => sg.IsPrimary && sg.Genre is not null)?.Genre.Name;
     }
 
+    /// <summary>Projects a chapter entity to its table-of-contents summary row.</summary>
     public static ChapterSummaryResponseDto ToSummary(Chapter chapter, Guid? volumePublicId)
     {
         return new ChapterSummaryResponseDto
@@ -108,6 +112,7 @@ public static class ContentDtoMapper
         };
     }
 
+    /// <summary>Projects a moderator review-action entity to its response DTO.</summary>
     public static ChapterReviewActionResponseDto ToDto(ChapterReviewAction action)
     {
         return new ChapterReviewActionResponseDto
@@ -120,6 +125,7 @@ public static class ContentDtoMapper
         };
     }
 
+    /// <summary>Projects a chapter entity to its full detail DTO, optionally including its review timeline.</summary>
     public static ChapterDetailResponseDto ToDetail(
         Chapter chapter,
         Guid storyPublicId,
@@ -148,6 +154,7 @@ public static class ContentDtoMapper
         };
     }
 
+    /// <summary>Projects a chapter and its parent story to one row of the cross-story moderation queue.</summary>
     public static PendingReviewChapterResponseDto ToPendingReviewDto(Chapter chapter, Story story)
     {
         return new PendingReviewChapterResponseDto
@@ -165,6 +172,7 @@ public static class ContentDtoMapper
         };
     }
 
+    /// <summary>Projects a volume entity to its response DTO.</summary>
     public static VolumeResponseDto ToDto(Volume volume)
     {
         return new VolumeResponseDto
@@ -175,6 +183,7 @@ public static class ContentDtoMapper
         };
     }
 
+    /// <summary>Projects a genre entity to its response DTO.</summary>
     public static GenreResponseDto ToDto(Genre genre)
     {
         return new GenreResponseDto
@@ -187,6 +196,7 @@ public static class ContentDtoMapper
         };
     }
 
+    /// <summary>Projects a tag entity to its response DTO.</summary>
     public static TagResponseDto ToDto(Tag tag)
     {
         return new TagResponseDto
