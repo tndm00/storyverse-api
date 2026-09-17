@@ -7,6 +7,7 @@ namespace Notification.Application.Mappings;
 /// </summary>
 public static class NotificationDtoMapper
 {
+    /// <summary>Projects a notification entity to its API response DTO.</summary>
     public static NotificationResponseDto ToDto(NotificationEntity notification)
     {
         return new NotificationResponseDto

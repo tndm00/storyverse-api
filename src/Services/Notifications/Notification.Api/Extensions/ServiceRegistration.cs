@@ -6,6 +6,7 @@ namespace Notification.Api.Extensions;
 /// </summary>
 public static class ServiceRegistration
 {
+    /// <summary>Wires JWT Bearer auth, Swagger, CORS, and MVC controllers for the API host.</summary>
     public static IServiceCollection AddApiServices(this IServiceCollection services, IConfiguration configuration)
     {
         services

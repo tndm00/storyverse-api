@@ -15,6 +15,7 @@ public sealed class NotificationUnitOfWork : INotificationUnitOfWork
         _dbContext = dbContext;
     }
 
+    /// <summary>Runs <paramref name="operation"/> inside a single database transaction via the provider's execution strategy.</summary>
     public async Task ExecuteInTransactionAsync(
         Func<CancellationToken, Task> operation,
         CancellationToken cancellationToken = default)
@@ -23,6 +24,8 @@ public sealed class NotificationUnitOfWork : INotificationUnitOfWork
 
         await strategy.ExecuteAsync(async () =>
         {
+            // Begin the transaction, run the caller's operation, then commit; an exception
+            // leaves the transaction unconsumed so it rolls back on dispose.
             await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
 
             await operation(cancellationToken);

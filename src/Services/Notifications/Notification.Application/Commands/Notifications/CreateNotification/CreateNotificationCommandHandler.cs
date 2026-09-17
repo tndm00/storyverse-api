@@ -13,10 +13,12 @@ public sealed class CreateNotificationCommandHandler : ICommandHandler<CreateNot
         _logger = logger;
     }
 
+    /// <summary>Builds and persists a new unread notification for the recipient.</summary>
     public async Task<NotificationResponseDto> Handle(CreateNotificationCommand request, CancellationToken cancellationToken)
     {
         var now = DateTime.UtcNow;
 
+        // Build the entity, trimming free-text fields and normalizing an empty RefType to null.
         var notification = new NotificationEntity
         {
             UserId = request.UserId,
@@ -29,6 +31,7 @@ public sealed class CreateNotificationCommandHandler : ICommandHandler<CreateNot
             CreatedAt = now
         };
 
+        // Persist the new notification.
         await _notificationRepository.AddAsync(notification, cancellationToken);
         await _notificationRepository.SaveChangesAsync(cancellationToken);
 

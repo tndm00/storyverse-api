@@ -20,10 +20,15 @@ namespace Notification.Api.Security;
 [AttributeUsage(AttributeTargets.Method | AttributeTargets.Class)]
 public sealed class ServiceOrUserAuthorizeAttribute : Attribute, IAsyncActionFilter
 {
+    /// <summary>
+    /// Allows the action to run when the caller is either an authenticated user
+    /// or presents the correct <c>X-Service-Token</c> header; otherwise returns 401.
+    /// </summary>
     public async Task OnActionExecutionAsync(ActionExecutingContext context, ActionExecutionDelegate next)
     {
         var http = context.HttpContext;
 
+        // A valid JWT on the request always wins (normal end-user or FE reply-shim callers).
         var userAuthenticated = http.User?.Identity?.IsAuthenticated ?? false;
         if (userAuthenticated)
         {
@@ -34,6 +39,7 @@ public sealed class ServiceOrUserAuthorizeAttribute : Attribute, IAsyncActionFil
         var configuredToken = http.RequestServices
             .GetRequiredService<IOptions<ServiceAuthOptions>>().Value.Token;
 
+        // Otherwise fall back to the shared service-to-service token, compared in fixed time.
         if (!string.IsNullOrEmpty(configuredToken)
             && http.Request.Headers.TryGetValue(ServiceAuthConstants.HeaderName, out var provided)
             && FixedTimeEquals(provided.ToString(), configuredToken))
@@ -45,6 +51,7 @@ public sealed class ServiceOrUserAuthorizeAttribute : Attribute, IAsyncActionFil
         context.Result = new UnauthorizedResult();
     }
 
+    /// <summary>Constant-time string comparison so token checks don't leak timing information.</summary>
     private static bool FixedTimeEquals(string a, string b)
     {
         var ba = Encoding.UTF8.GetBytes(a);

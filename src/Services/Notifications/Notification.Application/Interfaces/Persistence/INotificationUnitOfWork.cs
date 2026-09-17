@@ -8,6 +8,7 @@ namespace Notification.Application.Interfaces.Persistence;
 /// </summary>
 public interface INotificationUnitOfWork
 {
+    /// <summary>Runs <paramref name="operation"/> inside a single database transaction.</summary>
     Task ExecuteInTransactionAsync(
         Func<CancellationToken, Task> operation,
         CancellationToken cancellationToken = default);

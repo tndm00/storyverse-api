@@ -12,6 +12,7 @@ public sealed class NotificationDbContext : DbContext
 
     public DbSet<NotificationEntity> Notifications => Set<NotificationEntity>();
 
+    /// <summary>Applies all entity type configurations found in this assembly.</summary>
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);

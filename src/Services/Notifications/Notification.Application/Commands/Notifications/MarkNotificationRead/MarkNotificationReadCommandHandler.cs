@@ -16,6 +16,7 @@ public sealed class MarkNotificationReadCommandHandler : ICommandHandler<MarkNot
         _logger = logger;
     }
 
+    /// <summary>Marks a single notification owned by the current user as read, if it isn't already.</summary>
     public async Task<NotificationResponseDto> Handle(MarkNotificationReadCommand request, CancellationToken cancellationToken)
     {
         var userId = _currentUser.GetUserId();
@@ -29,6 +30,7 @@ public sealed class MarkNotificationReadCommandHandler : ICommandHandler<MarkNot
             throw new NotFoundException(ApplicationErrorConstants.NotificationNotFound);
         }
 
+        // Only touch storage when there is an actual state change to persist.
         if (!notification.IsRead)
         {
             notification.MarkRead(DateTime.UtcNow);

@@ -13,6 +13,7 @@ public sealed class GetUnreadCountQueryHandler : IQueryHandler<GetUnreadCountQue
         _currentUser = currentUser;
     }
 
+    /// <summary>Returns the count of unread notifications for the current user.</summary>
     public async Task<UnreadCountResponseDto> Handle(GetUnreadCountQuery request, CancellationToken cancellationToken)
     {
         var userId = _currentUser.GetUserId();

@@ -17,12 +17,14 @@ public sealed class MarkAllNotificationsReadCommandHandler
         _logger = logger;
     }
 
+    /// <summary>Marks every unread notification for the current user as read and returns the new (zero) unread count.</summary>
     public async Task<UnreadCountResponseDto> Handle(
         MarkAllNotificationsReadCommand request,
         CancellationToken cancellationToken)
     {
         var userId = _currentUser.GetUserId();
 
+        // Bulk-update every unread notification owned by this user.
         var affected = await _notificationRepository.MarkAllReadAsync(userId, DateTime.UtcNow, cancellationToken);
 
         _logger.LogInformation(ApplicationLogConstants.NotificationsAllRead, userId, affected);

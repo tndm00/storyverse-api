@@ -11,8 +11,10 @@ public sealed class NotificationDbContextFactory : IDesignTimeDbContextFactory<N
     private const string FallbackConnectionString =
         "Host=localhost;Port=5432;Database=storyverse_notification;Username=postgres;Password=postgres";
 
+    /// <summary>Builds a <see cref="NotificationDbContext"/> for design-time tooling (e.g. migrations).</summary>
     public NotificationDbContext CreateDbContext(string[] args)
     {
+        // Prefer the override env var (used for provider-specific SQL generation) over the local fallback.
         var connectionString =
             Environment.GetEnvironmentVariable(InfrastructureConstants.DesignTimeConnectionEnvVar)
             ?? FallbackConnectionString;

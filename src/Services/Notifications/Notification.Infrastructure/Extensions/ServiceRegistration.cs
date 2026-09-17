@@ -7,6 +7,7 @@ namespace Notification.Infrastructure.Extensions;
 /// </summary>
 public static class ServiceRegistration
 {
+    /// <summary>Wires the EF Core DbContext, repositories, unit of work, and current-user context.</summary>
     public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
     {
         var connectionString = configuration.GetConnectionString(InfrastructureConstants.ConnectionStringName);

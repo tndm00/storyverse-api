@@ -7,6 +7,7 @@ namespace Notification.Infrastructure.Configurations;
 /// </summary>
 public sealed class NotificationConfiguration : IEntityTypeConfiguration<NotificationEntity>
 {
+    /// <summary>Maps the notification entity to its table, columns, and indexes.</summary>
     public void Configure(EntityTypeBuilder<NotificationEntity> builder)
     {
         builder.ToTable(InfrastructureConstants.NotificationsTableName, InfrastructureConstants.NotificationSchemaName);

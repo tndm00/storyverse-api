@@ -2,6 +2,7 @@ namespace Notification.Application.Commands.Notifications.CreateNotification;
 
 public sealed class CreateNotificationCommandValidator : AbstractValidator<CreateNotificationCommand>
 {
+    /// <summary>Validates recipient, type, title/body limits, and the RefType/RefId pairing rule.</summary>
     public CreateNotificationCommandValidator()
     {
         RuleFor(x => x.UserId)

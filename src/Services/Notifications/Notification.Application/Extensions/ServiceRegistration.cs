@@ -7,6 +7,7 @@ namespace Notification.Application.Extensions;
 /// </summary>
 public static class ServiceRegistration
 {
+    /// <summary>Wires MediatR handlers, the validation pipeline, FluentValidation validators, and Mapster mappings.</summary>
     public static IServiceCollection AddApplication(this IServiceCollection services)
     {
         var assembly = Assembly.GetExecutingAssembly();
