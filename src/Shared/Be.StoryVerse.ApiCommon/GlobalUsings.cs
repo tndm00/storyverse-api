@@ -1,8 +1,10 @@
 global using System;
+global using System.Collections.Generic;
 global using System.Net;
 global using System.Text.Json;
 global using System.Threading.Tasks;
 global using Be.StoryVerse.ApiCommon.Constants;
+global using Be.StoryVerse.ApiCommon.Logging;
 global using Be.StoryVerse.Core.Exceptions;
 global using Be.StoryVerse.Shared;
 global using Be.StoryVerse.Shared.Constants;
@@ -12,3 +14,7 @@ global using Microsoft.AspNetCore.Http;
 global using Microsoft.Extensions.DependencyInjection;
 global using Microsoft.Extensions.Logging;
 global using Microsoft.OpenApi.Models;
+global using Serilog;
+global using Serilog.Core;
+global using Serilog.Events;
+global using Serilog.Formatting.Compact;

@@ -1,7 +1,3 @@
-using Be.StoryVerse.Shared;
-using Serilog.Core;
-using Serilog.Events;
-
 namespace Be.StoryVerse.ApiCommon.Logging;
 
 /// <summary>

@@ -1,6 +1,3 @@
-using Be.StoryVerse.Shared.Http;
-using Microsoft.Extensions.Options;
-
 namespace Community.Infrastructure.Extensions;
 
 /// <summary>

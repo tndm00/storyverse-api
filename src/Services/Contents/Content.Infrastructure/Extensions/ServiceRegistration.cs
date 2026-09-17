@@ -1,7 +1,3 @@
-using Be.StoryVerse.Shared.Http;
-using Elastic.Clients.Elasticsearch;
-using Microsoft.Extensions.Options;
-
 namespace Content.Infrastructure.Extensions;
 
 /// <summary>

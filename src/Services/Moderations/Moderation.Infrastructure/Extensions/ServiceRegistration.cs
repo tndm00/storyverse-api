@@ -1,6 +1,3 @@
-using Be.StoryVerse.Shared.Http;
-using Microsoft.Extensions.Options;
-
 namespace Moderation.Infrastructure.Extensions;
 
 /// <summary>

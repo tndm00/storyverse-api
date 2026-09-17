@@ -1,9 +1,3 @@
-using Be.StoryVerse.ApiCommon.Logging;
-using Microsoft.AspNetCore.Builder;
-using Serilog;
-using Serilog.Events;
-using Serilog.Formatting.Compact;
-
 namespace Be.StoryVerse.ApiCommon.Extensions;
 
 /// <summary>

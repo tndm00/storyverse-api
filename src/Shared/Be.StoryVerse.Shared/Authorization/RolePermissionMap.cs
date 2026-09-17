@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-
 namespace Be.StoryVerse.Shared.Authorization;
 
 /// <summary>
