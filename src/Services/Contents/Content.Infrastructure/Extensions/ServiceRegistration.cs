@@ -1,3 +1,4 @@
+using Be.StoryVerse.Shared.Http;
 using Elastic.Clients.Elasticsearch;
 using Microsoft.Extensions.Options;
 
@@ -30,6 +31,10 @@ public static class ServiceRegistration
         services.AddScoped<ICurrentAuthorContext, CurrentAuthorContext>();
         services.AddScoped<ISearchSyncCursorRepository, SearchSyncCursorRepository>();
 
+        // Forwards X-Correlation-ID on every outbound inter-service HTTP call
+        // below, so one request traces across services in Kibana.
+        services.AddTransient<CorrelationIdDelegatingHandler>();
+
         // Story search index (dual-written from Content.Application command
         // handlers). Enabled=false makes this entirely inert — see
         // ElasticsearchOptions.
@@ -51,6 +56,7 @@ public static class ServiceRegistration
             SetBaseAddress(client, options.BaseUrl);
             client.Timeout = TimeSpan.FromSeconds(5);
         })
+        .AddHttpMessageHandler<CorrelationIdDelegatingHandler>()
         .ConfigurePrimaryHttpMessageHandler(sp =>
             BuildHandler(sp.GetRequiredService<IOptions<NotificationApiOptions>>().Value.DangerousAcceptAnyServerCertificate));
 
@@ -63,6 +69,7 @@ public static class ServiceRegistration
             SetBaseAddress(client, options.BaseUrl);
             client.Timeout = TimeSpan.FromSeconds(5);
         })
+        .AddHttpMessageHandler<CorrelationIdDelegatingHandler>()
         .ConfigurePrimaryHttpMessageHandler(sp =>
             BuildHandler(sp.GetRequiredService<IOptions<AuthApiOptions>>().Value.DangerousAcceptAnyServerCertificate));
 

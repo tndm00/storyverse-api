@@ -1,3 +1,4 @@
+using Be.StoryVerse.Shared.Http;
 using Microsoft.Extensions.Options;
 
 namespace Community.Infrastructure.Extensions;
@@ -25,6 +26,10 @@ public static class ServiceRegistration
         services.AddScoped<IVoteRepository, VoteRepository>();
         services.AddScoped<ICurrentUserContext, CurrentUserContext>();
 
+        // Forwards X-Correlation-ID on every outbound inter-service HTTP call
+        // below, so one request traces across services in Kibana.
+        services.AddTransient<CorrelationIdDelegatingHandler>();
+
         // Outbound HTTP to the Authentication service: resolves author/rater user
         // ids to display names for comment and rating listings. Request-scoped so
         // the per-request name cache lives exactly as long as the request.
@@ -39,6 +44,7 @@ public static class ServiceRegistration
 
             client.Timeout = TimeSpan.FromSeconds(5);
         })
+        .AddHttpMessageHandler<CorrelationIdDelegatingHandler>()
         .ConfigurePrimaryHttpMessageHandler(sp =>
         {
             var handler = new System.Net.Http.HttpClientHandler();
@@ -66,6 +72,7 @@ public static class ServiceRegistration
 
             client.Timeout = TimeSpan.FromSeconds(5);
         })
+        .AddHttpMessageHandler<CorrelationIdDelegatingHandler>()
         .ConfigurePrimaryHttpMessageHandler(sp =>
         {
             var handler = new System.Net.Http.HttpClientHandler();
@@ -93,6 +100,7 @@ public static class ServiceRegistration
 
             client.Timeout = TimeSpan.FromSeconds(5);
         })
+        .AddHttpMessageHandler<CorrelationIdDelegatingHandler>()
         .ConfigurePrimaryHttpMessageHandler(sp =>
         {
             var handler = new System.Net.Http.HttpClientHandler();
@@ -119,6 +127,7 @@ public static class ServiceRegistration
 
             client.Timeout = TimeSpan.FromSeconds(5);
         })
+        .AddHttpMessageHandler<CorrelationIdDelegatingHandler>()
         .ConfigurePrimaryHttpMessageHandler(sp =>
         {
             var handler = new System.Net.Http.HttpClientHandler();

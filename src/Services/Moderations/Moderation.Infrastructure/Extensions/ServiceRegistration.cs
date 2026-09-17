@@ -1,3 +1,4 @@
+using Be.StoryVerse.Shared.Http;
 using Microsoft.Extensions.Options;
 
 namespace Moderation.Infrastructure.Extensions;
@@ -23,6 +24,10 @@ public static class ServiceRegistration
         services.AddScoped<IReportRepository, ReportRepository>();
         services.AddScoped<IModerationActionRepository, ModerationActionRepository>();
         services.AddScoped<ICurrentUserContext, CurrentUserContext>();
+
+        // Forwards X-Correlation-ID on every outbound inter-service HTTP call
+        // below, so one request traces across services in Kibana.
+        services.AddTransient<CorrelationIdDelegatingHandler>();
 
         services.Configure<ContentApiOptions>(configuration.GetSection(ContentApiOptions.SectionName));
         services.Configure<CommunityApiOptions>(configuration.GetSection(CommunityApiOptions.SectionName));
@@ -50,6 +55,7 @@ public static class ServiceRegistration
 
             client.Timeout = TimeSpan.FromSeconds(10);
         })
+        .AddHttpMessageHandler<CorrelationIdDelegatingHandler>()
         .ConfigurePrimaryHttpMessageHandler(sp =>
         {
             var handler = new System.Net.Http.HttpClientHandler();
