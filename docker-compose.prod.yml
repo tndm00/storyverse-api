@@ -238,7 +238,12 @@ services:
         condition: service_healthy
     environment:
       - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
-    mem_limit: 700m
+      # 700m was too tight — Kibana 8.15's default plugin set (166 plugins)
+      # OOM-crashed on startup/first page load. Cap the Node heap explicitly
+      # a bit below mem_limit so V8 respects the container ceiling instead of
+      # sizing itself off host RAM and getting OOM-killed by the cgroup.
+      - NODE_OPTIONS=--max-old-space-size=1200
+    mem_limit: 1536m
     networks: [storyverse]
 
   # Ships all 6 services' container logs (Docker's default json-file driver)
