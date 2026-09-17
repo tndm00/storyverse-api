@@ -64,6 +64,7 @@ global using Be.StoryVerse.ApiCommon.Authorization;
 global using Be.StoryVerse.ApiCommon.Extensions;
 global using Be.StoryVerse.ApiCommon.Middlewares;
 global using Be.StoryVerse.Shared.Authorization;
+global using Be.StoryVerse.Shared.Constants;
 global using Be.StoryVerse.Shared.Dtos;
 global using MediatR;
 global using Microsoft.AspNetCore.Authentication.JwtBearer;

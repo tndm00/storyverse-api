@@ -30,7 +30,6 @@ internal sealed class UserNameEntry
 /// <summary>Typed client for the Content service (Hide/Remove application + title lookup).</summary>
 public sealed class ContentModerationClient : IContentModerationClient
 {
-    private const string ServiceTokenHeader = "X-Service-Token";
 
     private readonly HttpClient _httpClient;
     private readonly ContentApiOptions _options;
@@ -63,7 +62,7 @@ public sealed class ContentModerationClient : IContentModerationClient
         {
             Content = JsonContent.Create(new { hidden, reason })
         };
-        request.Headers.Add(ServiceTokenHeader, _options.ServiceToken);
+        request.Headers.Add(ServiceAuthConstants.HeaderName, _options.ServiceToken);
 
         using var response = await _httpClient.SendAsync(request, cancellationToken);
         response.EnsureSuccessStatusCode();
@@ -84,7 +83,7 @@ public sealed class ContentModerationClient : IContentModerationClient
         try
         {
             using var request = new HttpRequestMessage(HttpMethod.Get, path);
-            request.Headers.Add(ServiceTokenHeader, _options.ServiceToken);
+            request.Headers.Add(ServiceAuthConstants.HeaderName, _options.ServiceToken);
 
             using var response = await _httpClient.SendAsync(request, cancellationToken);
             response.EnsureSuccessStatusCode();
@@ -105,7 +104,6 @@ public sealed class ContentModerationClient : IContentModerationClient
 /// <summary>Typed client for the Community service (comment Hide application + excerpt lookup).</summary>
 public sealed class CommunityModerationClient : ICommunityModerationClient
 {
-    private const string ServiceTokenHeader = "X-Service-Token";
 
     private readonly HttpClient _httpClient;
     private readonly CommunityApiOptions _options;
@@ -133,7 +131,7 @@ public sealed class CommunityModerationClient : ICommunityModerationClient
         {
             Content = JsonContent.Create(new { hidden, reason })
         };
-        request.Headers.Add(ServiceTokenHeader, _options.ServiceToken);
+        request.Headers.Add(ServiceAuthConstants.HeaderName, _options.ServiceToken);
 
         using var response = await _httpClient.SendAsync(request, cancellationToken);
         response.EnsureSuccessStatusCode();
@@ -152,7 +150,7 @@ public sealed class CommunityModerationClient : ICommunityModerationClient
         {
             using var request = new HttpRequestMessage(
                 HttpMethod.Get, $"v1/comments/internal/excerpts?ids={string.Join(',', idList)}");
-            request.Headers.Add(ServiceTokenHeader, _options.ServiceToken);
+            request.Headers.Add(ServiceAuthConstants.HeaderName, _options.ServiceToken);
 
             using var response = await _httpClient.SendAsync(request, cancellationToken);
             response.EnsureSuccessStatusCode();
@@ -173,7 +171,6 @@ public sealed class CommunityModerationClient : ICommunityModerationClient
 /// <summary>Typed client for the Authentication service's batch display-name lookup.</summary>
 public sealed class UserDirectoryClient : IUserDirectoryClient
 {
-    private const string ServiceTokenHeader = "X-Service-Token";
 
     private readonly HttpClient _httpClient;
     private readonly AuthApiOptions _options;
@@ -200,7 +197,7 @@ public sealed class UserDirectoryClient : IUserDirectoryClient
         {
             using var request = new HttpRequestMessage(
                 HttpMethod.Get, $"v1/auth/internal/users?ids={string.Join(',', idList)}");
-            request.Headers.Add(ServiceTokenHeader, _options.ServiceToken);
+            request.Headers.Add(ServiceAuthConstants.HeaderName, _options.ServiceToken);
 
             using var response = await _httpClient.SendAsync(request, cancellationToken);
             response.EnsureSuccessStatusCode();

@@ -14,7 +14,6 @@ namespace Community.Infrastructure.Http;
 /// </summary>
 public sealed class UserDirectoryClient : IUserDirectoryClient
 {
-    private const string ServiceTokenHeader = "X-Service-Token";
 
     private readonly HttpClient _httpClient;
     private readonly AuthApiOptions _options;
@@ -60,7 +59,7 @@ public sealed class UserDirectoryClient : IUserDirectoryClient
         {
             var query = string.Join(',', ids);
             using var request = new HttpRequestMessage(HttpMethod.Get, $"v1/auth/internal/users?ids={query}");
-            request.Headers.Add(ServiceTokenHeader, _options.ServiceToken);
+            request.Headers.Add(ServiceAuthConstants.HeaderName, _options.ServiceToken);
 
             using var response = await _httpClient.SendAsync(request, cancellationToken);
             response.EnsureSuccessStatusCode();

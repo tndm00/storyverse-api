@@ -15,9 +15,6 @@ namespace Content.Infrastructure.Http;
 /// </summary>
 public sealed class AuthDirectoryClient : IAuthorDirectoryClient
 {
-    /// <summary>Agreed with Authentication.Api (<c>ApiConstants.ServiceTokenHeader</c>).</summary>
-    private const string ServiceTokenHeader = "X-Service-Token";
-
     private readonly HttpClient _httpClient;
     private readonly AuthApiOptions _options;
     private readonly ILogger<AuthDirectoryClient> _logger;
@@ -44,7 +41,7 @@ public sealed class AuthDirectoryClient : IAuthorDirectoryClient
 
         using var request = new HttpRequestMessage(
             HttpMethod.Get, $"v1/auth/internal/author-profiles/{authorProfileId}");
-        request.Headers.Add(ServiceTokenHeader, _options.ServiceToken);
+        request.Headers.Add(ServiceAuthConstants.HeaderName, _options.ServiceToken);
 
         using var response = await _httpClient.SendAsync(request, cancellationToken);
 

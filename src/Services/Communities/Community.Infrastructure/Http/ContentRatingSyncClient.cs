@@ -14,7 +14,6 @@ namespace Community.Infrastructure.Http;
 /// </summary>
 public sealed class ContentRatingSyncClient : IContentRatingSyncClient
 {
-    private const string ServiceTokenHeader = "X-Service-Token";
 
     private readonly HttpClient _httpClient;
     private readonly ContentApiOptions _options;
@@ -47,7 +46,7 @@ public sealed class ContentRatingSyncClient : IContentRatingSyncClient
             {
                 Content = JsonContent.Create(new { ratingAvg, ratingCount })
             };
-            request.Headers.Add(ServiceTokenHeader, _options.ServiceToken);
+            request.Headers.Add(ServiceAuthConstants.HeaderName, _options.ServiceToken);
 
             using var response = await _httpClient.SendAsync(request, cancellationToken);
             response.EnsureSuccessStatusCode();

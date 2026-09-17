@@ -35,7 +35,7 @@ public sealed class ServiceOrUserAuthorizeAttribute : Attribute, IAsyncActionFil
             .GetRequiredService<IOptions<ServiceAuthOptions>>().Value.Token;
 
         if (!string.IsNullOrEmpty(configuredToken)
-            && http.Request.Headers.TryGetValue(ApiConstants.ServiceTokenHeader, out var provided)
+            && http.Request.Headers.TryGetValue(ServiceAuthConstants.HeaderName, out var provided)
             && FixedTimeEquals(provided.ToString(), configuredToken))
         {
             await next();

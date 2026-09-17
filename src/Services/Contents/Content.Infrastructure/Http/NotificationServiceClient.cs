@@ -14,8 +14,6 @@ namespace Content.Infrastructure.Http;
 /// </summary>
 public sealed class NotificationServiceClient : INotificationServiceClient
 {
-    /// <summary>Header name agreed with Notification.Api (<c>ApiConstants.ServiceTokenHeader</c>).</summary>
-    private const string ServiceTokenHeader = "X-Service-Token";
     private const string CreateNotificationPath = "v1/notifications";
 
     private readonly HttpClient _httpClient;
@@ -63,7 +61,7 @@ public sealed class NotificationServiceClient : INotificationServiceClient
         {
             Content = JsonContent.Create(payload)
         };
-        request.Headers.Add(ServiceTokenHeader, _options.ServiceToken);
+        request.Headers.Add(ServiceAuthConstants.HeaderName, _options.ServiceToken);
 
         using var response = await _httpClient.SendAsync(request, cancellationToken);
         response.EnsureSuccessStatusCode();

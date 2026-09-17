@@ -19,6 +19,7 @@ global using Community.Infrastructure.Persistence;
 global using Community.Infrastructure.Repositories;
 global using Community.Infrastructure.Security;
 global using Be.StoryVerse.Core.Exceptions;
+global using Be.StoryVerse.Shared.Constants;
 global using Be.StoryVerse.Shared.Http;
 global using Microsoft.AspNetCore.Http;
 global using Microsoft.EntityFrameworkCore;

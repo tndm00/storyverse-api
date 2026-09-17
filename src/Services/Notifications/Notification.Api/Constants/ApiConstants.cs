@@ -7,10 +7,4 @@ namespace Notification.Api.Constants;
 public static class ApiConstants
 {
     public const string SwaggerTitle = "Be.StoryVerse Notification API";
-
-    /// <summary>
-    /// Header carrying the shared service-to-service secret on the internal
-    /// notification-creation endpoint. Checked against <c>ServiceAuth:Token</c>.
-    /// </summary>
-    public const string ServiceTokenHeader = "X-Service-Token";
 }
