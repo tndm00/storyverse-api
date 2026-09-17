@@ -9,6 +9,7 @@ global using System.Threading;
 global using System.Threading.Tasks;
 global using Content.Application.Constants;
 global using Content.Application.Dtos;
+global using Content.Application.Interfaces;
 global using Content.Application.Interfaces.Persistence;
 global using Content.Application.Interfaces.Repositories;
 global using Content.Application.Interfaces.Services;

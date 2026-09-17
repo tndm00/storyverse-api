@@ -4,6 +4,7 @@ global using System.Text.Json;
 global using System.Threading.Tasks;
 global using Be.StoryVerse.ApiCommon.Constants;
 global using Be.StoryVerse.Core.Exceptions;
+global using Be.StoryVerse.Shared;
 global using Be.StoryVerse.Shared.Constants;
 global using Be.StoryVerse.Shared.Dtos;
 global using Microsoft.AspNetCore.Builder;

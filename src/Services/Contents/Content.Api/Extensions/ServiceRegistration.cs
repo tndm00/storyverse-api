@@ -62,6 +62,13 @@ public static class ServiceRegistration
             configuration.GetSection(Content.Application.Options.ChapterPublishingOptions.SectionName));
         services.AddHostedService<ScheduledChapterPublisher>();
 
+        // Background loop that syncs changed stories/chapters into Elasticsearch.
+        // Decoupled from the write path — no story/chapter handler calls the
+        // search service directly.
+        services.Configure<Content.Application.Options.StorySearchSyncOptions>(
+            configuration.GetSection(Content.Application.Options.StorySearchSyncOptions.SectionName));
+        services.AddHostedService<StorySearchIndexSyncBackgroundService>();
+
         // Dev-only seeders. GenreSeeder must run first — DemoContentSeeder looks
         // its genres up by slug. Hosted services start in registration order.
         services.AddHostedService<GenreSeeder>();

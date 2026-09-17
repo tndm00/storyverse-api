@@ -1,0 +1,30 @@
+# Ships logs from all StoryVerse containers (Docker's default json-file
+# driver) into Elasticsearch. Autodiscovers containers via Docker labels, so
+# no per-service config is needed here or in the services themselves.
+filebeat.autodiscover:
+  providers:
+    - type: docker
+      hints.enabled: true
+      templates:
+        - condition:
+            contains:
+              docker.container.labels.com.docker.compose.project: "story-be-prj"
+          config:
+            - type: container
+              paths:
+                - "/var/lib/docker/containers/${data.docker.container.id}/*.log"
+
+processors:
+  - add_docker_metadata: ~
+  - decode_json_fields:
+      fields: ["message"]
+      target: ""
+      overwrite_keys: true
+
+output.elasticsearch:
+  hosts: ["http://elasticsearch:9200"]
+  index: "storyverse-logs-%{+yyyy.MM.dd}"
+
+setup.template.name: "storyverse-logs"
+setup.template.pattern: "storyverse-logs-*"
+setup.ilm.enabled: false

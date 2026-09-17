@@ -1,3 +1,4 @@
+using Elastic.Clients.Elasticsearch;
 using Microsoft.Extensions.Options;
 
 namespace Content.Infrastructure.Extensions;
@@ -27,6 +28,20 @@ public static class ServiceRegistration
         services.AddScoped<IGenreRepository, GenreRepository>();
         services.AddScoped<ITagRepository, TagRepository>();
         services.AddScoped<ICurrentAuthorContext, CurrentAuthorContext>();
+        services.AddScoped<ISearchSyncCursorRepository, SearchSyncCursorRepository>();
+
+        // Story search index (dual-written from Content.Application command
+        // handlers). Enabled=false makes this entirely inert — see
+        // ElasticsearchOptions.
+        services.Configure<ElasticsearchOptions>(configuration.GetSection(ElasticsearchOptions.SectionName));
+        services.AddSingleton(sp =>
+        {
+            var options = sp.GetRequiredService<IOptions<ElasticsearchOptions>>().Value;
+            var url = string.IsNullOrWhiteSpace(options.Url) ? "http://localhost:9200" : options.Url;
+            var settings = new ElasticsearchClientSettings(new Uri(url)).DefaultIndex(options.IndexName);
+            return new ElasticsearchClient(settings);
+        });
+        services.AddScoped<IStorySearchService, ElasticsearchStorySearchService>();
 
         // Outbound HTTP to the Notification service (stand-in for an event bus).
         services.Configure<NotificationApiOptions>(configuration.GetSection(NotificationApiOptions.SectionName));

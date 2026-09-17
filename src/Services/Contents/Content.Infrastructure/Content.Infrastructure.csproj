@@ -20,6 +20,7 @@
     <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.2.0" />
     <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="8.0.0" />
     <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.1.2" />
+    <PackageReference Include="Elastic.Clients.Elasticsearch" Version="8.15.3" />
   </ItemGroup>
 
   <ItemGroup>

@@ -20,6 +20,7 @@ public static class ControllerRouteConstants
     // Admin/author listings (literal segments; matched ahead of "{storyId:guid}")
     public const string StoryAdminSegment = "admin";
     public const string StoryAdminCountsSegment = "admin/counts";
+    public const string StoryAdminReindexSearchSegment = "admin/reindex-search";
     public const string StoryMineSegment = "mine";
 
     public const string StoryByIdSegment = "{storyId:guid}";

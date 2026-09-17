@@ -1,9 +1,11 @@
 using Content.Application.Dtos;
+using Content.Application.Interfaces;
 using Content.Application.Interfaces.Repositories;
 using Content.Application.Queries.Stories.GetStories;
 using Content.Domain.Entities;
 using Content.Domain.Enums;
 using FluentAssertions;
+using Microsoft.Extensions.Logging;
 using NSubstitute;
 using Xunit;
 
@@ -12,12 +14,14 @@ namespace Content.UnitTests.Queries.Stories;
 public class GetStoriesQueryHandlerTests
 {
     private readonly IStoryRepository _storyRepository = Substitute.For<IStoryRepository>();
+    private readonly IStorySearchService _storySearchService = Substitute.For<IStorySearchService>();
+    private readonly ILogger<GetStoriesQueryHandler> _logger = Substitute.For<ILogger<GetStoriesQueryHandler>>();
 
     private readonly GetStoriesQueryHandler _handler;
 
     public GetStoriesQueryHandlerTests()
     {
-        _handler = new GetStoriesQueryHandler(_storyRepository);
+        _handler = new GetStoriesQueryHandler(_storyRepository, _storySearchService, _logger);
     }
 
     [Fact]

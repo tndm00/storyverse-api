@@ -26,6 +26,8 @@ public sealed class ContentDbContext : DbContext
 
     public DbSet<StoryTag> StoryTags => Set<StoryTag>();
 
+    public DbSet<SearchSyncCursor> SearchSyncCursors => Set<SearchSyncCursor>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);

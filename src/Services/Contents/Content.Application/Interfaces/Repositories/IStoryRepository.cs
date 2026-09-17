@@ -43,6 +43,36 @@ public interface IStoryRepository
     Task<IReadOnlyDictionary<StoryStatus, int>> CountByStatusAsync(CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Hydrates entities for a set of ids returned by <see cref="IStorySearchService"/>,
+    /// preserving the given order (Elasticsearch's relevance ranking) rather than
+    /// re-sorting by any Postgres column. Unknown ids are omitted.
+    /// </summary>
+    Task<IReadOnlyList<Story>> GetByIdsInOrderAsync(
+        IReadOnlyList<long> storyIds, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Every non-Draft story, paged, for the one-time/backfill reindex into
+    /// Elasticsearch. Unlike <see cref="SearchPublishedAsync"/> this ignores all
+    /// filters/sort — callers page through the whole catalog in id order.
+    /// </summary>
+    Task<IReadOnlyList<Story>> GetAllPublicPagedAsync(
+        long afterId, int pageSize, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Ids of stories that changed in the given window — either the
+    /// <see cref="Story"/> row itself (title/description/status/etc.) or one of
+    /// its <see cref="Chapter"/>s (content edited/approved/removed), matched via
+    /// <c>COALESCE(UpdatedAt, CreatedAt)</c> so a never-updated row still counts
+    /// by its creation time. Watching Chapters too matters because editing a
+    /// chapter's text does not touch the parent Story row. Used by the
+    /// background search-index sync job (decoupled from write-path handlers —
+    /// see StorySearchIndexSyncCommandHandler); capped at
+    /// <paramref name="maxResults"/> distinct story ids.
+    /// </summary>
+    Task<IReadOnlyList<long>> GetStoryIdsChangedBetweenAsync(
+        DateTime sinceExclusive, DateTime untilInclusive, int maxResults, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Atomically moves a story from <see cref="StoryStatus.Draft"/> to
     /// <see cref="StoryStatus.Ongoing"/> and stamps <c>PublishedAt</c> (only if
     /// not already set) when its first chapter is published. A no-op — matching

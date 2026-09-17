@@ -76,6 +76,18 @@ public sealed class ChapterRepository : IChapterRepository
             cancellationToken);
     }
 
+    public async Task<string> GetPublishedContentByStoryIdAsync(long storyId, CancellationToken cancellationToken = default)
+    {
+        var chapters = await _dbContext.Chapters
+            .AsNoTracking()
+            .Where(x => x.StoryId == storyId && x.Status == ChapterStatus.Published)
+            .OrderBy(x => x.OrderIndex)
+            .Select(x => x.Content)
+            .ToListAsync(cancellationToken);
+
+        return string.Join("\n\n", chapters);
+    }
+
     public async Task<IReadOnlyList<Chapter>> GetByVolumeTrackedAsync(
         long volumeId, CancellationToken cancellationToken = default)
     {

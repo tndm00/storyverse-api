@@ -59,7 +59,7 @@ public sealed class ResponseMetaDto
 {
     public string RequestId { get; init; }
 
-    public string CorrelationId { get; init; }
+    public string CorrelationId { get; init; } = CorrelationContext.CorrelationId;
 
     public string TraceId { get; init; }
 

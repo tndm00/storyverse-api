@@ -106,6 +106,61 @@ public sealed class StoryRepository : IStoryRepository
         return result;
     }
 
+    public async Task<IReadOnlyList<Story>> GetByIdsInOrderAsync(
+        IReadOnlyList<long> storyIds, CancellationToken cancellationToken = default)
+    {
+        if (storyIds.Count == 0)
+        {
+            return Array.Empty<Story>();
+        }
+
+        var stories = await _dbContext.Stories
+            .AsNoTracking()
+            .Include(x => x.Genres).ThenInclude(sg => sg.Genre)
+            .Where(x => storyIds.Contains(x.Id))
+            .ToDictionaryAsync(x => x.Id, cancellationToken);
+
+        return storyIds
+            .Where(stories.ContainsKey)
+            .Select(id => stories[id])
+            .ToArray();
+    }
+
+    public async Task<IReadOnlyList<Story>> GetAllPublicPagedAsync(
+        long afterId, int pageSize, CancellationToken cancellationToken = default)
+    {
+        return await _dbContext.Stories
+            .AsNoTracking()
+            .Where(x => x.Status != StoryStatus.Draft && x.Id > afterId)
+            .OrderBy(x => x.Id)
+            .Include(x => x.Genres).ThenInclude(sg => sg.Genre)
+            .Include(x => x.Tags).ThenInclude(st => st.Tag)
+            .Take(pageSize)
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<IReadOnlyList<long>> GetStoryIdsChangedBetweenAsync(
+        DateTime sinceExclusive, DateTime untilInclusive, int maxResults, CancellationToken cancellationToken = default)
+    {
+        var fromStories = await _dbContext.Stories
+            .AsNoTracking()
+            .Where(x => (x.UpdatedAt ?? x.CreatedAt) > sinceExclusive && (x.UpdatedAt ?? x.CreatedAt) <= untilInclusive)
+            .Select(x => x.Id)
+            .ToListAsync(cancellationToken);
+
+        var fromChapters = await _dbContext.Chapters
+            .AsNoTracking()
+            .Where(x => (x.UpdatedAt ?? x.CreatedAt) > sinceExclusive && (x.UpdatedAt ?? x.CreatedAt) <= untilInclusive)
+            .Select(x => x.StoryId)
+            .Distinct()
+            .ToListAsync(cancellationToken);
+
+        return fromStories
+            .Union(fromChapters)
+            .Take(maxResults)
+            .ToArray();
+    }
+
     private IQueryable<Story> ApplyFilters(IQueryable<Story> query, StorySearchCriteria criteria)
     {
         if (criteria.Status is { } status)

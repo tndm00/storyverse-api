@@ -52,4 +52,11 @@ public static class ApplicationLogConstants
     public const string ChapterReviewNotificationFailed = "Failed to send {NotificationKind} notification for chapter {ChapterId} (author profile {AuthorProfileId}); approve/reject was not affected.";
     public const string ChapterReviewNotificationSkippedGuest = "Chapter {ChapterId} belongs to a guest author; skipped {NotificationKind} notification.";
     public const string ChapterReviewNotificationRecipientUnresolved = "Could not resolve an author user id for chapter {ChapterId} (author profile {AuthorProfileId}); skipped {NotificationKind} notification.";
+
+    public const string StorySearchFallback = "Elasticsearch search failed, falling back to Postgres ILIKE search: {Reason}";
+    public const string StoryReindexCompleted = "Reindexed {StoryCount} stories into Elasticsearch.";
+    public const string StorySearchSyncCompleted = "Background sync: {ChangedStoryCount} changed stories pushed to Elasticsearch.";
+    public const string StorySearchSyncDisabled = "Story search index sync loop is disabled by configuration (StorySearchSync:Enabled=false); not starting.";
+    public const string StorySearchSyncStarting = "Story search index sync loop started; polling every {PollIntervalSeconds}s.";
+    public const string StorySearchSyncFailed = "Story search index sync pass failed; will retry on the next interval.";
 }

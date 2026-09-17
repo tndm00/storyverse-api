@@ -4,10 +4,17 @@ public sealed class GetStoriesQueryHandler
     : IQueryHandler<GetStoriesQuery, PagedResponseDto<StorySummaryResponseDto>>
 {
     private readonly IStoryRepository _storyRepository;
+    private readonly IStorySearchService _storySearchService;
+    private readonly ILogger<GetStoriesQueryHandler> _logger;
 
-    public GetStoriesQueryHandler(IStoryRepository storyRepository)
+    public GetStoriesQueryHandler(
+        IStoryRepository storyRepository,
+        IStorySearchService storySearchService,
+        ILogger<GetStoriesQueryHandler> logger)
     {
         _storyRepository = storyRepository;
+        _storySearchService = storySearchService;
+        _logger = logger;
     }
 
     public async Task<PagedResponseDto<StorySummaryResponseDto>> Handle(
@@ -34,7 +41,7 @@ public sealed class GetStoriesQueryHandler
             PageSize = pageSize
         };
 
-        var (items, totalCount) = await _storyRepository.SearchPublishedAsync(criteria, cancellationToken);
+        var (items, totalCount) = await SearchAsync(criteria, cancellationToken);
 
         var commentCounts = await _storyRepository.GetCommentCountsAsync(
             items.Select(x => x.Id), cancellationToken) ?? new Dictionary<long, int>();
@@ -50,6 +57,35 @@ public sealed class GetStoriesQueryHandler
             .ToArray();
 
         return PagedResponseDto<StorySummaryResponseDto>.Create(summaries, pageNumber, pageSize, totalCount);
+    }
+
+    /// <summary>
+    /// Routes keyword search through Elasticsearch when available; otherwise
+    /// (no keyword, ES disabled/not yet cut over, or an ES failure) falls back
+    /// to the existing Postgres ILIKE path unchanged. See the Elasticsearch
+    /// rollout plan for the staged Enabled/SearchReadEnabled cutover.
+    /// </summary>
+    private async Task<(IReadOnlyList<Story> Items, int TotalCount)> SearchAsync(
+        StorySearchCriteria criteria, CancellationToken cancellationToken)
+    {
+        if (!string.IsNullOrWhiteSpace(criteria.Keyword))
+        {
+            try
+            {
+                var (storyIds, totalCount) = await _storySearchService.SearchAsync(criteria, cancellationToken);
+                if (storyIds.Count > 0 || totalCount > 0)
+                {
+                    var items = await _storyRepository.GetByIdsInOrderAsync(storyIds, cancellationToken);
+                    return (items, totalCount);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ApplicationLogConstants.StorySearchFallback, ex.Message);
+            }
+        }
+
+        return await _storyRepository.SearchPublishedAsync(criteria, cancellationToken);
     }
 
     private static string NormalizeSlug(string value)

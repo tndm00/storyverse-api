@@ -26,6 +26,13 @@ public interface IChapterRepository
 
     Task<bool> StoryHasPublishedChapterAsync(long storyId, CancellationToken cancellationToken = default);
 
+    /// <summary>
+    /// Concatenated <see cref="Chapter.Content"/> of a story's Published chapters,
+    /// in reading order, for building the Elasticsearch search document. Empty
+    /// string when the story has no published chapters yet.
+    /// </summary>
+    Task<string> GetPublishedContentByStoryIdAsync(long storyId, CancellationToken cancellationToken = default);
+
     /// <summary>A volume's non-removed chapters as change-tracked entities, for a bulk reorder.</summary>
     Task<IReadOnlyList<Chapter>> GetByVolumeTrackedAsync(long volumeId, CancellationToken cancellationToken = default);
 

@@ -18,6 +18,7 @@ public static class InfrastructureConstants
     public const string TagsTableName = "tags";
     public const string StoryGenresTableName = "story_genres";
     public const string StoryTagsTableName = "story_tags";
+    public const string SearchSyncCursorTableName = "search_sync_cursor";
 
     /// <summary>
     /// Fallback JWT subject claim name, used when the inbound claim was not

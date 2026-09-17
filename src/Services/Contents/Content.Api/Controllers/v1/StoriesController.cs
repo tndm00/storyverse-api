@@ -95,6 +95,22 @@ public sealed class StoriesController : ControllerBase
         return Ok(ResponseDto<StoryStatusCountsResponseDto>.Ok(result));
     }
 
+    /// <summary>
+    /// One-time/backfill: indexes every non-Draft story into Elasticsearch. Run
+    /// once after the elasticsearch container is confirmed healthy, before
+    /// flipping <c>Elasticsearch:SearchReadEnabled</c> on — see the
+    /// Elasticsearch/Kibana rollout plan.
+    /// </summary>
+    [HasPermission(StoryVersePermissions.Content.Moderate)]
+    [HttpPost(ControllerRouteConstants.StoryAdminReindexSearchSegment)]
+    [ProducesResponseType(typeof(ResponseDto<ReindexAllStoriesResultDto>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> ReindexSearch(CancellationToken cancellationToken)
+    {
+        var result = await _mediator.Send(new ReindexAllStoriesCommand(), cancellationToken);
+
+        return Ok(ResponseDto<ReindexAllStoriesResultDto>.Ok(result));
+    }
+
     /// <summary>The signed-in author's own stories, Draft included.</summary>
     [Authorize]
     [HttpGet(ControllerRouteConstants.StoryMineSegment)]

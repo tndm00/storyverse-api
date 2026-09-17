@@ -8,8 +8,14 @@ builder.Services.AddApiServices(builder.Configuration);
 
 var app = builder.Build();
 
-// Global exception handling must run first so every downstream failure is
-// converted into the standard ResponseDto<T> error envelope.
+// Correlation ID must wrap exception handling (registered first, so its
+// BeginScope stays active until the request truly finishes) or the logger
+// scope would already be popped by the time an unhandled exception is
+// logged further down the pipeline.
+app.UseStoryVerseCorrelationId();
+
+// Global exception handling so every downstream failure is converted into
+// the standard ResponseDto<T> error envelope.
 app.UseStoryVerseExceptionHandling();
 
 if (app.Environment.IsDevelopment())

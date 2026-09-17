@@ -15,6 +15,13 @@
 # See deploy/README.md for the per-service Dockerfile + migrate contract this
 # reuses unchanged (originally written for Cloud Run; both listen on $PORT /
 # take DB_ENV_VAR+DB_CONNECTION, neither is Cloud Run-specific).
+#
+# One-time before first `up` (Kibana has no built-in auth — this file gates
+# it via nginx basic auth, see deploy/nginx.conf). Gitignored; regenerate per
+# deploy, never commit the real credentials:
+#   htpasswd -c deploy/kibana.htpasswd admin
+#   (or without the htpasswd binary: openssl passwd -apr1 '<password>' and
+#   hand-write "admin:<hash>" into deploy/kibana.htpasswd)
 
 services:
   postgres:
@@ -76,6 +83,10 @@ services:
       GcpSettings__AuthSettings__Audiences__1: StoryVerse.Mobile
       GcpSettings__AuthSettings__SecretKey: ${JWT_SECRET_KEY}
       Cors__AllowedOrigins__0: ${FRONTEND_ORIGIN}
+      Elasticsearch__Url: ${ELASTICSEARCH_URL}
+      Elasticsearch__IndexName: ${ELASTICSEARCH_STORIES_INDEX}
+      Elasticsearch__Enabled: ${ELASTICSEARCH_SEARCH_ENABLED}
+      Elasticsearch__SearchReadEnabled: ${ELASTICSEARCH_SEARCH_READ_ENABLED}
     networks: [storyverse]
 
   community-api:
@@ -177,6 +188,7 @@ services:
       - "80:80"
     volumes:
       - ./deploy/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./deploy/kibana.htpasswd:/etc/nginx/kibana.htpasswd:ro
     depends_on:
       - authentication-api
       - content-api
@@ -184,6 +196,66 @@ services:
       - library-api
       - moderation-api
       - notification-api
+      - kibana
+    networks: [storyverse]
+
+  # Story search + centralized service logs. Single-node, no auth
+  # (xpack.security.enabled=false) since it's only reachable on the internal
+  # `storyverse` network — never publish 9200 to the host or Cloudflare.
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.15.3
+    container_name: storyverse-elasticsearch
+    restart: unless-stopped
+    environment:
+      - node.name=es01
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - xpack.security.http.ssl.enabled=false
+      - ES_JAVA_OPTS=-Xms512m -Xmx512m
+      - bootstrap.memory_lock=true
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    mem_limit: 1200m
+    volumes:
+      - storyverse-esdata:/usr/share/elasticsearch/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:9200/_cluster/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+    networks: [storyverse]
+
+  # Kibana UI — exposed only via the `edge` nginx route with basic auth, see
+  # deploy/nginx.conf. Never publish 5601 to the host directly.
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.15.3
+    container_name: storyverse-kibana
+    restart: unless-stopped
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+    mem_limit: 700m
+    networks: [storyverse]
+
+  # Ships all 6 services' container logs (Docker's default json-file driver)
+  # into Elasticsearch. No app-code changes required for this to work.
+  filebeat:
+    image: docker.elastic.co/beats/filebeat:8.15.3
+    container_name: storyverse-filebeat
+    restart: unless-stopped
+    user: root
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    volumes:
+      - ./deploy/filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    mem_limit: 200m
     networks: [storyverse]
 
   # One-shot migration runners. Not started by `up`; run explicitly:
@@ -283,3 +355,4 @@ networks:
 
 volumes:
   storyverse-pgdata:
+  storyverse-esdata:
