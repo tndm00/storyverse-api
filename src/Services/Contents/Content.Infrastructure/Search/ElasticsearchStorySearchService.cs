@@ -113,18 +113,26 @@ public sealed class ElasticsearchStorySearchService : IStorySearchService
             }
         };
 
+        // Status/genreSlugs/tagSlugs are dynamically mapped as analyzed "text" with
+        // an unanalyzed ".keyword" sub-field (see storyverse-stories mapping) — a
+        // TermQuery against the bare field name compares against lowercased,
+        // tokenized text and would never match an exact value like "Ongoing", so
+        // every filter here must target the ".keyword" sub-field instead.
         // Status filter always applies; genre/tag/author filters are added only when
         // the caller actually supplied them.
-        var filter = new List<Query> { new TermQuery("status") { Value = (criteria.Status ?? StoryStatus.Ongoing).ToString() } };
+        var filter = new List<Query>
+        {
+            new TermQuery("status.keyword") { Value = (criteria.Status ?? StoryStatus.Ongoing).ToString() }
+        };
 
         if (!string.IsNullOrEmpty(criteria.GenreSlug))
         {
-            filter.Add(new TermQuery("genreSlugs") { Value = criteria.GenreSlug });
+            filter.Add(new TermQuery("genreSlugs.keyword") { Value = criteria.GenreSlug });
         }
 
         if (!string.IsNullOrEmpty(criteria.TagSlug))
         {
-            filter.Add(new TermQuery("tagSlugs") { Value = criteria.TagSlug });
+            filter.Add(new TermQuery("tagSlugs.keyword") { Value = criteria.TagSlug });
         }
 
         if (criteria.AuthorProfileId is { } authorProfileId)
