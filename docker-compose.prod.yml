@@ -87,6 +87,7 @@ services:
       Elasticsearch__IndexName: ${ELASTICSEARCH_STORIES_INDEX}
       Elasticsearch__Enabled: ${ELASTICSEARCH_SEARCH_ENABLED}
       Elasticsearch__SearchReadEnabled: ${ELASTICSEARCH_SEARCH_READ_ENABLED}
+      StorySearchSync__PollIntervalSeconds: ${STORY_SEARCH_SYNC_POLL_SECONDS:-60}
     networks: [storyverse]
 
   community-api:

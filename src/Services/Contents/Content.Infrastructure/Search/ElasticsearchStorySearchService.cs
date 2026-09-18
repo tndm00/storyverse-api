@@ -192,8 +192,21 @@ public sealed class ElasticsearchStorySearchService : IStorySearchService
     /// Builds the Elasticsearch sort clause matching the requested <see cref="StorySearchCriteria.SortBy"/>
     /// field and direction, defaulting to <c>publishedAt</c> for unrecognized values.
     /// </summary>
+    /// <summary>
+    /// A keyword search ranks by relevance (<c>_score</c>) — the frontend always
+    /// sends a concrete SortBy (defaulting to PublishedAt) whether or not the user
+    /// actually picked one, so there is no way to tell "explicit newest-first" apart
+    /// from "just typed a keyword" from criteria alone. Ranking by match quality is
+    /// what makes full-text search useful, so it wins whenever a keyword is present;
+    /// the requested SortBy still applies to plain browsing with no keyword.
+    /// </summary>
     private static Action<SortOptionsDescriptor<StoryDocument>> BuildSort(StorySearchCriteria criteria)
     {
+        if (!string.IsNullOrWhiteSpace(criteria.Keyword))
+        {
+            return sort => sort.Score(s => s.Order(SortOrder.Desc));
+        }
+
         return sort =>
         {
             var order = criteria.Descending ? SortOrder.Desc : SortOrder.Asc;
