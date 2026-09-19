@@ -1,3 +1,4 @@
+using Be.StoryVerse.Cache.ViewTracking;
 using Content.Application.Commands.Stories.FlushViewCounts;
 using Content.Application.Interfaces.Persistence;
 using Content.Application.Interfaces.Repositories;

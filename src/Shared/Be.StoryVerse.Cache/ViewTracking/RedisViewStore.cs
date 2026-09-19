@@ -1,4 +1,4 @@
-namespace Content.Infrastructure.ViewTracking;
+namespace Be.StoryVerse.Cache.ViewTracking;
 
 /// <summary>
 /// Redis-backed view tracking. One class implements the three views of the same data:
@@ -8,31 +8,28 @@ namespace Content.Infrastructure.ViewTracking;
 /// <item><see cref="IViewStatsReader"/> — the admin's daily totals and top stories.</item>
 /// </list>
 /// Recording never throws: if Redis is disabled or misbehaves the view is counted with a direct
-/// Postgres increment instead, so no view is lost and reading a chapter never fails because of Redis.
+/// database increment (<see cref="IViewCountFallback"/>) instead, so no view is lost and reading a chapter never fails because of Redis.
 /// </summary>
 public sealed class RedisViewStore : IViewTracker, IViewCountBuffer, IViewStatsReader
 {
     private readonly Lazy<IConnectionMultiplexer> _redis;
     private readonly RedisOptions _options;
-    private readonly IStoryRepository _storyRepository;
-    private readonly IChapterRepository _chapterRepository;
+    private readonly IViewCountFallback _fallback;
     private readonly ILogger<RedisViewStore> _logger;
 
     public RedisViewStore(
         Lazy<IConnectionMultiplexer> redis,
         IOptions<RedisOptions> options,
-        IStoryRepository storyRepository,
-        IChapterRepository chapterRepository,
+        IViewCountFallback fallback,
         ILogger<RedisViewStore> logger)
     {
         _redis = redis;
         _options = options.Value;
-        _storyRepository = storyRepository;
-        _chapterRepository = chapterRepository;
+        _fallback = fallback;
         _logger = logger;
     }
 
-    /// <summary>Counts a story-page view in Redis, or directly in Postgres when Redis is off/failing.</summary>
+    /// <summary>Counts a story-page view in Redis, or through the fallback (direct database increment) when Redis is off/failing.</summary>
     public async Task RecordStoryViewAsync(long storyId, CancellationToken cancellationToken = default)
     {
         if (_options.Enabled)
@@ -44,15 +41,15 @@ public sealed class RedisViewStore : IViewTracker, IViewCountBuffer, IViewStatsR
             }
             catch (Exception ex) when (ex is not OperationCanceledException)
             {
-                // Redis trouble must never break reading: count the view the old way instead.
-                _logger.LogWarning(ex, InfrastructureLogConstants.ViewRecordFallback, "story", storyId);
+                // Redis trouble must never break reading: count the view through the fallback instead.
+                _logger.LogWarning(ex, CacheLogConstants.ViewRecordFallback, "story", storyId);
             }
         }
 
-        await _storyRepository.IncrementViewCountAsync(storyId, cancellationToken);
+        await _fallback.IncrementStoryAsync(storyId, cancellationToken);
     }
 
-    /// <summary>Counts a chapter read (and its parent story's view) in Redis, or directly in Postgres when Redis is off/failing.</summary>
+    /// <summary>Counts a chapter read (and its parent story's view) in Redis, or through the fallback (direct database increment) when Redis is off/failing.</summary>
     public async Task RecordChapterViewAsync(long chapterId, long storyId, CancellationToken cancellationToken = default)
     {
         if (_options.Enabled)
@@ -64,11 +61,11 @@ public sealed class RedisViewStore : IViewTracker, IViewCountBuffer, IViewStatsR
             }
             catch (Exception ex) when (ex is not OperationCanceledException)
             {
-                _logger.LogWarning(ex, InfrastructureLogConstants.ViewRecordFallback, "chapter", chapterId);
+                _logger.LogWarning(ex, CacheLogConstants.ViewRecordFallback, "chapter", chapterId);
             }
         }
 
-        await _chapterRepository.IncrementViewCountAsync(chapterId, storyId, cancellationToken);
+        await _fallback.IncrementChapterAsync(chapterId, storyId, cancellationToken);
     }
 
     /// <summary>
@@ -191,7 +188,7 @@ public sealed class RedisViewStore : IViewTracker, IViewCountBuffer, IViewStatsR
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
-            _logger.LogWarning(ex, InfrastructureLogConstants.ViewStatsReadFailed);
+            _logger.LogWarning(ex, CacheLogConstants.ViewStatsReadFailed);
             return new ViewStatsSnapshot { IsAvailable = false };
         }
     }

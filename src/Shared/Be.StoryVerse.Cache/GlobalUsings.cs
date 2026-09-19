@@ -1,6 +1,16 @@
 global using System;
+global using System.Collections.Generic;
+global using System.Globalization;
+global using System.Linq;
 global using System.Threading;
 global using System.Threading.Tasks;
+global using Be.StoryVerse.Cache.Configurations;
+global using Be.StoryVerse.Cache.Constants;
 global using Be.StoryVerse.Cache.Interfaces;
+global using Be.StoryVerse.Cache.ViewTracking;
 global using MediatR;
+global using Microsoft.Extensions.Configuration;
+global using Microsoft.Extensions.DependencyInjection;
 global using Microsoft.Extensions.Logging;
+global using Microsoft.Extensions.Options;
+global using StackExchange.Redis;

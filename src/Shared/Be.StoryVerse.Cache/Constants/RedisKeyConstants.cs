@@ -1,4 +1,4 @@
-namespace Content.Infrastructure.Constants;
+namespace Be.StoryVerse.Cache.Constants;
 
 /// <summary>
 /// Redis key names and formats for view tracking. Every key is namespaced with
@@ -6,7 +6,7 @@ namespace Content.Infrastructure.Constants;
 /// </summary>
 public static class RedisKeyConstants
 {
-    public const string Prefix = "storyverse:";
+    public const string Prefix = RedisConstants.KeyPrefix;
 
     /// <summary>HASH storyId -&gt; views not yet added to Postgres (HINCRBY on every view).</summary>
     public const string PendingStoryViews = Prefix + "views:pending:story";

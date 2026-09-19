@@ -1,4 +1,4 @@
-using Content.Application.Policies;
+using Be.StoryVerse.Cache.ViewTracking;
 using FluentAssertions;
 using Xunit;
 

@@ -1,8 +1,8 @@
-namespace Content.Application.Policies;
+namespace Be.StoryVerse.Cache.ViewTracking;
 
 /// <summary>
 /// Defines the business day used by view statistics. A day is a Vietnam calendar day
-/// (UTC+7, <see cref="ApplicationConstants.ViewStatsUtcOffsetHours"/>), so "today" and
+/// (UTC+7, <see cref="RedisConstants.ViewStatsUtcOffsetHours"/>), so "today" and
 /// "yesterday" match what the admin sees on their own clock rather than UTC boundaries.
 /// </summary>
 public static class ViewStatsDay
@@ -12,6 +12,6 @@ public static class ViewStatsDay
     public static DateOnly Of(DateTime utcNow)
     {
         // Shift the instant into the business time zone, then keep only its calendar date.
-        return DateOnly.FromDateTime(utcNow.AddHours(ApplicationConstants.ViewStatsUtcOffsetHours));
+        return DateOnly.FromDateTime(utcNow.AddHours(RedisConstants.ViewStatsUtcOffsetHours));
     }
 }

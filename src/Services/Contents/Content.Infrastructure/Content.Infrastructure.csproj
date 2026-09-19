@@ -21,12 +21,12 @@
     <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="8.0.0" />
     <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.1.2" />
     <PackageReference Include="Elastic.Clients.Elasticsearch" Version="8.15.3" />
-    <PackageReference Include="StackExchange.Redis" Version="2.7.33" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Content.Application\Content.Application.csproj" />
     <ProjectReference Include="..\Content.Domain\Content.Domain.csproj" />
+    <ProjectReference Include="..\..\..\Shared\Be.StoryVerse.Cache\Be.StoryVerse.Cache.csproj" />
   </ItemGroup>
 
 </Project>

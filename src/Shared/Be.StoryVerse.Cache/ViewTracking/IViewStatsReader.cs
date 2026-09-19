@@ -1,4 +1,4 @@
-namespace Content.Application.Interfaces.Services;
+namespace Be.StoryVerse.Cache.ViewTracking;
 
 /// <summary>One entry of the "most viewed today" ranking.</summary>
 public sealed class TopStoryViews

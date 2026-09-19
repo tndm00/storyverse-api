@@ -1,4 +1,4 @@
-namespace Content.Application.Interfaces.Services;
+namespace Be.StoryVerse.Cache.ViewTracking;
 
 /// <summary>
 /// The view counts buffered in Redis that have not yet been added to the Postgres

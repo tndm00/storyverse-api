@@ -1,4 +1,4 @@
-namespace Content.Application.Interfaces.Services;
+namespace Be.StoryVerse.Cache.ViewTracking;
 
 /// <summary>
 /// Records reader views on the read path. Implemented over Redis (a fast in-memory

@@ -18,6 +18,7 @@ global using Content.Application.Policies;
 global using Content.Application.Text;
 global using Content.Domain.Entities;
 global using Content.Domain.Enums;
+global using Be.StoryVerse.Cache.ViewTracking;
 global using Be.StoryVerse.Core.Behaviors;
 global using Be.StoryVerse.Core.Exceptions;
 global using Be.StoryVerse.Core.Extensions.Validations;

@@ -1,3 +1,4 @@
+using Be.StoryVerse.Cache.ViewTracking;
 using Be.StoryVerse.Core.Exceptions;
 using Content.Application.Interfaces.Repositories;
 using Content.Application.Interfaces.Services;

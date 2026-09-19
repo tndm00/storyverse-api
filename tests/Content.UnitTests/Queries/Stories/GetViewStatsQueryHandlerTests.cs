@@ -1,3 +1,4 @@
+using Be.StoryVerse.Cache.ViewTracking;
 using Content.Application.Interfaces.Repositories;
 using Content.Application.Interfaces.Services;
 using Content.Application.Queries.Stories.GetViewStats;

@@ -52,28 +52,11 @@ public static class ServiceRegistration
 
         // View tracking: Redis buffers/aggregates views, a background job flushes them to Postgres.
         // Redis:Enabled=false makes RedisViewStore a straight pass-through to the old direct increments.
-        services.Configure<RedisOptions>(configuration.GetSection(RedisOptions.SectionName));
+        // The shared Redis options + lazy connection live in Be.StoryVerse.Cache.
+        services.AddRedisConnection(configuration);
 
-        // Lazy so no connection is even attempted while Redis is disabled.
-        services.AddSingleton(sp => new Lazy<IConnectionMultiplexer>(() =>
-        {
-            var options = sp.GetRequiredService<IOptions<RedisOptions>>().Value;
-            var redisConfiguration = ConfigurationOptions.Parse(options.ConnectionString);
-
-            // Never crash startup because Redis is down; fail commands fast instead of queueing them.
-            redisConfiguration.AbortOnConnectFail = false;
-            redisConfiguration.BacklogPolicy = BacklogPolicy.FailFast;
-            redisConfiguration.ConnectTimeout = options.CommandTimeoutMs;
-            redisConfiguration.SyncTimeout = options.CommandTimeoutMs;
-            redisConfiguration.AsyncTimeout = options.CommandTimeoutMs;
-
-            return ConnectionMultiplexer.Connect(redisConfiguration);
-        }));
-
-        services.AddScoped<RedisViewStore>();
-        services.AddScoped<IViewTracker>(sp => sp.GetRequiredService<RedisViewStore>());
-        services.AddScoped<IViewCountBuffer>(sp => sp.GetRequiredService<RedisViewStore>());
-        services.AddScoped<IViewStatsReader>(sp => sp.GetRequiredService<RedisViewStore>());
+        services.AddRedisViewTracking();
+        services.AddScoped<IViewCountFallback, ViewCountFallback>();
 
         // Outbound HTTP to the Notification service (stand-in for an event bus).
         services.Configure<NotificationApiOptions>(configuration.GetSection(NotificationApiOptions.SectionName));
