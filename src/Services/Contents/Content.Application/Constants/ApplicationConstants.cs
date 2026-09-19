@@ -35,6 +35,6 @@ public static class ApplicationConstants
     /// <summary>Spacing between auto-assigned volume order indexes.</summary>
     public const int VolumeOrderIndexGap = 1;
 
-    /// <summary>How many top stories the admin view statistics list.</summary>
-    public const int ViewStatsTopStoriesCount = 5;
+    /// <summary>How many top stories of the day the admin view statistics list.</summary>
+    public const int ViewStatsTopStoriesCount = 10;
 }

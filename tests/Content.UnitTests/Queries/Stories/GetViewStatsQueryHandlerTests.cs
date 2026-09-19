@@ -36,6 +36,18 @@ public class GetViewStatsQueryHandlerTests
     }
 
     [Fact]
+    public async Task Handle_Should_AskForTheTop10StoriesOfTheDay()
+    {
+        _storyRepository.SumViewCountAsync(Arg.Any<CancellationToken>()).Returns(0L);
+        _viewStatsReader.GetSnapshotAsync(Arg.Any<int>(), Arg.Any<CancellationToken>())
+            .Returns(new ViewStatsSnapshot { IsAvailable = true });
+
+        await _handler.Handle(new GetViewStatsQuery(), CancellationToken.None);
+
+        await _viewStatsReader.Received(1).GetSnapshotAsync(10, Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
     public async Task Handle_Should_ReturnNullDailyFigures_When_RedisIsUnavailable()
     {
         _storyRepository.SumViewCountAsync(Arg.Any<CancellationToken>()).Returns(312L);
