@@ -59,4 +59,10 @@ public static class ApplicationLogConstants
     public const string StorySearchSyncDisabled = "Story search index sync loop is disabled by configuration (StorySearchSync:Enabled=false); not starting.";
     public const string StorySearchSyncStarting = "Story search index sync loop started; polling every {PollIntervalSeconds}s.";
     public const string StorySearchSyncFailed = "Story search index sync pass failed; will retry on the next interval.";
+
+    public const string ViewCountFlushCompleted = "View count flush: {StoryCount} stories and {ChapterCount} chapters updated in Postgres.";
+    public const string ViewCountFlushDisabled = "View count flush loop is disabled by configuration (ViewCountFlush:Enabled=false); not starting.";
+    public const string ViewCountFlushStarting = "View count flush loop started; flushing every {FlushIntervalSeconds}s.";
+    public const string ViewCountFlushFailed = "View count flush pass failed; buffered counts are kept and will be retried on the next interval.";
+    public const string ViewCountFinalFlushFailed = "Final view count flush on shutdown failed; buffered counts stay in Redis for the next start.";
 }

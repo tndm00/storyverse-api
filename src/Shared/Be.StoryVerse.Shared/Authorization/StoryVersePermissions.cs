@@ -47,6 +47,12 @@ public static class StoryVersePermissions
         public const string Manage = "users.manage";
     }
 
+    public static class Analytics
+    {
+        /// <summary>See platform-wide traffic statistics (total/daily views, top stories). Granted to PlatformAdmin only.</summary>
+        public const string View = "analytics.view";
+    }
+
     /// <summary>Every permission constant — used to register one policy per permission.</summary>
     public static IReadOnlyCollection<string> All { get; } = new[]
     {
@@ -57,5 +63,6 @@ public static class StoryVersePermissions
         Content.Moderate,
         Community.Moderate,
         Users.Manage,
+        Analytics.View,
     };
 }

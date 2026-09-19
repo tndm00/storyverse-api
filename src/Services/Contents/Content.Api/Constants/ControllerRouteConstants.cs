@@ -22,6 +22,7 @@ public static class ControllerRouteConstants
     public const string StoryAdminCountsSegment = "admin/counts";
     public const string StoryAdminReindexSearchSegment = "admin/reindex-search";
     public const string StoryAdminSearchSyncStatusSegment = "admin/search-sync-status";
+    public const string StoryAdminViewStatsSegment = "admin/view-stats";
     public const string StoryMineSegment = "mine";
 
     public const string StoryByIdSegment = "{storyId:guid}";

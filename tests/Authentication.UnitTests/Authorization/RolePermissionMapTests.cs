@@ -37,6 +37,22 @@ public class RolePermissionMapTests
     }
 
     [Fact]
+    public void PermissionsFor_Should_NotGrantAnalytics_When_RoleIsModerator()
+    {
+        var result = RolePermissionMap.PermissionsFor(new[] { StoryVerseRoles.Moderator });
+
+        result.Should().NotContain(StoryVersePermissions.Analytics.View);
+    }
+
+    [Fact]
+    public void PermissionsFor_Should_GrantAnalytics_When_RoleIsPlatformAdmin()
+    {
+        var result = RolePermissionMap.PermissionsFor(new[] { StoryVerseRoles.PlatformAdmin });
+
+        result.Should().Contain(StoryVersePermissions.Analytics.View);
+    }
+
+    [Fact]
     public void PermissionsFor_Should_ReturnAllPermissions_When_RoleIsPlatformAdmin()
     {
         var result = RolePermissionMap.PermissionsFor(new[] { StoryVerseRoles.PlatformAdmin });

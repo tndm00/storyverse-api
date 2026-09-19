@@ -74,6 +74,11 @@ public static class ServiceRegistration
             configuration.GetSection(Content.Application.Options.StorySearchSyncOptions.SectionName));
         services.AddHostedService<StorySearchIndexSyncBackgroundService>();
 
+        // Background loop that flushes view counts buffered in Redis into Postgres.
+        services.Configure<Content.Application.Options.ViewCountFlushOptions>(
+            configuration.GetSection(Content.Application.Options.ViewCountFlushOptions.SectionName));
+        services.AddHostedService<ViewCountFlushBackgroundService>();
+
         // Dev-only seeders. GenreSeeder must run first — DemoContentSeeder looks
         // its genres up by slug. Hosted services start in registration order.
         services.AddHostedService<GenreSeeder>();

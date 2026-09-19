@@ -6,17 +6,20 @@ public sealed class GetChapterContentQueryHandler : IQueryHandler<GetChapterCont
     private readonly IChapterRepository _chapterRepository;
     private readonly IVolumeRepository _volumeRepository;
     private readonly ICurrentAuthorContext _authorContext;
+    private readonly IViewTracker _viewTracker;
 
     public GetChapterContentQueryHandler(
         IStoryRepository storyRepository,
         IChapterRepository chapterRepository,
         IVolumeRepository volumeRepository,
-        ICurrentAuthorContext authorContext)
+        ICurrentAuthorContext authorContext,
+        IViewTracker viewTracker)
     {
         _storyRepository = storyRepository;
         _chapterRepository = chapterRepository;
         _volumeRepository = volumeRepository;
         _authorContext = authorContext;
+        _viewTracker = viewTracker;
     }
 
     /// <summary>
@@ -49,8 +52,9 @@ public sealed class GetChapterContentQueryHandler : IQueryHandler<GetChapterCont
             // Accepted read-path side effect: a read is a ranking signal and must be
             // tracked independently of any payment concept (product-workflow-context.md 5.4).
             // Bumps the chapter and its parent story. The author's own reads are not counted.
-            // TODO: batch + de-duplicate these increments once traffic warrants it.
-            await _chapterRepository.IncrementViewCountAsync(chapter.Id, story.Id, cancellationToken);
+            // Buffered in Redis and flushed to Postgres in batches (falls back to a direct increment
+            // if Redis is unavailable); de-duplicating repeat views is still an open TODO.
+            await _viewTracker.RecordChapterViewAsync(chapter.Id, story.Id, cancellationToken);
             chapter.ViewCount += 1;
         }
 

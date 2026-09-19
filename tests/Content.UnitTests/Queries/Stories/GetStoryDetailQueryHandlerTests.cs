@@ -14,12 +14,13 @@ public class GetStoryDetailQueryHandlerTests
 {
     private readonly IStoryRepository _storyRepository = Substitute.For<IStoryRepository>();
     private readonly ICurrentAuthorContext _authorContext = Substitute.For<ICurrentAuthorContext>();
+    private readonly IViewTracker _viewTracker = Substitute.For<IViewTracker>();
 
     private readonly GetStoryDetailQueryHandler _handler;
 
     public GetStoryDetailQueryHandlerTests()
     {
-        _handler = new GetStoryDetailQueryHandler(_storyRepository, _authorContext);
+        _handler = new GetStoryDetailQueryHandler(_storyRepository, _authorContext, _viewTracker);
     }
 
     private static Story CreateDraftStory(long authorProfileId, string slug)
@@ -78,7 +79,7 @@ public class GetStoryDetailQueryHandlerTests
         var result = await _handler.Handle(query, CancellationToken.None);
 
         result.Id.Should().Be(story.PublicId);
-        await _storyRepository.DidNotReceive().IncrementViewCountAsync(Arg.Any<long>(), Arg.Any<CancellationToken>());
+        await _viewTracker.DidNotReceive().RecordStoryViewAsync(Arg.Any<long>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -102,7 +103,7 @@ public class GetStoryDetailQueryHandlerTests
 
         var result = await _handler.Handle(query, CancellationToken.None);
 
-        await _storyRepository.Received(1).IncrementViewCountAsync(story.Id, Arg.Any<CancellationToken>());
+        await _viewTracker.Received(1).RecordStoryViewAsync(story.Id, Arg.Any<CancellationToken>());
         result.ViewCount.Should().Be(6);
     }
 
@@ -128,6 +129,6 @@ public class GetStoryDetailQueryHandlerTests
 
         await _handler.Handle(query, CancellationToken.None);
 
-        await _storyRepository.DidNotReceive().IncrementViewCountAsync(Arg.Any<long>(), Arg.Any<CancellationToken>());
+        await _viewTracker.DidNotReceive().RecordStoryViewAsync(Arg.Any<long>(), Arg.Any<CancellationToken>());
     }
 }

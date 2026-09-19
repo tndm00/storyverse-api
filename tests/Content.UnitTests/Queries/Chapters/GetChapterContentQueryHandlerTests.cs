@@ -16,13 +16,14 @@ public class GetChapterContentQueryHandlerTests
     private readonly IChapterRepository _chapterRepository = Substitute.For<IChapterRepository>();
     private readonly IVolumeRepository _volumeRepository = Substitute.For<IVolumeRepository>();
     private readonly ICurrentAuthorContext _authorContext = Substitute.For<ICurrentAuthorContext>();
+    private readonly IViewTracker _viewTracker = Substitute.For<IViewTracker>();
 
     private readonly GetChapterContentQueryHandler _handler;
 
     public GetChapterContentQueryHandlerTests()
     {
         _handler = new GetChapterContentQueryHandler(
-            _storyRepository, _chapterRepository, _volumeRepository, _authorContext);
+            _storyRepository, _chapterRepository, _volumeRepository, _authorContext, _viewTracker);
     }
 
     [Fact]
@@ -65,7 +66,7 @@ public class GetChapterContentQueryHandlerTests
 
         var result = await _handler.Handle(query, CancellationToken.None);
 
-        await _chapterRepository.Received(1).IncrementViewCountAsync(chapter.Id, story.Id, Arg.Any<CancellationToken>());
+        await _viewTracker.Received(1).RecordChapterViewAsync(chapter.Id, story.Id, Arg.Any<CancellationToken>());
         result.ViewCount.Should().Be(8);
     }
 
@@ -92,8 +93,8 @@ public class GetChapterContentQueryHandlerTests
 
         var result = await _handler.Handle(query, CancellationToken.None);
 
-        await _chapterRepository.DidNotReceive()
-            .IncrementViewCountAsync(Arg.Any<long>(), Arg.Any<long>(), Arg.Any<CancellationToken>());
+        await _viewTracker.DidNotReceive()
+            .RecordChapterViewAsync(Arg.Any<long>(), Arg.Any<long>(), Arg.Any<CancellationToken>());
         result.ViewCount.Should().Be(7);
     }
 }

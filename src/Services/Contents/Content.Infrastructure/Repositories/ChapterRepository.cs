@@ -331,6 +331,22 @@ public sealed class ChapterRepository : IChapterRepository
             .ExecuteUpdateAsync(setters => setters.SetProperty(x => x.ViewCount, x => x.ViewCount + 1), cancellationToken);
     }
 
+    /// <summary>
+    /// Adds each chapter's buffered delta onto its view counter with one atomic UPDATE per chapter
+    /// (<c>ViewCount = ViewCount + delta</c>), so concurrent direct increments are never overwritten.
+    /// </summary>
+    public async Task AddViewCountsAsync(IReadOnlyDictionary<long, long> deltas, CancellationToken cancellationToken = default)
+    {
+        foreach (var (chapterId, delta) in deltas)
+        {
+            var increment = (int)delta;
+
+            await _dbContext.Chapters
+                .Where(x => x.Id == chapterId)
+                .ExecuteUpdateAsync(setters => setters.SetProperty(x => x.ViewCount, x => x.ViewCount + increment), cancellationToken);
+        }
+    }
+
     /// <summary>Persists all pending changes tracked by the context.</summary>
     public Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {

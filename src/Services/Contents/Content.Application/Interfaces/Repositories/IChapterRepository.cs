@@ -106,6 +106,15 @@ public interface IChapterRepository
     /// <summary>Atomic counter bump for a chapter read; also bumps the parent story's view count.</summary>
     Task IncrementViewCountAsync(long chapterId, long storyId, CancellationToken cancellationToken = default);
 
+    /// <summary>
+    /// Adds each chapter's buffered delta onto its <c>ViewCount</c> (atomic <c>ViewCount = ViewCount + delta</c>
+    /// per chapter). Used by the flush job that drains the Redis view buffer; the parent stories are
+    /// updated separately through the story repository.
+    /// </summary>
+    /// <param name="deltas">Chapter id -&gt; number of views to add.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    Task AddViewCountsAsync(IReadOnlyDictionary<long, long> deltas, CancellationToken cancellationToken = default);
+
     /// <summary>Persists all pending changes tracked by this repository's unit of work.</summary>
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

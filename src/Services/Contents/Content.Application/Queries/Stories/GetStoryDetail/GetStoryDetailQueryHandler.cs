@@ -4,11 +4,16 @@ public sealed class GetStoryDetailQueryHandler : IQueryHandler<GetStoryDetailQue
 {
     private readonly IStoryRepository _storyRepository;
     private readonly ICurrentAuthorContext _authorContext;
+    private readonly IViewTracker _viewTracker;
 
-    public GetStoryDetailQueryHandler(IStoryRepository storyRepository, ICurrentAuthorContext authorContext)
+    public GetStoryDetailQueryHandler(
+        IStoryRepository storyRepository,
+        ICurrentAuthorContext authorContext,
+        IViewTracker viewTracker)
     {
         _storyRepository = storyRepository;
         _authorContext = authorContext;
+        _viewTracker = viewTracker;
     }
 
     /// <summary>
@@ -40,8 +45,9 @@ public sealed class GetStoryDetailQueryHandler : IQueryHandler<GetStoryDetailQue
             // Accepted read-path side effect: opening a story is a ranking signal and
             // must be tracked independently of any payment concept
             // (product-workflow-context.md 5.4). The owner's own previews are not reads.
-            // TODO: batch + de-duplicate these increments once traffic warrants it.
-            await _storyRepository.IncrementViewCountAsync(story.Id, cancellationToken);
+            // Buffered in Redis and flushed to Postgres in batches (falls back to a direct increment
+            // if Redis is unavailable); de-duplicating repeat views is still an open TODO.
+            await _viewTracker.RecordStoryViewAsync(story.Id, cancellationToken);
             full.ViewCount += 1;
         }
 

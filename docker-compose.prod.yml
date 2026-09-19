@@ -88,6 +88,8 @@ services:
       Elasticsearch__Enabled: ${ELASTICSEARCH_SEARCH_ENABLED}
       Elasticsearch__SearchReadEnabled: ${ELASTICSEARCH_SEARCH_READ_ENABLED}
       StorySearchSync__PollIntervalSeconds: ${STORY_SEARCH_SYNC_POLL_SECONDS:-60}
+      Redis__Enabled: ${REDIS_ENABLED:-false}
+      Redis__ConnectionString: redis:6379,password=${REDIS_PASSWORD:-}
     networks: [storyverse]
 
   community-api:
@@ -228,6 +230,30 @@ services:
       retries: 20
     networks: [storyverse]
 
+  # Redis — write buffer + daily counters for view tracking (content-api). Internal-only:
+  # no published port, password required. AOF (everysec) survives restarts losing <=1s of
+  # counts; noeviction so a full instance rejects writes (content-api then falls back to
+  # direct Postgres increments) instead of silently evicting counters.
+  redis:
+    image: redis:7-alpine
+    container_name: storyverse-redis
+    restart: unless-stopped
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-}
+    command:
+      - sh
+      - -c
+      - exec redis-server --appendonly yes --appendfsync everysec --maxmemory 100mb --maxmemory-policy noeviction --requirepass "$$REDIS_PASSWORD"
+    mem_limit: 128m
+    volumes:
+      - storyverse-redisdata:/data
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli -a \"$$REDIS_PASSWORD\" --no-auth-warning ping | grep -q PONG"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+    networks: [storyverse]
+
   # Kibana UI — exposed only via the `edge` nginx route with basic auth, see
   # deploy/nginx.conf. Never publish 5601 to the host directly.
   kibana:
@@ -362,3 +388,4 @@ networks:
 volumes:
   storyverse-pgdata:
   storyverse-esdata:
+  storyverse-redisdata:

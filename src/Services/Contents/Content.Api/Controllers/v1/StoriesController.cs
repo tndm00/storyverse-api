@@ -126,6 +126,20 @@ public sealed class StoriesController : ControllerBase
         return Ok(ResponseDto<SearchSyncStatusResponseDto>.Ok(result));
     }
 
+    /// <summary>
+    /// Platform-wide view statistics for the admin: lifetime total, yesterday, today and today's
+    /// top stories. PlatformAdmin only (<c>analytics.view</c>) — moderators are deliberately excluded.
+    /// </summary>
+    [HasPermission(StoryVersePermissions.Analytics.View)]
+    [HttpGet(ControllerRouteConstants.StoryAdminViewStatsSegment)]
+    [ProducesResponseType(typeof(ResponseDto<ViewStatsResponseDto>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetViewStats(CancellationToken cancellationToken)
+    {
+        var result = await _mediator.Send(new GetViewStatsQuery(), cancellationToken);
+
+        return Ok(ResponseDto<ViewStatsResponseDto>.Ok(result));
+    }
+
     /// <summary>The signed-in author's own stories, Draft included.</summary>
     [Authorize]
     [HttpGet(ControllerRouteConstants.StoryMineSegment)]

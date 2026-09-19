@@ -4,11 +4,16 @@ public sealed class GetStoryByIdQueryHandler : IQueryHandler<GetStoryByIdQuery, 
 {
     private readonly IStoryRepository _storyRepository;
     private readonly ICurrentAuthorContext _authorContext;
+    private readonly IViewTracker _viewTracker;
 
-    public GetStoryByIdQueryHandler(IStoryRepository storyRepository, ICurrentAuthorContext authorContext)
+    public GetStoryByIdQueryHandler(
+        IStoryRepository storyRepository,
+        ICurrentAuthorContext authorContext,
+        IViewTracker viewTracker)
     {
         _storyRepository = storyRepository;
         _authorContext = authorContext;
+        _viewTracker = viewTracker;
     }
 
     /// <summary>
@@ -42,7 +47,7 @@ public sealed class GetStoryByIdQueryHandler : IQueryHandler<GetStoryByIdQuery, 
         // A read is a ranking signal; count it only for non-owner, non-privileged reads of a published story.
         if (story.Status != StoryStatus.Draft && !isOwner && !isPrivileged)
         {
-            await _storyRepository.IncrementViewCountAsync(story.Id, cancellationToken);
+            await _viewTracker.RecordStoryViewAsync(story.Id, cancellationToken);
             full.ViewCount += 1;
         }
 

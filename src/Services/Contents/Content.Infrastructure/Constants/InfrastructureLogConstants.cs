@@ -11,4 +11,8 @@ public static class InfrastructureLogConstants
     public const string SearchDeleteFailed = "Failed to delete story {StoryId} from Elasticsearch";
 
     public const string SearchCountFailed = "Failed to get document count from Elasticsearch";
+
+    public const string ViewRecordFallback = "Redis view tracking failed for {Target} {TargetId}; falling back to a direct Postgres increment.";
+
+    public const string ViewStatsReadFailed = "Failed to read view statistics from Redis; daily figures are unavailable.";
 }

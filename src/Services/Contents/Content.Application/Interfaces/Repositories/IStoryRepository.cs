@@ -105,6 +105,17 @@ public interface IStoryRepository
     /// <summary>Atomic <c>view_count = view_count + 1</c> for one story; used on the read path.</summary>
     Task IncrementViewCountAsync(long storyId, CancellationToken cancellationToken = default);
 
+    /// <summary>
+    /// Adds each story's buffered delta onto its <c>ViewCount</c> (atomic <c>ViewCount = ViewCount + delta</c>
+    /// per story). Used by the flush job that drains the Redis view buffer.
+    /// </summary>
+    /// <param name="deltas">Story id -&gt; number of views to add.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    Task AddViewCountsAsync(IReadOnlyDictionary<long, long> deltas, CancellationToken cancellationToken = default);
+
+    /// <summary>Lifetime views across every story (sum of the <c>ViewCount</c> column).</summary>
+    Task<long> SumViewCountAsync(CancellationToken cancellationToken = default);
+
     /// <summary>Story id -&gt; sum of its chapters' <see cref="Content.Domain.Entities.Chapter.CommentCount"/>. Stories with no comments are omitted.</summary>
     Task<IReadOnlyDictionary<long, int>> GetCommentCountsAsync(
         IEnumerable<long> storyIds, CancellationToken cancellationToken = default);

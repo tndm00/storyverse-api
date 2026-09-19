@@ -294,6 +294,30 @@ public sealed class StoryRepository : IStoryRepository
             .ExecuteUpdateAsync(setters => setters.SetProperty(x => x.ViewCount, x => x.ViewCount + 1), cancellationToken);
     }
 
+    /// <summary>
+    /// Adds each story's buffered delta onto its view counter with one atomic UPDATE per story
+    /// (<c>ViewCount = ViewCount + delta</c>), so concurrent direct increments are never overwritten.
+    /// </summary>
+    public async Task AddViewCountsAsync(IReadOnlyDictionary<long, long> deltas, CancellationToken cancellationToken = default)
+    {
+        foreach (var (storyId, delta) in deltas)
+        {
+            var increment = (int)delta;
+
+            await _dbContext.Stories
+                .Where(x => x.Id == storyId)
+                .ExecuteUpdateAsync(setters => setters.SetProperty(x => x.ViewCount, x => x.ViewCount + increment), cancellationToken);
+        }
+    }
+
+    /// <summary>Sums the view counter over every story (no rows loaded; the sum runs in the database).</summary>
+    public async Task<long> SumViewCountAsync(CancellationToken cancellationToken = default)
+    {
+        return await _dbContext.Stories
+            .AsNoTracking()
+            .SumAsync(x => (long)x.ViewCount, cancellationToken);
+    }
+
     /// <summary>Persists all pending changes tracked by the context.</summary>
     public Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {

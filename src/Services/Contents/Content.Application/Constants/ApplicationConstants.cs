@@ -34,4 +34,14 @@ public static class ApplicationConstants
 
     /// <summary>Spacing between auto-assigned volume order indexes.</summary>
     public const int VolumeOrderIndexGap = 1;
+
+    /// <summary>
+    /// Offset from UTC that defines the business day for view statistics (Vietnam, UTC+7).
+    /// Fixed rather than a TimeZoneInfo lookup: Vietnam has no DST, and this avoids the
+    /// Windows vs Linux time-zone id difference.
+    /// </summary>
+    public const int ViewStatsUtcOffsetHours = 7;
+
+    /// <summary>How many top stories the admin view statistics list.</summary>
+    public const int ViewStatsTopStoriesCount = 5;
 }
